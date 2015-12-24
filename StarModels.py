@@ -77,9 +77,9 @@ class Star:
         starAverageDensity = self.star.mass / starVolume
         relaxationTime = 1.0 / (constants.G*starAverageDensity).sqrt() # dynamical time
         print sphStar.gas_particles
-        #return RelaxModel.Run(self.star.mass + self.coreMass, self.envelopeRadius, [sphStar.gas_particles],
-        #                        [sphStar.core_particle], relaxationTime.as_quantity_in(units.yr), self.relaxationTimeSteps)
-        return sphStar
+        return RelaxModel.Run(self.star.mass + self.coreMass, self.envelopeRadius, [sphStar.gas_particles],
+                                [sphStar.core_particle], relaxationTime.as_quantity_in(units.yr), self.relaxationTimeSteps)
+        #return sphStar
 
 
 def CreateBinary(configurationFile="", configurationSection="", binaryMasses = [1.0 | units.MSun, 1.0 | units.MSun],

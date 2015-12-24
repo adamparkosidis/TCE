@@ -38,8 +38,8 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime=10000 | units.
         parts.add_particle(evolutionCode.dm_particles)
         evolutionCode.gas_particles.position += centerOfMassRadius - parts.center_of_mass() 
         evolutionCode.dm_particles.position += centerOfMassRadius - parts.center_of_mass() 
-        evolutionCode.gas_particles.velocity = f * (evolutionCode.gas_particles.velocity - parts.center_of_mass_velocity()) + center_of_mass_velocity() 
-        evolutionCode.dm_particles.velocity = f * (evolutionCode.dm_particles.velocity - parts.center_of_mass_velocity()) + center_of_mass_velocity() 
+        evolutionCode.gas_particles.velocity = f * (evolutionCode.gas_particles.velocity - parts.center_of_mass_velocity()) + centerOfMassV 
+        evolutionCode.dm_particles.velocity = f * (evolutionCode.dm_particles.velocity - parts.center_of_mass_velocity()) + centerOfMassV 
         
     # TODO: should I change the center of mass?
     gas = evolutionCode.gas_particles

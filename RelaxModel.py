@@ -42,7 +42,7 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime=10000 | units.
         evolutionCode.dm_particles.velocity = f * (evolutionCode.dm_particles.velocity - parts.center_of_mass_velocity()) + centerOfMassV 
         
     # TODO: should I change the center of mass?
-    gas = evolutionCode.gas_particles
-    dm = evolutionCode.dm_particles
+    relaxedModel.gas_particles = evolutionCode.gas_particles
+    relaxedModel.dm_particles = evolutionCode.dm_particles
     evolutionCode.stop()
-    return [gas, dm]
+    return relaxedModel

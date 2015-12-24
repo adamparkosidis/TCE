@@ -80,7 +80,7 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
         x.append(evolutionCode.particles.x)
         y.append(evolutionCode.particles.y)
         z.append(evolutionCode.particles.z)
-    native_plot.show()
+    #native_plot.show()
     x=x.value_in(units.AU)
     y=y.value_in(units.AU)
     pyplot.figure(figsize= (20, 20), dpi= 80)

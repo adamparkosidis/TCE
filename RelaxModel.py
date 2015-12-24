@@ -15,7 +15,11 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime=10000 | units.
         evolutionCode.gas_particles.add_particles(gasParticle)
     for dmParticle in dmParticles:
         evolutionCode.dm_particles.add_particle(dmParticle)
-
+    
+    parts = evolutionCode.gas_particles.copy()
+    centerOfMassRadius = parts.center_of_mass()
+    centerOfMassV = parts.center_of_mass_velocity()
+        
     print "starting SPH relaxation"
     native_plot.figure(figsize=(10, 10), dpi=60)
     timeStep = endTime / timeSteps
@@ -29,6 +33,14 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime=10000 | units.
         sph_particles_plot(parts)
         # native_plot.show()
         #native_plot._imsave(string.format("relax_{0}", currentTime))
+        
+        f = ((currentTime/timeStep) * 1.0)/timeSteps
+        parts.add_particle(evolutionCode.dm_particles)
+        evolutionCode.gas_particles.position += centerOfMassRadius - parts.center_of_mass() 
+        evolutionCode.dm_particles.position += centerOfMassRadius - parts.center_of_mass() 
+        evolutionCode.gas_particles.velocity = f * (evolutionCode.gas_particles.velocity - parts.center_of_mass_velocity()) + center_of_mass_velocity() 
+        evolutionCode.dm_particles.velocity = f * (evolutionCode.dm_particles.velocity - parts.center_of_mass_velocity()) + center_of_mass_velocity() 
+        
     # TODO: should I change the center of mass?
     gas = evolutionCode.gas_particles
     dm = evolutionCode.dm_particles

@@ -4,6 +4,10 @@ from amuse.units.units import *
 from amuse.ext.blender import blender
 from amuse.plot import plot, native_plot, sph_particles_plot
 
+class RelaxedModel:
+    def __init__(gas_particles,dm_particles):
+        self.gas_particles = gas_particles
+        self.dm_particles = dm_particles
 
 def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime=10000 | units.yr, timeSteps=7):
     # creating the NBody system with the 3
@@ -42,7 +46,6 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime=10000 | units.
         evolutionCode.dm_particles.velocity = f * (evolutionCode.dm_particles.velocity - parts.center_of_mass_velocity()) + centerOfMassV 
         
     # TODO: should I change the center of mass?
-    relaxedModel.gas_particles = evolutionCode.gas_particles
-    relaxedModel.dm_particles = evolutionCode.dm_particles
+    relaxedModel = RelaxedModel(evolutionCode.gas_particles, evolutionCode.dm_particles) 
     evolutionCode.stop()
     return relaxedModel

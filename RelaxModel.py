@@ -5,7 +5,7 @@ from amuse.ext.blender import blender
 from amuse.plot import plot, native_plot, sph_particles_plot
 
 class RelaxedModel:
-    def __init__(gas_particles,dm_particles):
+    def __init__(self,gas_particles,dm_particles):
         self.gas_particles = gas_particles
         self.dm_particles = dm_particles
 

@@ -51,4 +51,4 @@ class RelaxedModel:
 
         evolutionCode.stop()
         self.gas_particles = gas
-        self.dm_particles = dm
+        self.core_particles = dm

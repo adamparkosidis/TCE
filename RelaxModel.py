@@ -46,3 +46,4 @@ class RelaxedModel:
         evolutionCode.stop()
         self.gas_particles = evolutionCode.gas_particles.copy()
         self.dm_particles = evolutionCode.dm_particles.copy()
+        print self.gas_particles

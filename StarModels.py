@@ -36,6 +36,7 @@ class Star:
             self.relaxationTime = float(parser.get(configurationSection, "relaxationTime"))
             self.relaxationTimeSteps = float(parser.get(configurationSection, "relaxationTimeSteps"))
         relaxedModel = self.GetRelaxedSphModel()
+        print relaxedModel.gas_particles
         native_plot.figure(figsize=(60, 60), dpi=100)
         sph_particles_plot(relaxedModel.gas_particles)
         native_plot.show()
@@ -76,7 +77,7 @@ class Star:
         starVolume = 4.0*numpy.pi*(radius**3)/3.0
         starAverageDensity = self.star.mass / starVolume
         relaxationTime = 1.0 / (constants.G*starAverageDensity).sqrt() # dynamical time
-        #print sphStar.gas_particles
+        print sphStar.gas_particles
         return RelaxModel.RelaxedModel(self.star.mass + self.coreMass, self.envelopeRadius, [sphStar.gas_particles],
                                 [sphStar.core_particle], relaxationTime.as_quantity_in(units.yr), self.relaxationTimeSteps)
         #return sphStar

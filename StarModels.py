@@ -76,8 +76,9 @@ class Star:
         starVolume = 4.0*numpy.pi*(radius**3)/3.0
         starAverageDensity = self.star.mass / starVolume
         relaxationTime = 1.0 / (constants.G*starAverageDensity).sqrt() # dynamical time
-        print sphStar.gas_particles
-        return RelaxModel.Run(self.star.mass + self.coreMass, self.envelopeRadius, [sphStar.gas_particles],
+        #print sphStar.gas_particles
+        print relaxationTime.as_quantity_in(yr)
+        return RelaxModel.RelaxedModel(self.star.mass + self.coreMass, self.envelopeRadius, [sphStar.gas_particles],
                                 [sphStar.core_particle], relaxationTime.as_quantity_in(units.yr), self.relaxationTimeSteps)
         #return sphStar
 
@@ -85,7 +86,7 @@ class Star:
 def CreateBinary(configurationFile="", configurationSection="", binaryMasses = [1.0 | units.MSun, 1.0 | units.MSun],
                  binarySemimajorAxis = 0.1 | units.AU):
     '''
-    creating a binary star
+    creating a binary stard
     :param configurationFile: where to take the binary's attributes
     :param configurationSection: in which section in the configuration file
     :param binaryMasses: what are the two masses?

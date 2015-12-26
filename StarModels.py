@@ -39,7 +39,7 @@ class Star:
         print relaxedModel.gas_particles
         native_plot.figure(figsize=(60, 60), dpi=100)
         sph_particles_plot(relaxedModel.gas_particles)
-        native_plot.show()
+        #native_plot.show()
 
         self.envelope = relaxedModel.gas_particles
         self.core = relaxedModel.core_particle

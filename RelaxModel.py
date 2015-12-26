@@ -46,4 +46,6 @@ class RelaxedModel:
         evolutionCode.stop()
         self.gas_particles = evolutionCode.gas_particles.copy()
         self.dm_particles = evolutionCode.dm_particles.copy()
-        print self.gas_particles
+        native_plot.figure(figsize=(10, 10), dpi=60)
+        sph_particles_plot(self.gas_particles)
+        native_plot.show()

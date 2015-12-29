@@ -76,7 +76,7 @@ class Star:
         sphStar, radius = self.CreateSphModel()
         starVolume = 4.0*numpy.pi*(radius**3)/3.0
         starAverageDensity = self.star.mass / starVolume
-        relaxationTime = 1.0 / (constants.G*starAverageDensity).sqrt() # dynamical time
+        relaxationTime = 2.0 / (constants.G*starAverageDensity).sqrt() # dynamical time
         return RelaxModel.RelaxedModel(self.star.mass + self.coreMass, self.envelopeRadius, [sphStar.gas_particles],
                                 [sphStar.core_particle], relaxationTime.as_quantity_in(units.yr), self.relaxationTimeSteps)
         #return sphStar

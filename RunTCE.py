@@ -17,7 +17,7 @@ def CreateTripleSystem():
     creating the TCE
     :return:main star's mass, the envelope particles, the core particles, the binary stars and the triple semmimajor
     '''
-    configurationFile = "PassyConfiguration.ini"
+    configurationFile = "TCEConfiguration.ini"
     star = StarModels.Star(configurationFile, "MainStar")
 
     # create the binary
@@ -54,12 +54,12 @@ def TakeSavedState(savedVersionPath):
     starCore.position = [0.0, 0.0, 0.0] | units.m
 
 
-    configurationFile = "PassyConfiguration.ini"
+    configurationFile = "TCEConfiguration.ini"
     # create the binary
     newBinary = StarModels.CreateBinary(configurationFile, "BinaryStar")
     newBinary.position += 1.0 | units.AU
 
-    native_plot.figure(figsize=(70, 70), dpi=100)
+    native_plot.figure(figsize=(50, 50), dpi=60)
     sph_particles_plot(starEnvelope)
     native_plot.show()
 
@@ -82,7 +82,7 @@ def SaveState(savedVersionPath, starMass, starEnvelope, starCore, binary, triple
     print "state saved - {0}".format(savedVersionPath)
 
 
-def Start(savedVersionPath = "savings/savedPassy", takeSavedState = False):
+def Start(savedVersionPath = "savings/TCE500000", takeSavedState = False):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -99,12 +99,12 @@ def Start(savedVersionPath = "savings/savedPassy", takeSavedState = False):
 
 
     #EvolveNBody.Run(totalMass= starMass, semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope],
-    #v               dmParticles= [starCore], endTime= 40. | units.yr, timeSteps= 4 ,
+    #               dmParticles= [starCore], endTime= 40. | units.yr, timeSteps= 4 ,
     #               savedVersionPath= "savings\savedRG50")
 
     EvolveNBody.Run(totalMass= starMass + binary[0].mass,
                     semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope], dmParticles= [starCore , binary[0]],
-                    endTime= 1500. | units.yr, timeSteps= 2, savedVersionPath= "savings/savedPassy")
+                    endTime= 10. | units.yr, timeSteps= 5, savedVersionPath= savedVersionPath)
 
 
     #EvolveNBody.EvolveBinary(totalMass= binary[0].mass + binary[1].mass,

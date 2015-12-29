@@ -25,29 +25,26 @@ class RelaxedModel:
         native_plot.figure(figsize=(10, 10), dpi=60)
         timeStep = endTime / timeSteps
         currentTime = 0.0 | units.Myr
+        currentStep = 0
         while currentTime < endTime:
             evolutionCode.evolve_model(currentTime)
             print "current time = ", evolutionCode.model_time.as_quantity_in(units.yr)
-            print "radius = ", evolutionCode.particles.radius[:-1]
             currentTime += timeStep
             gas = evolutionCode.gas_particles.copy()
-            dm = evolutionCode.dm_particles.copy()
             sph_particles_plot(gas)
             # native_plot.show()
             #native_plot._imsave(string.format("relax_{0}", currentTime))
-
-            f = ((currentTime/timeStep) * 1.0)/timeSteps
             gas.add_particle(evolutionCode.dm_particles)
-            evolutionCode.gas_particles.position += centerOfMassRadius - gas.center_of_mass()
-            evolutionCode.dm_particles.position += centerOfMassRadius - gas.center_of_mass()
-            evolutionCode.gas_particles.velocity = f * (evolutionCode.gas_particles.velocity - gas.center_of_mass_velocity())\
-                                                   + centerOfMassV
-            evolutionCode.dm_particles.velocity = f * (evolutionCode.dm_particles.velocity - gas.center_of_mass_velocity())\
-                                                  + centerOfMassV
-
+            evolutionCode.gas_particles.position += (centerOfMassRadius - gas.center_of_mass())
+            evolutionCode.dm_particles.position += (centerOfMassRadius - gas.center_of_mass())
+            relaxingVFactor = (currentStep / timeSteps)
+            evolutionCode.gas_particles.velocity = relaxingVFactor * (evolutionCode.gas_particles.velocity -
+                                                                                gas.center_of_mass_velocity()) + centerOfMassV
+            evolutionCode.dm_particles.velocity = relaxingVFactor * (evolutionCode.dm_particles.velocity -
+                                                                               gas.center_of_mass_velocity()) + centerOfMassV
+            currentStep += 1
             gas = evolutionCode.gas_particles.copy()
             dm = evolutionCode.dm_particles.copy()
-        # TODO: should I change the center of mass?
 
         evolutionCode.stop()
         self.gas_particles = gas

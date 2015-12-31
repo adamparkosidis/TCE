@@ -82,7 +82,7 @@ def SaveState(savedVersionPath, starMass, starEnvelope, starCore, binary, triple
     print "state saved - {0}".format(savedVersionPath)
 
 
-def Start(savedVersionPath = "savings/TCE500000", takeSavedState = False):
+def Start(savedVersionPath = "savings/TCE50", takeSavedState = False):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state

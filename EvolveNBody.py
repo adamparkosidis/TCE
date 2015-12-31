@@ -37,9 +37,9 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
     Now check if there is a saved state
     '''
     if step!= 1:
-        evolutionCode.gas_particles.add_particles(read_set_from_file(savedVersionPath+"_dm_{0}.hdf5".format(step),
+        evolutionCode.gas_particles.add_particles(read_set_from_file(savedVersionPath+"_gas_{0}.hdf5".format(step),
                                                                      'amuse', close_file= True))
-        evolutionCode.dm_particles.add_particle(read_set_from_file(savedVersionPath+"_gas_{0}.hdf5".format(step),
+        evolutionCode.dm_particles.add_particle(read_set_from_file(savedVersionPath+"_dm_{0}.hdf5".format(step),
                                                                    'amuse', close_file= True)[0])
         evolutionCode.parameters.begin_time = ((step - 1) * timeStep)
         currentTime = (step - 1) * timeStep
@@ -65,10 +65,10 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
         evolutionCode.evolve_model(currentTime)
         if step % 3 == 0:
             if savedVersionPath != "":
-                write_set_to_file(evolutionCode.gas_particles, savedVersionPath+"_dm_{0}.hdf5".format(step), 'amuse' ,
+                write_set_to_file(evolutionCode.gas_particles, savedVersionPath+"_gas_{0}.hdf5".format(step), 'amuse' ,
                                   append_to_file= False)
                 write_set_to_file(Particles(particles = evolutionCode.dm_particles),
-                                  savedVersionPath+"_gas_{0}.hdf5".format(step), 'amuse', append_to_file= False)
+                                  savedVersionPath+"_dm_{0}.hdf5".format(step), 'amuse', append_to_file= False)
                 print "state saved - {0}".format(savedVersionPath)
 
         print "current time = ", evolutionCode.model_time.as_quantity_in(units.yr)

@@ -64,7 +64,7 @@ class Star:
         time = 0 | units.yr
         mesaStar = self.EvolveStarWithMesa()
         # Convert the star to SPH model ###
-        sphModel = convert_stellar_model_to_SPH(mesaStar, self.sphParticles, do_relax = True, with_core_particle=True,
+        sphModel = convert_stellar_model_to_SPH(mesaStar, self.sphParticles, do_relax = False, with_core_particle=True,
                                                 target_core_mass = self.coreMass)
         return sphModel, mesaStar.radius
 
@@ -77,6 +77,10 @@ class Star:
         starVolume = 4.0*numpy.pi*(radius**3)/3.0
         starAverageDensity = self.star.mass / starVolume
         relaxationTime = 2.0 / (constants.G*starAverageDensity).sqrt() # dynamical time
+        sphStar.core_particle
+        write_set_to_file(sphStar, "sph.hdf5", 'amuse' , append_to_file= False)
+        write_set_to_file(sphStar.core_particle, "coreParticle.hdf5", 'amuse' , append_to_file= False)
+        write_set_to_file(Particles(particles = sphStar.gas_particles), "gasParticles.hdf5", 'amuse', append_to_file= False)
         return RelaxModel.RelaxedModel(self.star.mass + self.coreMass, self.envelopeRadius, [sphStar.gas_particles],
                                 [sphStar.core_particle], relaxationTime.as_quantity_in(units.yr), self.relaxationTimeSteps)
         #return sphStar

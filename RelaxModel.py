@@ -5,7 +5,7 @@ from amuse.units import units , nbody_system
 from amuse.plot import plot, native_plot, sph_particles_plot
 
 class RelaxedModel:
-    def __init__(self, totalMass, semmiMajor, gasParticles, dmParticles, endTime=10000 | units.yr, timeSteps=7):
+    def __init__(self, totalMass, semmiMajor, gasParticles, dmParticles, endTime=10000 | units.yr, timeSteps=7, savedVersionPath = ""):
         # creating the NBody system with the 3
         nbody = nbody_system.nbody_to_si(totalMass, semmiMajor)
 
@@ -22,7 +22,7 @@ class RelaxedModel:
         centerOfMassV = gas.center_of_mass_velocity()
 
         print "starting SPH relaxation"
-        #native_plot.figure(figsize=(50, 50), dpi=60)
+        native_plot.figure(figsize=(30, 30), dpi=60)
         timeStep = endTime / timeSteps
         currentTime = 0.0 | units.Myr
         currentStep = 0
@@ -31,9 +31,8 @@ class RelaxedModel:
             print "current time = ", evolutionCode.model_time.as_quantity_in(units.yr)
             currentTime += timeStep
             gas = evolutionCode.gas_particles.copy()
-            #sph_particles_plot(gas)
-            # native_plot.show()
-            #native_plot._imsave(string.format("relax_{0}", currentTime))
+            sph_particles_plot(gas)
+            native_plot.savefig("relax_{0}".format(currentTime))
             gas.add_particle(evolutionCode.dm_particles)
             evolutionCode.gas_particles.position += (centerOfMassRadius - gas.center_of_mass())
             evolutionCode.dm_particles.position += (centerOfMassRadius - gas.center_of_mass())

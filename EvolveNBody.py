@@ -51,11 +51,11 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
             evolutionCode.dm_particles.add_particle(dmParticle)
 
     print "starting system evolution"
-    #native_plot.figure(figsize=(20, 20), dpi=80)
-    #parts = evolutionCode.gas_particles.copy()
-    #sph_particles_plot(parts)
+    native_plot.figure(figsize=(20, 20), dpi=100)
+    parts = evolutionCode.gas_particles.copy()
+    sph_particles_plot(parts)
     #native_plot.show()
-    #native_plot.savefig('TCE_sph_after_relax.eps')
+    native_plot.savefig('TCE_sph_after_relax.eps')
     x =  AdaptingVectorQuantity()
     y =  AdaptingVectorQuantity()
     z =  AdaptingVectorQuantity()
@@ -79,7 +79,7 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
         step += 1
         parts = evolutionCode.gas_particles.copy()
         sph_particles_plot(parts)
-        # native_plot.show()
+        native_plot.savefig(savedVersionPath + "evolution_{0}".format(currentTime))
         x.append(evolutionCode.particles.x)
         y.append(evolutionCode.particles.y)
         z.append(evolutionCode.particles.z)

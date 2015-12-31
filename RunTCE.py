@@ -28,7 +28,7 @@ def CreateTripleSystem(configurationFile, savedSphFile = ""):
         starMass , tempBinary, starEnvelopeRadius= pickle.load(open(savedSphFile +".p", 'rb'))
         starEnvelope = read_set_from_file(savedSphFile +"_envelope.hdf5",'amuse', close_file= True)
         starCore = read_set_from_file(savedSphFile + "_core.hdf5",'amuse', close_file= True)[0]
-        native_plot.figure(figsize=(20, 20), dpi=20)
+        native_plot.figure(figsize=(30, 30), dpi=60)
         sph_particles_plot(starEnvelope)
         #native_plot.show()
     # create the binary
@@ -130,3 +130,6 @@ def Start(savedVersionPath = "savings/TCE500000", takeSavedState = False, config
     #                endTime= 100.0 | units.yr, timeSteps= 20)
     print "****************** Simulation Completed ******************"
 
+def MakeAMovieFromSavedState(savedVersionPath= "savings/TCE500000" , steps = []):
+    #TODO: do something
+    print "blabla"

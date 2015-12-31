@@ -1,5 +1,6 @@
 from matplotlib import pyplot
 #from matplotlib.animation as animation
+import time
 
 from amuse.units.quantities import AdaptingVectorQuantity
 from amuse.community.gadget2.interface import Gadget2
@@ -12,7 +13,7 @@ from amuse.io import read_set_from_file, write_set_to_file
 
 
 def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units.yr, timeSteps = 3 ,
-        savedVersionPath = "", step = 1):
+        savedVersionPath = "", saveAfterMinute = 15, step = 1):
     '''
 
     :param totalMass: the triple summarized mass
@@ -28,7 +29,7 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
     nbody = nbody_system.nbody_to_si(totalMass, semmiMajor)
 
     # evolve
-    evolutionCode = Gadget2(nbody, number_of_workers=2)
+    evolutionCode = Gadget2(nbody, number_of_workers=6)
     evolutionCode.parameters.time_max = 1000. | units.yr
     #evolutionCode.parameters.timestep = 1.0 | units.yr
     timeStep = endTime / timeSteps
@@ -61,9 +62,11 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
     x.append(evolutionCode.particles.x)
     y.append(evolutionCode.particles.y)
     z.append(evolutionCode.particles.z)
+    currentSecond = time.time()
+    timeToSave = saveAfterMinute * 60
     while currentTime < endTime:
         evolutionCode.evolve_model(currentTime)
-        if step % 3 == 0:
+        if (time.time() - currentSecond) % timeToSave :
             if savedVersionPath != "":
                 write_set_to_file(evolutionCode.gas_particles, savedVersionPath+"_gas_{0}.hdf5".format(step), 'amuse' ,
                                   append_to_file= False)

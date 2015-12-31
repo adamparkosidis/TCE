@@ -12,35 +12,46 @@ import EvolveNBody
 
 
 
-def CreateTripleSystem():
+def CreateTripleSystem(configurationFile, savedSphFile = ""):
     '''
     creating the TCE
     :return:main star's mass, the envelope particles, the core particles, the binary stars and the triple semmimajor
     '''
-    configurationFile = "TCEConfiguration.ini"
-    star = StarModels.Star(configurationFile, "MainStar")
-
+    if savedSphFile == "":
+        star = StarModels.Star(configurationFile, "MainStar")
+        starMass = star.star.mass
+        starEnvelope = star.envelope
+        starEnvelopeRadius = star.envelopeRadius
+        starCore = star.core
+    else:
+        print "using saved ph saved file - {0}".format(savedSphFile)
+        starMass , tempBinary, starEnvelopeRadius= pickle.load(open(savedSphFile +".p", 'rb'))
+        starEnvelope = read_set_from_file(savedSphFile +"_envelope.hdf5",'amuse', close_file= True)
+        starCore = read_set_from_file(savedSphFile + "_core.hdf5",'amuse', close_file= True)[0]
+        native_plot.figure(figsize=(20, 20), dpi=20)
+        sph_particles_plot(starEnvelope)
+        #native_plot.show()
     # create the binary
     binary = StarModels.CreateBinary(configurationFile, "BinaryStar")
 
     # create the binary with the main star
-    tripleMass = [star.star.mass, binary[0].mass + binary[1].mass]
-    tripleSemmimajor = star.envelopeRadius
+    tripleMass = [starMass, binary[0].mass + binary[1].mass]
+    tripleSemmimajor = starEnvelopeRadius
     triple = StarModels.CreateBinary(binaryMasses= tripleMass, binarySemimajorAxis= tripleSemmimajor)
 
     # fixing positions
-    star.envelope.position += triple.position[0]
-    star.core.position += triple.position[0]
+    starEnvelope.position += triple.position[0]
+    starCore.position += triple.position[0]
     binary.position += triple.position[1]
 
     # fixing velocities
-    star.envelope.velocity += triple.velocity[0]
-    star.core.velocity += triple.velocity[0]
+    starEnvelope.velocity += triple.velocity[0]
+    starCore.velocity += triple.velocity[0]
     binary.velocity += triple.velocity[1]
 
-    return star.star.mass, star.envelope, star.core, binary, tripleSemmimajor
+    return starMass, starEnvelope, starCore, binary, tripleSemmimajor
 
-def TakeSavedState(savedVersionPath):
+def TakeSavedState(savedVersionPath, configurationFile):
     '''
     :param savedVersionPath: the path to where you have your saved state
     :return: the saved system
@@ -54,12 +65,12 @@ def TakeSavedState(savedVersionPath):
     starCore.position = [0.0, 0.0, 0.0] | units.m
 
 
-    configurationFile = "TCEConfiguration.ini"
+
     # create the binary
     newBinary = StarModels.CreateBinary(configurationFile, "BinaryStar")
     newBinary.position += 1.0 | units.AU
 
-    native_plot.figure(figsize=(50, 50), dpi=60)
+    native_plot.figure(figsize=(30, 30), dpi=60)
     sph_particles_plot(starEnvelope)
     native_plot.show()
 
@@ -82,7 +93,7 @@ def SaveState(savedVersionPath, starMass, starEnvelope, starCore, binary, triple
     print "state saved - {0}".format(savedVersionPath)
 
 
-def Start(savedVersionPath = "savings/TCE50", takeSavedState = False):
+def Start(savedVersionPath = "savings/TCE500000", takeSavedState = False, configurationFile = "TCEConfiguration.ini", takeSavedStar = False ):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -92,19 +103,22 @@ def Start(savedVersionPath = "savings/TCE50", takeSavedState = False):
 
     # creating the triple system
     if takeSavedState:
-        starMass, starEnvelope, starCore, binary, tripleSemmimajor = TakeSavedState(savedVersionPath)
+        starMass, starEnvelope, starCore, binary, tripleSemmimajor = TakeSavedState(savedVersionPath, configurationFile)
     else:
-        starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem()
+        if takeSavedStar:
+            starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile, savedVersionPath)
+        else:
+            starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile)
         SaveState(savedVersionPath, starMass, starEnvelope, starCore, binary, tripleSemmimajor)
 
 
-    #EvolveNBody.Run(totalMass= starMass, semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope],
-    #               dmParticles= [starCore], endTime= 40. | units.yr, timeSteps= 4 ,
-    #               savedVersionPath= "savings\savedRG50")
+    EvolveNBody.Run(totalMass= starMass, semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope],
+                   dmParticles= [starCore], endTime= 1000. | units.yr, timeSteps= 12 ,
+                   savedVersionPath= savedVersionPath)
 
-    EvolveNBody.Run(totalMass= starMass + binary[0].mass,
-                    semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope], dmParticles= [starCore , binary[0]],
-                    endTime= 10. | units.yr, timeSteps= 5, savedVersionPath= savedVersionPath)
+    #EvolveNBody.Run(totalMass= starMass + binary[0].mass,
+    #                semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope], dmParticles= [starCore , binary[0]],
+    #                endTime= 10. | units.yr, timeSteps= 5, savedVersionPath= savedVersionPath)
 
 
     #EvolveNBody.EvolveBinary(totalMass= binary[0].mass + binary[1].mass,

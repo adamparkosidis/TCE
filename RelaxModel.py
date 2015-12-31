@@ -10,7 +10,7 @@ class RelaxedModel:
         nbody = nbody_system.nbody_to_si(totalMass, semmiMajor)
 
         # evolve
-        evolutionCode = Gadget2(nbody, number_of_workers=2)
+        evolutionCode = Gadget2(nbody, number_of_workers=6)
         for gasParticle in gasParticles:
             evolutionCode.gas_particles.add_particles(gasParticle)
         for dmParticle in dmParticles:
@@ -22,7 +22,7 @@ class RelaxedModel:
         centerOfMassV = gas.center_of_mass_velocity()
 
         print "starting SPH relaxation"
-        native_plot.figure(figsize=(10, 10), dpi=60)
+        #native_plot.figure(figsize=(50, 50), dpi=60)
         timeStep = endTime / timeSteps
         currentTime = 0.0 | units.Myr
         currentStep = 0
@@ -31,7 +31,7 @@ class RelaxedModel:
             print "current time = ", evolutionCode.model_time.as_quantity_in(units.yr)
             currentTime += timeStep
             gas = evolutionCode.gas_particles.copy()
-            sph_particles_plot(gas)
+            #sph_particles_plot(gas)
             # native_plot.show()
             #native_plot._imsave(string.format("relax_{0}", currentTime))
             gas.add_particle(evolutionCode.dm_particles)

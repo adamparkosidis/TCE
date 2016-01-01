@@ -10,7 +10,8 @@ class RelaxedModel:
         nbody = nbody_system.nbody_to_si(totalMass, semmiMajor)
 
         # evolve
-        evolutionCode = Gadget2(nbody, number_of_workers=6)
+        evolutionCode = Gadget2(nbody, number_of_workers=7)
+        evolutionCode.parameters.time_limit_cpu = 1000000 | units.s
         for gasParticle in gasParticles:
             evolutionCode.gas_particles.add_particles(gasParticle)
         for dmParticle in dmParticles:
@@ -32,7 +33,7 @@ class RelaxedModel:
             currentTime += timeStep
             gas = evolutionCode.gas_particles.copy()
             sph_particles_plot(gas)
-            native_plot.savefig("savings/pics/relax_{0}.jpg".format(step))
+            native_plot.savefig("relax_{0}".format(currentTime))
             gas.add_particle(evolutionCode.dm_particles)
             evolutionCode.gas_particles.position += (centerOfMassRadius - gas.center_of_mass())
             evolutionCode.dm_particles.position += (centerOfMassRadius - gas.center_of_mass())

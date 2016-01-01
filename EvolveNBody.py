@@ -31,7 +31,7 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
     # evolve
     evolutionCode = Gadget2(nbody, number_of_workers=7)
     evolutionCode.parameters.time_max = 1000. | units.yr
-    #evolutionCode.parameters.timestep = 1.0 | units.yr
+    evolutionCode.parameters.time_limit_cpu = 1000000 | units.s
     timeStep = endTime / timeSteps
     currentTime = 0.0 | units.Myr
     '''

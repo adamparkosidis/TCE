@@ -29,7 +29,7 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
     nbody = nbody_system.nbody_to_si(totalMass, semmiMajor)
 
     # evolve
-    evolutionCode = Gadget2(nbody, number_of_workers=6)
+    evolutionCode = Gadget2(nbody, number_of_workers=7)
     evolutionCode.parameters.time_max = 1000. | units.yr
     #evolutionCode.parameters.timestep = 1.0 | units.yr
     timeStep = endTime / timeSteps
@@ -55,7 +55,7 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
     parts = evolutionCode.gas_particles.copy()
     sph_particles_plot(parts)
     #native_plot.show()
-    native_plot.savefig('TCE_sph_after_relax.eps')
+    native_plot.savefig('savings/pics/evolution_0.jpg')
     x =  AdaptingVectorQuantity()
     y =  AdaptingVectorQuantity()
     z =  AdaptingVectorQuantity()
@@ -79,7 +79,7 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
         step += 1
         parts = evolutionCode.gas_particles.copy()
         sph_particles_plot(parts)
-        native_plot.savefig(savedVersionPath + "evolution_{0}".format(currentTime))
+        native_plot.savefig(savedVersionPath + "savings/pics/evolution_{0}.jpg".format(step))
         x.append(evolutionCode.particles.x)
         y.append(evolutionCode.particles.y)
         z.append(evolutionCode.particles.z)
@@ -96,7 +96,7 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
     pyplot.xlim(-20, 20)
     pyplot.ylim(-20, 20)
     pyplot.xlabel('AU')
-    pyplot.savefig('TCE_dynamics.eps')
+    pyplot.savefig('savings/pics/TCE_dynamics.jpg')
     evolutionCode.stop()
 
 def EvolveBinary(totalMass, semmiMajor, binary, endTime= 10000 | units.yr, timeSteps = 10,

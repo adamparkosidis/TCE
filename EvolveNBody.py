@@ -79,7 +79,7 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
         step += 1
         parts = evolutionCode.gas_particles.copy()
         sph_particles_plot(parts)
-        native_plot.savefig(savedVersionPath + "savings/pics/evolution_{0}.jpg".format(step))
+        native_plot.savefig(savedVersionPath + "/pics/evolution_{0}.jpg".format(step))
         x.append(evolutionCode.particles.x)
         y.append(evolutionCode.particles.y)
         z.append(evolutionCode.particles.z)

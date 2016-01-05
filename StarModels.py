@@ -1,5 +1,6 @@
 import ConfigParser
 import numpy
+import pickle
 
 from amuse.lab import *
 from amuse.units import *
@@ -11,7 +12,7 @@ import RelaxModel
 
 class Star:
 
-    def __init__(self, configurationFile="", configurationSection=""):
+    def __init__(self, configurationFile="", configurationSection="", savedMasaStarPath = ""):
         print 'Creating Particle'
         self.star = Particle()
         if configurationSection == "":
@@ -35,8 +36,8 @@ class Star:
             self.envelopeRadius = float(parser.get(configurationSection, "envelopeRadius")) | units.AU
             self.relaxationTime = float(parser.get(configurationSection, "relaxationTime"))
             self.relaxationTimeSteps = float(parser.get(configurationSection, "relaxationTimeSteps"))
+        self.savedMasaStarPath = savedMasaStarPath
         relaxedModel = self.GetRelaxedSphModel()
-        print relaxedModel.gas_particles
         native_plot.figure(figsize=(60, 60), dpi=100)
         sph_particles_plot(relaxedModel.gas_particles)
         #native_plot.show()
@@ -73,14 +74,23 @@ class Star:
 
         :return: sph star after relaxation
         '''
-        sphStar, radius = self.CreateSphModel()
-        starVolume = 4.0*numpy.pi*(radius**3)/3.0
-        starAverageDensity = self.star.mass / starVolume
-        relaxationTime = 2.0 / (constants.G*starAverageDensity).sqrt() # dynamical time
-        write_set_to_file(sphStar.gas_particles, "gasParticle.hdf5", 'amuse' , append_to_file= False)
-        write_set_to_file(Particles(particles = [sphStar.core_particle]), "coreParticles.hdf5", 'amuse', append_to_file= False)
-        return RelaxModel.RelaxedModel(self.star.mass + self.coreMass, self.envelopeRadius, [sphStar.gas_particles],
-                                [sphStar.core_particle], relaxationTime.as_quantity_in(units.yr), self.relaxationTimeSteps)
+        if self.savedMasaStarPath == "":
+            sphStar, radius = self.CreateSphModel()
+            starVolume = 4.0*numpy.pi*(radius**3)/3.0
+            starAverageDensity = self.star.mass / starVolume
+            relaxationTime = 2.0 / (constants.G*starAverageDensity).sqrt() # dynamical time
+            write_set_to_file(sphStar.gas_particles, self.savedMasaStarPath + "/gasParticles.hdf5", 'amuse' , append_to_file= False)
+            write_set_to_file(Particles(particles = [sphStar.core_particle]), self.savedMasaStarPath + "/coreParticles.hdf5", 'amuse', append_to_file= False)
+            totalMass = self.star.mass + self.coreMass
+            starEnvelopeRadius = self.envelopeRadius
+            gasParticles = sphStar.gas_particles
+            coreParticles = sphStar.core_particle
+        else:
+            totalMass, starEnvelopeRadius= pickle.load(open(self.savedMasaStarPath +"mass.p", 'rb'))
+            gasParticles = read_set_from_file(self.savedMasaStarPath + "/gasParticles.hdf5",'amuse', close_file= True)
+            coreParticles = read_set_from_file(self.savedMasaStarPath + "/coreParticles.hdf5",'amuse', close_file= True)[0]
+        return RelaxModel.RelaxedModel(totalMass, starEnvelopeRadius, [gasParticles],
+                                [coreParticles], relaxationTime.as_quantity_in(units.yr), self.relaxationTimeSteps)
         #return sphStar
 
 

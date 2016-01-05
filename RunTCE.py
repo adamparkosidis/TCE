@@ -12,13 +12,13 @@ import EvolveNBody
 
 
 
-def CreateTripleSystem(configurationFile, savedSphFile = ""):
+def CreateTripleSystem(configurationFile, savedSphFile = "", savedMesa = ""):
     '''
     creating the TCE
     :return:main star's mass, the envelope particles, the core particles, the binary stars and the triple semmimajor
     '''
     if savedSphFile == "":
-        star = StarModels.Star(configurationFile, "MainStar")
+        star = StarModels.Star(configurationFile, "MainStar", savedMasaStarPath = savedMesa)
         starMass = star.star.mass
         starEnvelope = star.envelope
         starEnvelopeRadius = star.envelopeRadius
@@ -93,32 +93,33 @@ def SaveState(savedVersionPath, starMass, starEnvelope, starCore, binary, triple
     print "state saved - {0}".format(savedVersionPath)
 
 
-def Start(savedVersionPath = "savings/TCE500000", takeSavedState = False, configurationFile = "TCEConfiguration.ini", takeSavedStar = False ):
+def Start(savedVersionPath = "savings/Passy500000", takeSavedState = "False", configurationFile = "PassyConfiguration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
-    :param takeSavedState: do you have a saved state you want to use?
+    :param takeSavedState: do you have a saved state you want to use? True or False if it is all saved ,
+                            Mesa if its only the Mesa Star, Sph - if its only the sph star (after relaxation)
     :return: None
     '''
 
     # creating the triple system
-    if takeSavedState:
+    if takeSavedState == "True":
         starMass, starEnvelope, starCore, binary, tripleSemmimajor = TakeSavedState(savedVersionPath, configurationFile)
     else:
-        if takeSavedStar:
-            starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile, savedVersionPath)
-        else:
-            starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile)
+        if takeSavedState == "Sph":
+            starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile, savedSphFile=savedVersionPath)
+        elif takeSavedState == "Mesa":
+            starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile, savedMesa= savedVersionPath)
         SaveState(savedVersionPath, starMass, starEnvelope, starCore, binary, tripleSemmimajor)
 
 
-    EvolveNBody.Run(totalMass= starMass, semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope],
-                   dmParticles= [starCore], endTime= 1000. | units.yr, timeSteps= 12 ,
-                   savedVersionPath= savedVersionPath)
+    #EvolveNBody.Run(totalMass= starMass, semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope],
+    #               dmParticles= [starCore], endTime= 1000. | units.yr, timeSteps= 12 ,
+    #               savedVersionPath= savedVersionPath, step= 1)
 
-    #EvolveNBody.Run(totalMass= starMass + binary[0].mass,
-    #                semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope], dmParticles= [starCore , binary[0]],
-    #                endTime= 10. | units.yr, timeSteps= 5, savedVersionPath= savedVersionPath)
+    EvolveNBody.Run(totalMass= starMass + binary[0].mass,
+                    semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope], dmParticles= [starCore , binary[0]],
+                    endTime= 10. | units.yr, timeSteps= 5, savedVersionPath= savedVersionPath)
 
 
     #EvolveNBody.EvolveBinary(totalMass= binary[0].mass + binary[1].mass,

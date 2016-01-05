@@ -1,6 +1,7 @@
 from matplotlib import pyplot
 #from matplotlib.animation as animation
 import time
+import pickle
 
 from amuse.units.quantities import AdaptingVectorQuantity
 from amuse.community.gadget2.interface import Gadget2
@@ -37,13 +38,14 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
     '''
     Now check if there is a saved state
     '''
-    if step!= 1:
+    if step!= 0:
         evolutionCode.gas_particles.add_particles(read_set_from_file(savedVersionPath+"_gas_{0}.hdf5".format(step),
                                                                      'amuse', close_file= True))
         evolutionCode.dm_particles.add_particle(read_set_from_file(savedVersionPath+"_dm_{0}.hdf5".format(step),
                                                                    'amuse', close_file= True)[0])
-        evolutionCode.parameters.begin_time = ((step - 1) * timeStep)
-        currentTime = (step - 1) * timeStep
+        evolutionCode.parameters.begin_time = (step * timeStep)
+        currentTime = step * timeStep
+        print "evolving from step " , step
     else:
         for gasParticle in gasParticles:
             evolutionCode.gas_particles.add_particles(gasParticle)
@@ -55,28 +57,31 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
     parts = evolutionCode.gas_particles.copy()
     sph_particles_plot(parts)
     #native_plot.show()
-    native_plot.savefig('savings/pics/evolution_0.jpg')
+    native_plot.savefig(savedVersionPath + '/pics/evolution_0.jpg')
     x =  AdaptingVectorQuantity()
     y =  AdaptingVectorQuantity()
     z =  AdaptingVectorQuantity()
     x.append(evolutionCode.particles.x)
     y.append(evolutionCode.particles.y)
     z.append(evolutionCode.particles.z)
+    #if step!= 0:
+    #    x, y, z = pickle.load(open(savedVersionPath+"xyz.p", 'rb'))
     currentSecond = time.time()
     timeToSave = saveAfterMinute * 60
     while currentTime < endTime:
+        step += 1
         evolutionCode.evolve_model(currentTime)
         if (time.time() - currentSecond) % timeToSave :
             if savedVersionPath != "":
-                write_set_to_file(evolutionCode.gas_particles, savedVersionPath+"_gas_{0}.hdf5".format(step), 'amuse' ,
+                write_set_to_file(evolutionCode.gas_particles, savedVersionPath+"/gas_{0}.hdf5".format(step), 'amuse' ,
                                   append_to_file= False)
                 write_set_to_file(Particles(particles = evolutionCode.dm_particles),
-                                  savedVersionPath+"_dm_{0}.hdf5".format(step), 'amuse', append_to_file= False)
+                                  savedVersionPath+"/dm_{0}.hdf5".format(step), 'amuse', append_to_file= False)
+                pickle.dump([x,y,z], open(savedVersionPath+"xyz.p", 'wb'), pickle.HIGHEST_PROTOCOL)
                 print "state saved - {0}".format(savedVersionPath)
 
         print "current time = ", evolutionCode.model_time.as_quantity_in(units.yr)
         currentTime += timeStep
-        step += 1
         parts = evolutionCode.gas_particles.copy()
         sph_particles_plot(parts)
         native_plot.savefig(savedVersionPath + "/pics/evolution_{0}.jpg".format(step))

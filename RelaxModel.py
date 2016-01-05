@@ -33,8 +33,8 @@ class RelaxedModel:
             currentTime += timeStep
             gas = evolutionCode.gas_particles.copy()
             sph_particles_plot(gas)
-            native_plot.savefig(savedVersionPath + "/pics/relax_{0}".format(step))
-            print "pic {0} saved".format(step)
+            native_plot.savefig(savedVersionPath + "/pics/relax_{0}".format(currentStep))
+            print "pic {0} saved".format(currentStep)
             gas.add_particle(evolutionCode.dm_particles)
             evolutionCode.gas_particles.position += (centerOfMassRadius - gas.center_of_mass())
             evolutionCode.dm_particles.position += (centerOfMassRadius - gas.center_of_mass())

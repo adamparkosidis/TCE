@@ -12,25 +12,28 @@ import EvolveNBody
 
 
 
-def CreateTripleSystem(configurationFile, savedSphFile = "", savedMesa = ""):
+def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, takeSavedMesa = False):
     '''
     creating the TCE
     :return:main star's mass, the envelope particles, the core particles, the binary stars and the triple semmimajor
     '''
-    if savedSphFile == "":
-        star = StarModels.Star(configurationFile, "MainStar", savedMasaStarPath = savedMesa)
+    if takeSavedSPH:
+        print "using saved ph saved file - {0}".format(savedPath)
+        starMass , tempBinary, starEnvelopeRadius= pickle.load(open(savedPath +".p", 'rb'))
+        starEnvelope = read_set_from_file(savedPath +"_envelope.hdf5",'amuse', close_file= True)
+        starCore = read_set_from_file(savedPath + "_core.hdf5",'amuse', close_file= True)[0]
+        native_plot.figure(figsize=(30, 30), dpi=60)
+        sph_particles_plot(starEnvelope)
+        #native_plot.show()
+    else:
+        if takeSavedMesa:
+            star = StarModels.Star(configurationFile, "MainStar", savedMesaStarPath = savedPath, takeSavedMesa= True)
+        else:
+            star = StarModels.Star(configurationFile, "MainStar", savedMesaStarPath = savedPath, takeSavedMesa= False)
         starMass = star.star.mass
         starEnvelope = star.envelope
         starEnvelopeRadius = star.envelopeRadius
         starCore = star.core
-    else:
-        print "using saved ph saved file - {0}".format(savedSphFile)
-        starMass , tempBinary, starEnvelopeRadius= pickle.load(open(savedSphFile +".p", 'rb'))
-        starEnvelope = read_set_from_file(savedSphFile +"_envelope.hdf5",'amuse', close_file= True)
-        starCore = read_set_from_file(savedSphFile + "_core.hdf5",'amuse', close_file= True)[0]
-        native_plot.figure(figsize=(30, 30), dpi=60)
-        sph_particles_plot(starEnvelope)
-        #native_plot.show()
     # create the binary
     binary = StarModels.CreateBinary(configurationFile, "BinaryStar")
 
@@ -107,11 +110,11 @@ def Start(savedVersionPath = "savings/Passy500000", takeSavedState = "False", co
         starMass, starEnvelope, starCore, binary, tripleSemmimajor = TakeSavedState(savedVersionPath, configurationFile)
     else:
         if takeSavedState == "Sph":
-            starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile, savedSphFile=savedVersionPath)
+            starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile, savedVersionPath, takeSavedSPH= True)
         elif takeSavedState == "Mesa":
-            starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile, savedMesa= savedVersionPath)
+            starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile, savedVersionPath, takeSavedMesa= True)
         else:
-            starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile)
+            starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile, savedVersionPath)
         SaveState(savedVersionPath, starMass, starEnvelope, starCore, binary, tripleSemmimajor)
 
 

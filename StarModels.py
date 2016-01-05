@@ -79,6 +79,7 @@ class Star:
             starVolume = 4.0*numpy.pi*(radius**3)/3.0
             starAverageDensity = self.star.mass / starVolume
             relaxationTime = 2.0 / (constants.G*starAverageDensity).sqrt() # dynamical time
+            pickle.dump([self.star.mass , self.envelopeRadius], open(self.savedMasaStarPath+"/mass.p", 'wb'), pickle.HIGHEST_PROTOCOL)
             write_set_to_file(sphStar.gas_particles, self.savedMasaStarPath + "/gasParticles.hdf5", 'amuse' , append_to_file= False)
             write_set_to_file(Particles(particles = [sphStar.core_particle]), self.savedMasaStarPath + "/coreParticles.hdf5", 'amuse', append_to_file= False)
             totalMass = self.star.mass + self.coreMass

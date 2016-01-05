@@ -36,7 +36,7 @@ class Star:
             self.envelopeRadius = float(parser.get(configurationSection, "envelopeRadius")) | units.AU
             self.relaxationTime = float(parser.get(configurationSection, "relaxationTime"))
             self.relaxationTimeSteps = float(parser.get(configurationSection, "relaxationTimeSteps"))
-        self.savedMesaPath = savedMesaStarPath
+        self.savedPath = savedMesaStarPath
         relaxedModel = self.GetRelaxedSphModel(takeSavedMesa)
         native_plot.figure(figsize=(60, 60), dpi=100)
         sph_particles_plot(relaxedModel.gas_particles)
@@ -76,23 +76,23 @@ class Star:
         '''
         if takeSavedMesa == False:
             sphStar, radius = self.CreateSphModel()
-            starVolume = 4.0*numpy.pi*(radius**3)/3.0
-            starAverageDensity = self.star.mass / starVolume
             #save everythinh
-            write_set_to_file(sphStar.gas_particles, self.savedMesaPath + "/gasParticles.hdf5", 'amuse' , append_to_file= False)
-            write_set_to_file(Particles(particles = [sphStar.core_particle]), self.savedMesaPath + "/coreParticles.hdf5", 'amuse', append_to_file= False)
-            pickle.dump([self.star.mass, self.envelopeRadius], open(self.savedMesaPath + "/mass.p", 'wb'), pickle.HIGHEST_PROTOCOL)
+            write_set_to_file(sphStar.gas_particles, self.savedPath + "/gasParticles.hdf5", 'amuse' , append_to_file= False)
+            write_set_to_file(Particles(particles = [sphStar.core_particle]), self.savedPath + "/coreParticles.hdf5", 'amuse', append_to_file= False)
+            pickle.dump([self.star.mass, radius, self.envelopeRadius], open(self.savedPath + "/mass.p", 'wb'), pickle.HIGHEST_PROTOCOL)
             totalMass = self.star.mass + self.coreMass
             starEnvelopeRadius = self.envelopeRadius
             gasParticles = sphStar.gas_particles
             coreParticles = sphStar.core_particle
         else:
-            totalMass, starEnvelopeRadius= pickle.load(open(self.savedMesaPath + "mass.p", 'rb'))
-            gasParticles = read_set_from_file(self.savedMesaPath + "/gasParticles.hdf5",'amuse', close_file= True)
-            coreParticles = read_set_from_file(self.savedMesaPath + "/coreParticles.hdf5",'amuse', close_file= True)[0]
+            totalMass,radius, starEnvelopeRadius= pickle.load(open(self.savedPath + "/mass.p", 'rb'))
+            gasParticles = read_set_from_file(self.savedPath + "/gasParticles.hdf5",'amuse', close_file= True)
+            coreParticles = read_set_from_file(self.savedPath + "/coreParticles.hdf5",'amuse', close_file= True)[0]
+        starVolume = 4.0*numpy.pi*(radius**3)/3.0
+        starAverageDensity = self.star.mass / starVolume
         relaxationTime = 2.0 / (constants.G*starAverageDensity).sqrt() # dynamical time
         return RelaxModel.RelaxedModel(totalMass, starEnvelopeRadius, [gasParticles],
-                                [coreParticles], relaxationTime.as_quantity_in(units.yr), self.relaxationTimeSteps)
+                                [coreParticles], relaxationTime.as_quantity_in(units.yr), self.relaxationTimeSteps, savedVersionPath= self.savedPath)
         #return sphStar
 
 

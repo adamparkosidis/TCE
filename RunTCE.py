@@ -110,6 +110,8 @@ def Start(savedVersionPath = "savings/Passy500000", takeSavedState = "False", co
             starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile, savedSphFile=savedVersionPath)
         elif takeSavedState == "Mesa":
             starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile, savedMesa= savedVersionPath)
+        else:
+            starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile)
         SaveState(savedVersionPath, starMass, starEnvelope, starCore, binary, tripleSemmimajor)
 
 

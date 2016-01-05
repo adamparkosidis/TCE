@@ -37,7 +37,7 @@ class Star:
             self.relaxationTime = float(parser.get(configurationSection, "relaxationTime"))
             self.relaxationTimeSteps = float(parser.get(configurationSection, "relaxationTimeSteps"))
         self.savedMesaPath = savedMesaStarPath
-        relaxedModel = self.GetRelaxedSphModel()
+        relaxedModel = self.GetRelaxedSphModel(takeSavedMesa)
         native_plot.figure(figsize=(60, 60), dpi=100)
         sph_particles_plot(relaxedModel.gas_particles)
         #native_plot.show()
@@ -69,12 +69,12 @@ class Star:
                                                 target_core_mass = self.coreMass)
         return sphModel, mesaStar.radius
 
-    def GetRelaxedSphModel(self):
+    def GetRelaxedSphModel(self,takeSavedMesa):
         '''
 
         :return: sph star after relaxation
         '''
-        if self.takeSavedMesa == False:
+        if takeSavedMesa == False:
             sphStar, radius = self.CreateSphModel()
             starVolume = 4.0*numpy.pi*(radius**3)/3.0
             starAverageDensity = self.star.mass / starVolume

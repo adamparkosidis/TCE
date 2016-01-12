@@ -8,7 +8,7 @@ from amuse.datamodel import Particle
 from amuse.ext import orbital_elements
 from amuse.plot import plot, native_plot, sph_particles_plot
 
-import RelaxModel
+import EvolveNBody
 
 class Star:
 
@@ -37,13 +37,13 @@ class Star:
             self.relaxationTime = float(parser.get(configurationSection, "relaxationTime"))
             self.relaxationTimeSteps = float(parser.get(configurationSection, "relaxationTimeSteps"))
         self.savedPath = savedMesaStarPath
-        relaxedModel = self.GetRelaxedSphModel(takeSavedMesa)
+        gas_particles, core_particles = self.GetRelaxedSphModel(takeSavedMesa)
         native_plot.figure(figsize=(60, 60), dpi=100)
-        sph_particles_plot(relaxedModel.gas_particles)
+        sph_particles_plot(gas_particles)
         #native_plot.show()
 
-        self.envelope = relaxedModel.gas_particles
-        self.core = relaxedModel.core_particle
+        self.envelope = gas_particles
+        self.core = core_particles
 
     def  EvolveStarWithMesa(self):
         '''
@@ -74,9 +74,13 @@ class Star:
 
         :return: sph star after relaxation
         '''
-        if takeSavedMesa == False:
+        if takeSavedMesa:
+            totalMass,radius, starEnvelopeRadius= pickle.load(open(self.savedPath + "/mass.p", 'rb'))
+            gasParticles = read_set_from_file(self.savedPath + "/gasParticles.hdf5",'amuse', close_file= True)
+            coreParticles = read_set_from_file(self.savedPath + "/coreParticles.hdf5",'amuse', close_file= True)[0]
+        else:
             sphStar, radius = self.CreateSphModel()
-            #save everythinh
+            #save everything
             write_set_to_file(sphStar.gas_particles, self.savedPath + "/gasParticles.hdf5", 'amuse' , append_to_file= False)
             write_set_to_file(Particles(particles = [sphStar.core_particle]), self.savedPath + "/coreParticles.hdf5", 'amuse', append_to_file= False)
             pickle.dump([self.star.mass, radius, self.envelopeRadius], open(self.savedPath + "/mass.p", 'wb'), pickle.HIGHEST_PROTOCOL)
@@ -84,15 +88,11 @@ class Star:
             starEnvelopeRadius = self.envelopeRadius
             gasParticles = sphStar.gas_particles
             coreParticles = sphStar.core_particle
-        else:
-            totalMass,radius, starEnvelopeRadius= pickle.load(open(self.savedPath + "/mass.p", 'rb'))
-            gasParticles = read_set_from_file(self.savedPath + "/gasParticles.hdf5",'amuse', close_file= True)
-            coreParticles = read_set_from_file(self.savedPath + "/coreParticles.hdf5",'amuse', close_file= True)[0]
         starVolume = 4.0*numpy.pi*(radius**3)/3.0
         starAverageDensity = self.star.mass / starVolume
         relaxationTime = 2.0 / (constants.G*starAverageDensity).sqrt() # dynamical time
-        return RelaxModel.RelaxedModel(totalMass, starEnvelopeRadius, [gasParticles],
-                                [coreParticles], relaxationTime.as_quantity_in(units.yr), self.relaxationTimeSteps, savedVersionPath= self.savedPath)
+        return EvolveNBody.Run(totalMass, starEnvelopeRadius, [gasParticles], [coreParticles], relaxationTime.as_quantity_in(units.yr),
+                               self.relaxationTimeSteps, savedVersionPath= self.savedPath, relax= True)
         #return sphStar
 
 

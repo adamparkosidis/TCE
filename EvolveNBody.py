@@ -2,6 +2,7 @@ from matplotlib import pyplot
 #from matplotlib.animation as animation
 import time
 import pickle
+import os
 
 from amuse.units.quantities import AdaptingVectorQuantity
 from amuse.community.gadget2.interface import Gadget2
@@ -14,7 +15,7 @@ from amuse.io import read_set_from_file, write_set_to_file
 
 
 def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units.yr, timeSteps = 3 ,
-        savedVersionPath = "", saveAfterMinute = 15, step = 1):
+        savedVersionPath = "", saveAfterMinute = 15, step = 0, relax = False):
     '''
 
     :param totalMass: the triple summarized mass
@@ -26,11 +27,12 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
     evolutionCode.parameters.code_time_unit =  units.yr: in how many steps you want to evolve
     :return: None
     '''
+
     # creating the NBody system with the 3
     nbody = nbody_system.nbody_to_si(totalMass, semmiMajor)
 
     # evolve
-    evolutionCode = Gadget2(nbody, number_of_workers=7)
+    evolutionCode = Gadget2(nbody, number_of_workers=2)
     evolutionCode.parameters.time_max = 1000. | units.yr
     evolutionCode.parameters.time_limit_cpu = 1000000 | units.s
     timeStep = endTime / timeSteps
@@ -38,10 +40,21 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
     '''
     Now check if there is a saved state
     '''
+    if relax:
+        adding = "relaxation"
+    else:
+        adding = "evolution"
+
+    print "starting SPH " + adding
+
+    try:
+        os.makedirs(savedVersionPath + "/" + adding)
+    except(OSError):
+        print "the directories exit"
     if step!= 0:
-        evolutionCode.gas_particles.add_particles(read_set_from_file(savedVersionPath+"_gas_{0}.hdf5".format(step),
+        evolutionCode.gas_particles.add_particles(read_set_from_file(savedVersionPath + "/" + adding + "_gas_{0}.hdf5".format(step),
                                                                      'amuse', close_file= True))
-        evolutionCode.dm_particles.add_particle(read_set_from_file(savedVersionPath+"_dm_{0}.hdf5".format(step),
+        evolutionCode.dm_particles.add_particle(read_set_from_file(savedVersionPath + "/" + adding + "_dm_{0}.hdf5".format(step),
                                                                    'amuse', close_file= True)[0])
         evolutionCode.parameters.begin_time = (step * timeStep)
         currentTime = step * timeStep
@@ -51,13 +64,14 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
             evolutionCode.gas_particles.add_particles(gasParticle)
         for dmParticle in dmParticles:
             evolutionCode.dm_particles.add_particle(dmParticle)
-
-    print "starting system evolution"
     native_plot.figure(figsize=(20, 20), dpi=100)
-    parts = evolutionCode.gas_particles.copy()
-    sph_particles_plot(parts)
+    gas = evolutionCode.gas_particles.copy()
+    dm = evolutionCode.dm_particles.copy()
+    sph_particles_plot(gas)
     #native_plot.show()
-    native_plot.savefig(savedVersionPath + '/pics/evolution_0.jpg')
+    native_plot.savefig(savedVersionPath + '/pics/' + adding + '_0.jpg')
+    centerOfMassRadius = gas.center_of_mass()
+    centerOfMassV = gas.center_of_mass_velocity()
     x =  AdaptingVectorQuantity()
     y =  AdaptingVectorQuantity()
     z =  AdaptingVectorQuantity()
@@ -73,18 +87,31 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
         evolutionCode.evolve_model(currentTime)
         if (time.time() - currentSecond) % timeToSave :
             if savedVersionPath != "":
-                write_set_to_file(evolutionCode.gas_particles, savedVersionPath+"/gas_{0}.hdf5".format(step), 'amuse' ,
+                write_set_to_file(evolutionCode.gas_particles, savedVersionPath + "/" + adding + "/gas_{0}.hdf5".format(step), 'amuse' ,
                                   append_to_file= False)
                 write_set_to_file(Particles(particles = evolutionCode.dm_particles),
-                                  savedVersionPath+"/dm_{0}.hdf5".format(step), 'amuse', append_to_file= False)
-                pickle.dump([x,y,z], open(savedVersionPath+"xyz.p", 'wb'), pickle.HIGHEST_PROTOCOL)
-                print "state saved - {0}".format(savedVersionPath)
+                                  savedVersionPath + "/" + adding + "/dm_{0}.hdf5".format(step), 'amuse', append_to_file= False)
+                pickle.dump([x,y,z], open(savedVersionPath + "/" + adding +"xyz.p", 'wb'), pickle.HIGHEST_PROTOCOL)
+                print "state saved - {0}".format(savedVersionPath) + "/" + adding
 
         print "current time = ", evolutionCode.model_time.as_quantity_in(units.yr)
         currentTime += timeStep
-        parts = evolutionCode.gas_particles.copy()
-        sph_particles_plot(parts)
-        native_plot.savefig(savedVersionPath + "/pics/evolution_{0}.jpg".format(step))
+        gas = evolutionCode.gas_particles.copy()
+        sph_particles_plot(gas)
+        native_plot.savefig(savedVersionPath + "/pics/" + adding + "_{0}".format(step))
+        print "pic {0} saved".format(step)
+        if relax:
+            gas.add_particle(evolutionCode.dm_particles)
+            evolutionCode.gas_particles.position += (centerOfMassRadius - gas.center_of_mass())
+            evolutionCode.dm_particles.position += (centerOfMassRadius - gas.center_of_mass())
+            relaxingVFactor = (step / timeSteps)
+            evolutionCode.gas_particles.velocity = relaxingVFactor * (evolutionCode.gas_particles.velocity -
+                                                                                gas.center_of_mass_velocity()) + centerOfMassV
+            evolutionCode.dm_particles.velocity = relaxingVFactor * (evolutionCode.dm_particles.velocity -
+                                                                               gas.center_of_mass_velocity()) + centerOfMassV
+
+        gas = evolutionCode.gas_particles.copy()
+        dm = evolutionCode.dm_particles.copy()
         x.append(evolutionCode.particles.x)
         y.append(evolutionCode.particles.y)
         z.append(evolutionCode.particles.z)
@@ -101,8 +128,9 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
     pyplot.xlim(-20, 20)
     pyplot.ylim(-20, 20)
     pyplot.xlabel('AU')
-    pyplot.savefig('savings/pics/TCE_dynamics.jpg')
+    pyplot.savefig('savings/pics/{0}_dynamics.jpg'.format(adding))
     evolutionCode.stop()
+    return gas, dm
 
 def EvolveBinary(totalMass, semmiMajor, binary, endTime= 10000 | units.yr, timeSteps = 10,
                  orbitPlotPath = 'Binary_dynamics.eps'):
@@ -150,3 +178,4 @@ def EvolveBinary(totalMass, semmiMajor, binary, endTime= 10000 | units.yr, timeS
     pyplot.xlabel('AU')
     pyplot.savefig(orbitPlotPath)
     evolutionCode.stop()
+

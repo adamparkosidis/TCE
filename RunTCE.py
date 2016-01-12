@@ -1,5 +1,5 @@
 import pickle
-import os.path
+import os
 
 from amuse.units import units
 from amuse.units.units import *
@@ -96,7 +96,7 @@ def SaveState(savedVersionPath, starMass, starEnvelope, starCore, binary, triple
     print "state saved - {0}".format(savedVersionPath)
 
 
-def Start(savedVersionPath = "savings/Passy500000", takeSavedState = "False", configurationFile = "PassyConfiguration.ini"):
+def Start(savedVersionPath = "savings/RG500000", takeSavedState = "False", configurationFile = "PassyConfiguration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -104,12 +104,17 @@ def Start(savedVersionPath = "savings/Passy500000", takeSavedState = "False", co
                             Mesa if its only the Mesa Star, Sph - if its only the sph star (after relaxation)
     :return: None
     '''
-
+    try:
+        os.makedirs(savedVersionPath + "/pics")
+    except(OSError):
+        print "the directories exit"
     # creating the triple system
     if takeSavedState == "True":
         starMass, starEnvelope, starCore, binary, tripleSemmimajor = TakeSavedState(savedVersionPath, configurationFile)
     else:
         if takeSavedState == "Sph":
+            starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile, savedVersionPath, takeSavedSPH= True)
+        elif takeSavedState == "Relax":
             starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile, savedVersionPath, takeSavedSPH= True)
         elif takeSavedState == "Mesa":
             starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile, savedVersionPath, takeSavedMesa= True)
@@ -118,13 +123,13 @@ def Start(savedVersionPath = "savings/Passy500000", takeSavedState = "False", co
         SaveState(savedVersionPath, starMass, starEnvelope, starCore, binary, tripleSemmimajor)
 
 
-    #EvolveNBody.Run(totalMass= starMass, semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope],
-    #               dmParticles= [starCore], endTime= 1000. | units.yr, timeSteps= 12 ,
-    #               savedVersionPath= savedVersionPath, step= 1)
+    EvolveNBody.Run(totalMass= starMass, semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope],
+                   dmParticles= [starCore], endTime= 1000. | units.yr, timeSteps= 12 ,
+                   savedVersionPath= savedVersionPath, step= 1)
 
-    EvolveNBody.Run(totalMass= starMass + binary[0].mass,
-                    semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope], dmParticles= [starCore , binary[0]],
-                    endTime= 10. | units.yr, timeSteps= 5, savedVersionPath= savedVersionPath)
+    #EvolveNBody.Run(totalMass= starMass + binary[0].mass,
+    #                semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope], dmParticles= [starCore , binary[0]],
+     #               endTime= 10. | units.yr, timeSteps= 5, savedVersionPath= savedVersionPath)
 
 
     #EvolveNBody.EvolveBinary(totalMass= binary[0].mass + binary[1].mass,

@@ -20,6 +20,7 @@ class Star:
             self.coreMass = 0.1 | units.MSun
             self.star.metalicity = 0.02
             self.radius = 1 | units.AU
+            self.star.radius = 1 | units.AU
             self.sphParticles = 100.0
             self.envelopeRadius = 1 | units.AU
             self.relaxationTime = 10
@@ -32,6 +33,7 @@ class Star:
             self.coreMass = float(parser.get(configurationSection, "coreMass")) | units.MSun
             self.star.metalicity = float(parser.get(configurationSection, "metalicity"))
             self.radius = float(parser.get(configurationSection, "radius")) | units.AU
+            self.star.radius = float(parser.get(configurationSection, "radius")) | units.AU
             self.sphParticles = float(parser.get(configurationSection, "sphParticles"))
             self.envelopeRadius = float(parser.get(configurationSection, "envelopeRadius")) | units.AU
             self.relaxationTime = float(parser.get(configurationSection, "relaxationTime"))

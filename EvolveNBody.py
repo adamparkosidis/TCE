@@ -6,6 +6,7 @@ import os
 
 from amuse.units.quantities import AdaptingVectorQuantity
 from amuse.community.gadget2.interface import Gadget2
+from amuse.community.fi.interface import Fi
 from amuse.community.hermite0.interface import  Hermite
 from amuse.units import units , nbody_system
 from amuse.units.units import *
@@ -24,6 +25,8 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
     :param dmParticles: all the dark matter particles in the system
     :param endTime: when should end the evolution
     :param timeSteps
+    :param step: the begining step of the simulation
+    :param relax: if it is a relaxation simulation or a normal evolution
     evolutionCode.parameters.code_time_unit =  units.yr: in how many steps you want to evolve
     :return: None
     '''
@@ -32,7 +35,8 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
     nbody = nbody_system.nbody_to_si(totalMass, semmiMajor)
 
     # evolve
-    evolutionCode = Gadget2(nbody, number_of_workers=2)
+    #evolutionCode = Fi(nbody)
+    evolutionCode = Gadget2(nbody, number_of_workers=7)
     evolutionCode.parameters.time_max = 1000. | units.yr
     evolutionCode.parameters.time_limit_cpu = 1000000 | units.s
     timeStep = endTime / timeSteps
@@ -45,12 +49,16 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
     else:
         adding = "evolution"
 
-    print "starting SPH " + adding
 
     try:
         os.makedirs(savedVersionPath + "/" + adding)
     except(OSError):
-        print "the directories exit"
+        pass
+
+    try:
+        os.makedirs(savedVersionPath + '/pics/')
+    except(OSError):
+        pass
     if step!= 0:
         evolutionCode.gas_particles.add_particles(read_set_from_file(savedVersionPath + "/" + adding + "_gas_{0}.hdf5".format(step),
                                                                      'amuse', close_file= True))
@@ -64,14 +72,17 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
             evolutionCode.gas_particles.add_particles(gasParticle)
         for dmParticle in dmParticles:
             evolutionCode.dm_particles.add_particle(dmParticle)
-    native_plot.figure(figsize=(20, 20), dpi=100)
-    gas = evolutionCode.gas_particles.copy()
+
+    native_plot.figure(figsize=(20, 20), dpi=60)
+
     dm = evolutionCode.dm_particles.copy()
-    sph_particles_plot(gas)
+    gas = evolutionCode.gas_particles.copy()
+
+    sph_particles_plot(evolutionCode.gas_particles)
     #native_plot.show()
     native_plot.savefig(savedVersionPath + '/pics/' + adding + '_0.jpg')
-    centerOfMassRadius = gas.center_of_mass()
-    centerOfMassV = gas.center_of_mass_velocity()
+    centerOfMassRadius = evolutionCode.gas_particles.center_of_mass()
+    centerOfMassV = evolutionCode.gas_particles.center_of_mass_velocity()
     x =  AdaptingVectorQuantity()
     y =  AdaptingVectorQuantity()
     z =  AdaptingVectorQuantity()
@@ -82,13 +93,15 @@ def Run(totalMass, semmiMajor, gasParticles, dmParticles, endTime= 10000 | units
     #    x, y, z = pickle.load(open(savedVersionPath+"xyz.p", 'rb'))
     currentSecond = time.time()
     timeToSave = saveAfterMinute * 60
+
+    print "starting SPH " + adding
     while currentTime < endTime:
         step += 1
         evolutionCode.evolve_model(currentTime)
         if (time.time() - currentSecond) % timeToSave :
             if savedVersionPath != "":
-                write_set_to_file(evolutionCode.gas_particles, savedVersionPath + "/" + adding + "/gas_{0}.hdf5".format(step), 'amuse' ,
-                                  append_to_file= False)
+                write_set_to_file(evolutionCode.gas_particles, savedVersionPath + "/" + adding + "/gas_{0}.hdf5".format(step),
+                                  'amuse' , append_to_file= False)
                 write_set_to_file(Particles(particles = evolutionCode.dm_particles),
                                   savedVersionPath + "/" + adding + "/dm_{0}.hdf5".format(step), 'amuse', append_to_file= False)
                 pickle.dump([x,y,z], open(savedVersionPath + "/" + adding +"xyz.p", 'wb'), pickle.HIGHEST_PROTOCOL)

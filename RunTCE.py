@@ -75,7 +75,7 @@ def TakeSavedState(savedVersionPath, configurationFile):
 
     native_plot.figure(figsize=(30, 30), dpi=60)
     sph_particles_plot(starEnvelope)
-    native_plot.show()
+    #native_plot.show()
 
     return starMass, starEnvelope, starCore, newBinary, tripleSemmimajor
 
@@ -96,7 +96,7 @@ def SaveState(savedVersionPath, starMass, starEnvelope, starCore, binary, triple
     print "state saved - {0}".format(savedVersionPath)
 
 
-def Start(savedVersionPath = "savings/RG500000", takeSavedState = "False", configurationFile = "PassyConfiguration.ini"):
+def Start(savedVersionPath = "savings/TCE500000", takeSavedState = "False", configurationFile = "TCEConfiguration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -107,7 +107,7 @@ def Start(savedVersionPath = "savings/RG500000", takeSavedState = "False", confi
     try:
         os.makedirs(savedVersionPath + "/pics")
     except(OSError):
-        print "the directories exit"
+        pass
     # creating the triple system
     if takeSavedState == "True":
         starMass, starEnvelope, starCore, binary, tripleSemmimajor = TakeSavedState(savedVersionPath, configurationFile)
@@ -123,22 +123,22 @@ def Start(savedVersionPath = "savings/RG500000", takeSavedState = "False", confi
         SaveState(savedVersionPath, starMass, starEnvelope, starCore, binary, tripleSemmimajor)
 
 
-    EvolveNBody.Run(totalMass= starMass, semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope],
-                   dmParticles= [starCore], endTime= 1000. | units.yr, timeSteps= 12 ,
-                   savedVersionPath= savedVersionPath, step= 1)
+    #EvolveNBody.Run(totalMass= starMass, semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope],
+    #               dmParticles= [starCore], endTime= 1000. | units.yr, timeSteps= 12 ,
+    #               savedVersionPath= savedVersionPath, step= 0)
 
     #EvolveNBody.Run(totalMass= starMass + binary[0].mass,
     #                semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope], dmParticles= [starCore , binary[0]],
-     #               endTime= 10. | units.yr, timeSteps= 5, savedVersionPath= savedVersionPath)
+    #                endTime= 10. | units.yr, timeSteps= 5, savedVersionPath= savedVersionPath)
 
 
     #EvolveNBody.EvolveBinary(totalMass= binary[0].mass + binary[1].mass,
     #                semmiMajor= 0.15 | units.AU, binary= binary , endTime= 100 | units.yr, timeSteps = 2)
 
     # creating the NBody system with the 3 and evolving
-    #EvolveNBody.Run(totalMass= starMass + binary[0].mass + binary[1].mass,
-    #                semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope], dmParticles= [starCore , binary],
-    #                endTime= 100.0 | units.yr, timeSteps= 20)
+    EvolveNBody.Run(totalMass= starMass + binary[0].mass + binary[1].mass,
+                    semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope], dmParticles= [starCore , binary],
+                    endTime= 100.0 | units.yr, timeSteps= 20)
     print "****************** Simulation Completed ******************"
 
 def MakeAMovieFromSavedState(savedVersionPath= "savings/TCE500000" , steps = []):

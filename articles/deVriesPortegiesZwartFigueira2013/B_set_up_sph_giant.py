@@ -17,6 +17,7 @@ import matplotlib
 matplotlib.use("Agg")
 from matplotlib import pyplot
 from amuse.plot import scatter, xlabel, ylabel, plot, pynbody_column_density_plot, HAS_PYNBODY
+from pynbody.snapshot import new as _new
 
 from xiTau_parameters import triple_parameters
 
@@ -155,7 +156,8 @@ def evolve_system(coupled_system, t_end, n_steps):
 
 def density_plot(coupled_system, i_step):
     if not HAS_PYNBODY:
-        return
+        print "problem plotting"
+        #return
     figname = os.path.join("plots", "hydro_giant{0:=04}.png".format(i_step))
     print "  -   Hydroplot saved to: ", figname
     pynbody_column_density_plot(coupled_system.gas_particles, width=3|units.AU, vmin=26, vmax=33)
@@ -181,7 +183,7 @@ if __name__ == "__main__":
     dynamics_code = Huayno
     sph_code = Fi
     number_of_sph_particles = 100000
-    stellar_structure_file = os.path.join(os.getcwd(), "giant_models", "model_0100_100.2")
+    stellar_structure_file = os.path.join(os.getcwd(), "giant_models", "model_0074_111.6")
     
     relative_inclination = math.radians(0.0)
     

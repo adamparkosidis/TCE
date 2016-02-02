@@ -12,6 +12,7 @@ from amuse.ext.sink import new_sink_particles
 from amuse.couple.bridge import Bridge, CalculateFieldForParticles, CalculateFieldForCodesUsingReinitialize
 
 from amuse.community.fi.interface import Fi
+from amuse.community.gadget2.interface import Gadget2
 from amuse.community.huayno.interface import Huayno
 from amuse.community.mi6.interface import MI6
 
@@ -44,11 +45,11 @@ def load_sph_giant(gas_particles_file, dm_particles_file):
 
 def new_coupled_system(hydro, binary_system, t_end, n_steps):
     kick_from_hydro = CalculateFieldForParticles(particles=hydro.particles, gravity_constant=constants.G)
-    kick_from_hydro.smoothing_length_squared = 100 | units.RSun**2
+    kick_from_hydro.smoothing_length_squared = 1.0 | units.RSun**2
     
     unit_converter = nbody_system.nbody_to_si(binary_system.particles.total_mass(), t_end)
     kicker_code = MI6(unit_converter, redirection='file', redirect_file='kicker_code_mi6_out.log')
-    kicker_code.parameters.epsilon_squared = 100 | units.RSun**2
+    kicker_code.parameters.epsilon_squared = 1.0 | units.AU**2
     kick_from_binary = CalculateFieldForCodesUsingReinitialize(kicker_code, (binary_system,))
     
     coupled_system = Bridge(timestep=(t_end / (2 * n_steps)), verbose=False, use_threading=True)
@@ -59,12 +60,13 @@ def new_coupled_system(hydro, binary_system, t_end, n_steps):
 def evolve_system(coupled_system, t_end, n_steps):
     times = (t_end * range(1, n_steps+1) / n_steps).as_quantity_in(units.day)
     
-    sinks = new_sink_particles(coupled_system.codes[0].particles, sink_radius=5|units.RSun)
+    sinks = new_sink_particles(coupled_system.codes[0].particles, sink_radius=1.0|units.RSun)
 
     hydro = coupled_system.codes[0].code # only calculate potential energy for the giant (SPH particles)
     potential_energies = hydro.potential_energy.as_vector_with_length(1).as_quantity_in(units.J)
     kinetic_energies = hydro.kinetic_energy.as_vector_with_length(1).as_quantity_in(units.J)
     thermal_energies = coupled_system.thermal_energy.as_vector_with_length(1).as_quantity_in(units.J)
+
     x =  AdaptingVectorQuantity()
     y =  AdaptingVectorQuantity()
     z =  AdaptingVectorQuantity()
@@ -140,7 +142,7 @@ def energy_evolution_plot(time, kinetic, potential, thermal, figname = "energy_e
 
 if __name__ == "__main__":
     dynamics_code = Huayno
-    sph_code = Fi
+    sph_code = Gadget2
     gas_particles_file = os.path.join(os.getcwd(), "run_000", "hydro_giant_gas.amuse")
     dm_particles_file = os.path.join(os.getcwd(), "run_000", "hydro_giant_dm.amuse")
     
@@ -149,8 +151,8 @@ if __name__ == "__main__":
     
     relative_inclination = math.radians(9.0)
     
-    t_end = 1400.0 | units.day
-    n_steps = 7000
+    t_end = 14.0 | units.day
+    n_steps = 7
     
     new_working_directory()
     print "Initializing triple"

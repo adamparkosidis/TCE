@@ -10,6 +10,7 @@ from amuse.ext.star_to_sph import convert_stellar_model_to_SPH
 from amuse.couple.bridge import Bridge, CalculateFieldForCodesUsingReinitialize
 
 from amuse.community.fi.interface import Fi
+from amuse.community.gadget2.interface import Gadget2
 from amuse.community.huayno.interface import Huayno
 from amuse.community.mi6.interface import MI6
 
@@ -78,7 +79,7 @@ def set_up_sph_giant(giant, stellar_structure_file, number_of_sph_particles):
         number_of_sph_particles, 
         pickle_file = stellar_structure_file, 
         with_core_particle = True,
-        target_core_mass  = 2.0 | units.MSun,
+        target_core_mass  = 2.4 | units.MSun,
         do_store_composition = False,
         base_grid_options=dict(type="fcc")
     )
@@ -112,8 +113,8 @@ def new_hydro(sph_code, sph_giant, core, t_end, n_steps, core_radius):
 
 def new_coupled_system(hydro, binary_system, t_end, n_steps):
     unit_converter = nbody_system.nbody_to_si(binary_system.particles.total_mass(), t_end)
-    kicker_code = MI6(unit_converter, redirection='file', redirect_file='kicker_code_mi6_out.log')
-    kicker_code.parameters.epsilon_squared = 100 | units.RSun**2
+    kicker_code = MI6(unit_converter,number_of_workers= 8, redirection='file', redirect_file='kicker_code_mi6_out.log')
+    kicker_code.parameters.epsilon_squared = 1.0 | units.RSun**2
     kick_from_binary = CalculateFieldForCodesUsingReinitialize(kicker_code, (binary_system,))
     
     coupled_system = Bridge(timestep=(t_end / (2 * n_steps)), verbose=False, use_threading=False)
@@ -181,7 +182,7 @@ def energy_evolution_plot(time, kinetic, potential, thermal, figname = "energy_e
 
 if __name__ == "__main__":
     dynamics_code = Huayno
-    sph_code = Fi
+    sph_code = Gadget2
     number_of_sph_particles = 100000
     stellar_structure_file = os.path.join(os.getcwd(), "giant_models", "model_0074_111.6")
     

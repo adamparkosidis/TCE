@@ -13,7 +13,7 @@ from xiTau_parameters import triple_parameters
 def evolve_giant(giant, stop_radius):
     stellar_evolution = stellar_evolution_code()
     giant_in_code = stellar_evolution.particles.add_particle(giant)
-    while (giant_in_code.radius < 10 | units.RSun):
+    while (giant_in_code.radius < 0.7 | units.AU):
         giant_in_code.evolve_one_step()
     
     print "Giant starts to ascend the giant branch, now saving model every step..."
@@ -37,5 +37,5 @@ if __name__ == "__main__":
     giant = Particle(mass = triple_parameters["mass_out"])
     
     print "\nEvolving with", stellar_evolution_code.__name__
-    evolve_giant(giant, 110 | units.RSun)
+    evolve_giant(giant, 1.0 | units.AU)
     print "Done"

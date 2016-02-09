@@ -143,7 +143,7 @@ def evolve_system(coupled_system, t_end, n_steps):
         kinetic_energies.append(hydro.kinetic_energy)
         thermal_energies.append(hydro.thermal_energy)
         print "   Energies calculated"
-        density_plot(coupled_system, i_step)
+        #density_plot(coupled_system, i_step)
         
     snapshotfile = "hydro_giant_gas.amuse"
     write_set_to_file(coupled_system.gas_particles, snapshotfile, format='amuse')
@@ -161,7 +161,7 @@ def density_plot(coupled_system, i_step):
         #return
     figname = os.path.join("plots", "hydro_giant{0:=04}.png".format(i_step))
     print "  -   Hydroplot saved to: ", figname
-    pynbody_column_density_plot(coupled_system.gas_particles, width=3|units.AU, vmin=26, vmax=33)
+    pynbody_column_density_plot(coupled_system.gas_particles, width=5|units.AU, vmin=20, vmax=100)
     scatter(coupled_system.dm_particles.x, coupled_system.dm_particles.y, c="w")
     pyplot.savefig(figname)
     pyplot.close()
@@ -183,7 +183,7 @@ def energy_evolution_plot(time, kinetic, potential, thermal, figname = "energy_e
 if __name__ == "__main__":
     dynamics_code = Huayno
     sph_code = Gadget2
-    number_of_sph_particles = 100000
+    number_of_sph_particles = 500000
     stellar_structure_file = os.path.join(os.getcwd(), "giant_models", "model_0074_111.6")
     
     relative_inclination = math.radians(0.0)

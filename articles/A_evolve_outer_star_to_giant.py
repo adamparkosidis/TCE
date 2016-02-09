@@ -23,7 +23,7 @@ def evolve_giant(giant, stop_radius):
     while (giant_in_code.radius < stop_radius):
         giant_in_code.evolve_one_step()
         print giant_in_code.radius, giant_in_code.age
-        pickle_file_name = "./model_{0:=04}_".format(i) + "%0.1f"%(giant_in_code.radius.value_in(units.RSun))
+        pickle_file_name = "./model_{0:=04}_".format(i) + "%0.1f"%(giant_in_code.radius.value_in(units.AU))
         pickle_stellar_model(giant_in_code, pickle_file_name)
         i += 1
     

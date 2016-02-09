@@ -20,7 +20,7 @@ from amuse.community.mi6.interface import MI6
 import matplotlib
 matplotlib.use("Agg")
 from matplotlib import pyplot
-from amuse.plot import scatter, xlabel, ylabel, plot, pynbody_column_density_plot, HAS_PYNBODY, native_plot, sph_particles_plot
+from amuse.plot import scatter, xlabel, ylabel, plot, native_plot, sph_particles_plot
 
 
 from B_set_up_sph_giant import set_up_initial_conditions, new_dynamics_for_binary, new_hydro
@@ -86,8 +86,8 @@ def evolve_system(coupled_system, t_end, n_steps):
         kinetic_energies.append(coupled_system.kinetic_energy)
         thermal_energies.append(coupled_system.thermal_energy)
         print "   Energies calculated"
-        density_plot(coupled_system, i_step)
-        if i_step % 10 == 9:
+        #density_plot(coupled_system, i_step)
+        if i_step % 1 == 1:
             snapshotfile = os.path.join("snapshots", "hydro_triple_{0:=06}_gas.amuse".format(i_step))
             write_set_to_file(coupled_system.gas_particles, snapshotfile, format='amuse')
             snapshotfile = os.path.join("snapshots", "hydro_triple_{0:=06}_dm.amuse".format(i_step))
@@ -97,8 +97,8 @@ def evolve_system(coupled_system, t_end, n_steps):
         x.append(hydro.particles.x)
         y.append(hydro.particles.y)
         z.append(hydro.particles.z)
-    energy_evolution_plot(times[:len(kinetic_energies)-1], kinetic_energies,
-            potential_energies, thermal_energies)
+    #energy_evolution_plot(times[:len(kinetic_energies)-1], kinetic_energies,
+    #        potential_energies, thermal_energies)
 
     x=x.value_in(units.AU)
     y=y.value_in(units.AU)
@@ -116,17 +116,18 @@ def evolve_system(coupled_system, t_end, n_steps):
 
     coupled_system.stop()
 
-
+'''
 def density_plot(coupled_system, i_step):
     if not HAS_PYNBODY:
-        return
-    figname = os.path.join("plots", "hydro_giant{0:=06}.png".format(i_step))
+        print "problem plotting"
+        #return
+    figname = os.path.join("plots", "hydro_giant{0:=04}.png".format(i_step))
     print "  -   Hydroplot saved to: ", figname
-    pynbody_column_density_plot(coupled_system.gas_particles, width=3|units.AU, vmin=26, vmax=33)
+    pynbody_column_density_plot(coupled_system.gas_particles, width=5|units.AU, vmin=20, vmax=100)
     scatter(coupled_system.dm_particles.x, coupled_system.dm_particles.y, c="w")
     pyplot.savefig(figname)
     pyplot.close()
-
+'''
 def energy_evolution_plot(time, kinetic, potential, thermal, figname = "energy_evolution1.png"):
     time.prepend(0.0 | units.day)
     pyplot.figure(figsize = (5, 5))
@@ -142,17 +143,17 @@ def energy_evolution_plot(time, kinetic, potential, thermal, figname = "energy_e
 
 if __name__ == "__main__":
     dynamics_code = Huayno
-    sph_code = Gadget2
-    gas_particles_file = os.path.join(os.getcwd(), "run_000", "hydro_giant_gas.amuse")
-    dm_particles_file = os.path.join(os.getcwd(), "run_000", "hydro_giant_dm.amuse")
+    sph_code = Fi
+    gas_particles_file = os.path.join(os.getcwd(), "run_001", "hydro_giant_gas.amuse")
+    dm_particles_file = os.path.join(os.getcwd(), "run_001", "hydro_giant_dm.amuse")
     
     # Output from set_up_sph_giant in B_set_up_sph_giant.py:
     core_radius = 0.7047075092| units.RSun
     
     relative_inclination = math.radians(9.0)
     
-    t_end = 14.0 | units.day
-    n_steps = 7
+    t_end = 1400.0 | units.day
+    n_steps = 7000
     
     new_working_directory()
     print "Initializing triple"

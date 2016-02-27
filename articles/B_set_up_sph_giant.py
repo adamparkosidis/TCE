@@ -161,9 +161,12 @@ def density_plot(coupled_system, i_step):
         #return
     figname = os.path.join("plots", "hydro_giant{0:=04}.png".format(i_step))
     print "  -   Hydroplot saved to: ", figname
-    pynbody_column_density_plot(coupled_system.gas_particles, width=5|units.AU, vmin=20, vmax=100)
+    pynbody_column_density_plot(coupled_system.gas_particles, width=5|units.AU, vmin=20, vmax=1000)
     scatter(coupled_system.dm_particles.x, coupled_system.dm_particles.y, c="w")
-    pyplot.savefig(figname)
+    pyplot.savefig(figname+"1")
+    pynbody_column_density_plot(coupled_system.gas_particles, width=5|units.AU)
+    scatter(coupled_system.dm_particles.x, coupled_system.dm_particles.y, c="w")
+    pyplot.savefig(figname+"2")
     pyplot.close()
 
 def energy_evolution_plot(time, kinetic, potential, thermal, figname = "energy_evolution.png"):

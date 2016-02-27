@@ -101,7 +101,7 @@ class Star:
 def CreateBinary(configurationFile="", configurationSection="", binaryMasses = [1.0 | units.MSun, 1.0 | units.MSun],
                  binarySemimajorAxis = 0.1 | units.AU):
     '''
-    creating a binary stard
+    creating a binary star
     :param configurationFile: where to take the binary's attributes
     :param configurationSection: in which section in the configuration file
     :param binaryMasses: what are the two masses?

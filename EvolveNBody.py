@@ -32,15 +32,16 @@ def DynamicsForBinarySystem(dynamicsCode, totalMass, semmiMajor, binary):
     system.particles.add_particles(binary)
     return system
 
-def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius):
+def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius, numberOfWorkers = 1):
     envelopeMass = StarModels.CalculateTotalMass(envelope)
     unitConverter = nbody_system.nbody_to_si(envelopeMass + core.mass, t_end)
     system = sphCode(unitConverter, redirection="file", redirect_file="sph_code_out.log")
-    system.parameters.timestep = t_end / n_steps
-    system.parameters.eps_is_h_flag = True
+    if sphCode.__name__ == "Fi":
+        system.parameters.timestep = t_end / n_steps
+        system.parameters.eps_is_h_flag = True
     system.parameters.begin_time = beginTime
-    if sphCode.__name__()=="Gasget2":
-        system.parameters.number_of_workers = 7
+    if sphCode.__name__ =="Gasget2":
+        system.parameters.number_of_workers = numberOfWorkers
     core.radius = core_radius * 2
     system.dm_particles.add_particle(core)
     system.gas_particles.add_particles(envelope)
@@ -60,21 +61,28 @@ def CoupledSystem(hydroSystem, binary, t_end, n_steps, beginTime):
 
 
 def Run(totalMass, semmiMajor, sphEnvelope,sphCore, stars, endTime= 10000 | units.yr, timeSteps = 3 ,
-        savedVersionPath = "", saveAfterMinute = 15, step = 0, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,  sinkRadius = 4.0| units.RSun):
+        savedVersionPath = "", saveAfterMinute = 15, step = 0, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
+        sinkRadius = 4.0| units.RSun, numberOfWorkers = 1):
     '''
 
     Args:
-        totalMass: the triple summarized mass
+        totalMassrelaxation tie: the triple summarized mass
         semmiMajor:
         gasParticles: all the gas particles in the system
         dmParticles: all the dark matter particles in the system
         endTime: when should end the evolution
         timeSteps:
         savedVersionPath:
-        saveAfterMinute:
+        saveAfterMinute:elocity
+    starCore.velocity += giant.velocity
+
+    return giant.mass, starEnvelope,
         step: the begining step of the simulation
         relax: if it is a relaxation simulation or a normal evolution
-        hydroCode: which sph code to use (default Gadget2)
+        hydroCode: which sph code to use (default Gadget2)elocity
+    starCore.velocity += giant.velocity
+
+    return giant.mass, starEnvelope,
         dynamicCode: which dynamic code to use (default Huayno)
 
     Returns:
@@ -109,13 +117,14 @@ def Run(totalMass, semmiMajor, sphEnvelope,sphCore, stars, endTime= 10000 | unit
         sphCore= StarModels.LoadDm(savedVersionPath + "/" + adding + "_dm_{0}.amuse".format(step))
         currentTime = step * timeStep
 
-    hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius)
+    hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
     print "evolving from step ", step
 
     native_plot.figure(figsize=(20, 20), dpi=60)
 
     print "\nSetting up {0} to simulate triple system".format(dynamicsCode.__name__)
-    binarySystem = DynamicsForBinarySystem(dynamicsCode, stars, currentTime)
+    binarySystem = DynamicsForBinarySystem(dynamicsCode, totalMass,semmiMajor,stars)
+
     print "\nSetting up Bridge to simulate triple system"
     coupledSystem = CoupledSystem(hydroSystem, binarySystem, endTime, timeSteps, currentTime)
 
@@ -144,6 +153,7 @@ def Run(totalMass, semmiMajor, sphEnvelope,sphCore, stars, endTime= 10000 | unit
 
     while currentTime < endTime:
         step += 1
+        particles = coupledSystem.particles
         if relax:
             particles.position += (centerOfMassRadius - particles.center_of_mass())
             relaxingVFactor = (step / timeSteps)
@@ -151,32 +161,29 @@ def Run(totalMass, semmiMajor, sphEnvelope,sphCore, stars, endTime= 10000 | unit
         else:
             sinks.accrete(coupledSystem.gas_particles)
 
-        coupledSystem.evolve_model(time)
-        print "   Evolved to:", time
+        coupledSystem.evolve_model(currentTime)
+        print "   Evolved to:", currentTime
+        gas = hydroSystem.gas_particles.copy()
         potential_energies.append(coupledSystem.potential_energy)
         kinetic_energies.append(coupledSystem.kinetic_energy)
         thermal_energies.append(coupledSystem.thermal_energy)
         print "   Energies calculated"
-
-        print "current time = ", coupledSystem.model_time.as_quantity_in(units.yr)
-        currentTime += timeStep
-        gas = hydroSystem.gas_particles.copy()
         sph_particles_plot(gas)
         native_plot.savefig(savedVersionPath + "/pics/" + adding + "_{0}".format(step))
         print "pic {0} saved".format(step)
-        particles = coupledSystem.particles
 
-        coupledSystem.evolve_model(currentTime)
+        currentTime += timeStep
         if (time.time() - currentSecond) % timeToSave :
             if savedVersionPath != "":
                 StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step), hydroSystem.gas_particles)
                 StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step), hydroSystem.dm_particles)
                 print "state saved - {0}".format(savedVersionPath) + "/" + adding
-                TCEPlotting.PlotDensity(hydroSystem.gas_particles,hydroSystem.dm_particles, binarySystem.particles)
-    #native_plot.show()
-
+                TCEPlotting.PlotDensity(hydroSystem.gas_particles,hydroSystem.dm_particles, binarySystem.particles,
+                                        step=step, plottingPath=savedVersionPath + '/pics/' + adding )
+        dm = hydroSystem.dm_particles.copy()
+        gas = hydroSystem.gas_particles.copy()
     coupledSystem.stop()
-    return hydroSystem.gas_particles, hydroSystem.dm_particles
+    return gas, dm
 
 def EvolveBinary(totalMass, semmiMajor, binary, endTime= 10000 | units.yr, timeSteps = 10,
                  orbitPlotPath = 'Binary_dynamics.eps'):
@@ -205,6 +212,7 @@ def EvolveBinary(totalMass, semmiMajor, binary, endTime= 10000 | units.yr, timeS
     z.append(evolutionCode.particles.z)
     timeStep = endTime / timeSteps
     currentTime = 0.0 | units.Myr
+
     while currentTime < endTime:
         evolutionCode.evolve_model(currentTime)
         print "current time = ", evolutionCode.model_time.as_quantity_in(units.yr)

@@ -62,14 +62,14 @@ def CalculateInclination(V12,R12,V23,R23):
 def CalculateSpecificEnergy(V,R,particle1,particle2):
     return -constants.G*(particle1.mass+particle2.mass)/(CalculateVectorSize(R)) + 0.5*(CalculateVectorSize(V)**2)
 
-def PlotDensity(sph_giant,core,binary):
+def PlotDensity(sph_giant,core,binary,step ,plottingPath = "/tempPics"):
     if not HAS_PYNBODY:
         print "problem plotting"
         #return
     pynbody_column_density_plot(sph_giant, width=5|units.AU)
     scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
-    pyplot.savefig("tempPics/plotting_{0}.jpg".format(i))
+    pyplot.savefig(plottingPath + "/DensityPlot_{0}.jpg".format(step))
     pyplot.close()
 
 def GetSphMass(sphStar):
@@ -192,6 +192,7 @@ if __name__ == "__main__":
     snapshots = os.listdir(os.path.join(os.getcwd(), "run_006/snapshots/"))
     dmFiles = []
     gasFiles = []
+    print "giant: ", giant.position, "sph: ", starEnvelope
     for snapshotFile in snapshots:
         if 'dm' in snapshotFile: #if the word dm is in the filename
             dmFiles.append(snapshotFile)
@@ -282,7 +283,7 @@ if __name__ == "__main__":
 
         binaryDistances.append(CalculateVectorSize(binaryStar.separation))
 
-        PlotDensity(sph_giant,core,binary)
+        PlotDensity(sph_giant,core,binary, step)
         aInners.append(abs(aInner))
         aOuters.append(abs(aOuter))
         if eInner < 0 or  eInner > 1:

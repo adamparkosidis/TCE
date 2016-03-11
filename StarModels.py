@@ -25,7 +25,7 @@ def CreatePointStar(configurationFile="", configurationSection=""):
     return star
 
 class SphStar:
-    def __init__(self, pointStar, configurationFile="", configurationSection="", savedMesaStarPath = "",savedGas="", savedDm=""):
+    def __init__(self, pointStar, configurationFile="", configurationSection="", savedMesaStarPath = "", takeSavedMesa = False,savedGas="", savedDm=""):
         print 'parsing configurations'
         parser = ConfigParser.ConfigParser()
         parser.read(configurationFile)
@@ -34,26 +34,28 @@ class SphStar:
         self.coreMass = float(parser.get(configurationSection, "coreMass")) | units.MSun
         self.relaxationTime = float(parser.get(configurationSection, "relaxationTime")) | units.yr
         self.relaxationTimeSteps = float(parser.get(configurationSection, "relaxationTimeSteps"))
+        self.numberOfWorkers = float(parser.get(configurationSection, "numberOfWorkers"))
 
         # Convert the star to SPH model ###
         if savedGas != "" and savedDm != "":
             self.sphStar.gas_particles = LoadGas(savedGas)
             self.sphStar.core_particle = LoadDm(savedDm)
         else:
-            if savedMesaStarPath == "":
-                mesaStar = self.EvolveStarWithStellarCode(MESA)
+            if takeSavedMesa:
+                print "taking save state from: ", savedMesaStarPath+"/"+MESA.__name__
+                self.sphStar = convert_stellar_model_to_SPH(None, self.sphParticles, pickle_file = savedMesaStarPath + "/" + MESA.__name__,
+                                                       with_core_particle = True, target_core_mass  = self.coreMass ,
+                                                       do_store_composition = False,base_grid_options=dict(type="fcc"))
+            else:
+                mesaStar = self.EvolveStarWithStellarCode(MESA, savedMesaStarPath)
 
                 self.sphStar = convert_stellar_model_to_SPH(mesaStar, self.sphParticles, do_relax = False, with_core_particle=True,
                                                     target_core_mass = self.coreMass)
-            else:
-                self.sphStar = convert_stellar_model_to_SPH(None, self.sphParticles, pickle_file = savedMesaStarPath,
-                                                       with_core_particle = True, target_core_mass  = self.coreMass ,
-                                                       do_store_composition = False,base_grid_options=dict(type="fcc"))
 
 
 
 
-    def  EvolveStarWithStellarCode(self, code = MESA):
+    def  EvolveStarWithStellarCode(self, code = MESA, savingPath = ""):
         '''
         evolve with (default) MESA or other
         :return: the star after has been created with MESA
@@ -61,9 +63,11 @@ class SphStar:
         evolutionType = code()
         print "evolving with MESA"
         mainStar = evolutionType.particles.add_particle(self.pointStar)
-        print "particle added, current radius = ", mainStar.radius, "target radius = ", self.pointStar.radius
+        print "particle added, current radius = ", mainStar.radius.as_quantity_in(units.AU), "target radius = ", self.pointStar.radius
         while mainStar.radius < self.pointStar.radius:
             mainStar.evolve_one_step()
+        pickle_stellar_model(mainStar, savingPath + "/" + code.__name__)
+        print "star saved to: ", savingPath + "/" + code.__name__
         return mainStar
 
 def LoadGas(savedGas):
@@ -79,7 +83,9 @@ def SaveGas(savingPath,gas):
 
 
 def SaveDm(savingPath,dms):
-    write_set_to_file(dms, savingPath, format='amuse')
+    write_set_to_file(Particles(particles = [dms]),savingPath, 'amuse')
+
+
 
 
 class Star:
@@ -110,6 +116,7 @@ class Star:
             self.envelopeRadius = float(parser.get(configurationSection, "envelopeRadius")) | units.AU
             self.relaxationTime = float(parser.get(configurationSection, "relaxationTime"))
             self.relaxationTimeSteps = float(parser.get(configurationSection, "relaxationTimeSteps"))
+            self.numberOfWorkers = float(parser.get(configurationSection, "numberOfWorkers"))
             self.semiMajorAxis = float(parser.get(configurationSection, "semiMajorAxis"))
             self.eccentricity = float(parser.get(configurationSection, "eccentricity"))
         self.star.position = self.semiMajorAxis * (1 + self.eccentricity) * ([1, 0, 0] | units.none)

@@ -1,6 +1,7 @@
 import ConfigParser
 import numpy
 import pickle
+import math
 
 from amuse.lab import *
 from amuse.units import *
@@ -9,6 +10,77 @@ from amuse.ext import orbital_elements
 from amuse.plot import plot, native_plot, sph_particles_plot
 
 import EvolveNBody
+
+def get_relative_velocity_at_apastron(total_mass, semimajor_axis, ecc):
+    return (constants.G * total_mass * ((1.0 - ecc)/(1.0 + ecc)) / semimajor_axis).sqrt()
+
+def CreatePointStar(configurationFile="", configurationSection=""):
+    star = Particle()
+    print 'parsing configurations'
+    parser = ConfigParser.ConfigParser()
+    parser.read(configurationFile)
+    star.mass = float(parser.get(configurationSection, "mass")) | units.MSun
+    star.metalicity = float(parser.get(configurationSection, "metalicity"))
+    star.radius = float(parser.get(configurationSection, "radius")) | units.AU
+    return star
+
+class SphStar:
+    def __init__(self, pointStar, configurationFile="", configurationSection="", savedMesaStarPath = "",savedGas="", savedDm=""):
+        print 'parsing configurations'
+        parser = ConfigParser.ConfigParser()
+        parser.read(configurationFile)
+        self.pointStar = pointStar
+        self.sphParticles = float(parser.get(configurationSection, "sphParticles"))
+        self.coreMass = float(parser.get(configurationSection, "coreMass")) | units.MSun
+        self.relaxationTime = float(parser.get(configurationSection, "relaxationTime")) | units.yr
+        self.relaxationTimeSteps = float(parser.get(configurationSection, "relaxationTimeSteps"))
+
+        # Convert the star to SPH model ###
+        if savedGas != "" and savedDm != "":
+            self.sphStar.gas_particles = LoadGas(savedGas)
+            self.sphStar.core_particle = LoadDm(savedDm)
+        else:
+            if savedMesaStarPath == "":
+                mesaStar = self.EvolveStarWithStellarCode(MESA)
+
+                self.sphStar = convert_stellar_model_to_SPH(mesaStar, self.sphParticles, do_relax = False, with_core_particle=True,
+                                                    target_core_mass = self.coreMass)
+            else:
+                self.sphStar = convert_stellar_model_to_SPH(None, self.sphParticles, pickle_file = savedMesaStarPath,
+                                                       with_core_particle = True, target_core_mass  = self.coreMass ,
+                                                       do_store_composition = False,base_grid_options=dict(type="fcc"))
+
+
+
+
+    def  EvolveStarWithStellarCode(self, code = MESA):
+        '''
+        evolve with (default) MESA or other
+        :return: the star after has been created with MESA
+        '''
+        evolutionType = code()
+        print "evolving with MESA"
+        mainStar = evolutionType.particles.add_particle(self.pointStar)
+        print "particle added, current radius = ", mainStar.radius, "target radius = ", self.pointStar.radius
+        while mainStar.radius < self.pointStar.radius:
+            mainStar.evolve_one_step()
+        return mainStar
+
+def LoadGas(savedGas):
+    gas = read_set_from_file(savedGas, format='amuse')
+    return gas
+
+def LoadDm(savedDm):
+    dms = read_set_from_file(savedDm, format='amuse')[-1]
+    return dms
+
+def SaveGas(savingPath,gas):
+     write_set_to_file(gas, savingPath, format='amuse')
+
+
+def SaveDm(savingPath,dms):
+    write_set_to_file(dms, savingPath, format='amuse')
+
 
 class Star:
 
@@ -38,6 +110,9 @@ class Star:
             self.envelopeRadius = float(parser.get(configurationSection, "envelopeRadius")) | units.AU
             self.relaxationTime = float(parser.get(configurationSection, "relaxationTime"))
             self.relaxationTimeSteps = float(parser.get(configurationSection, "relaxationTimeSteps"))
+            self.semiMajorAxis = float(parser.get(configurationSection, "semiMajorAxis"))
+            self.eccentricity = float(parser.get(configurationSection, "eccentricity"))
+        self.star.position = self.semiMajorAxis * (1 + self.eccentricity) * ([1, 0, 0] | units.none)
         self.savedPath = savedMesaStarPath
         gas_particles, core_particles = self.GetRelaxedSphModel(takeSavedMesa)
         native_plot.figure(figsize=(60, 60), dpi=100)
@@ -47,18 +122,6 @@ class Star:
         self.envelope = gas_particles
         self.core = core_particles
 
-    def  EvolveStarWithMesa(self):
-        '''
-        evolve with MESA
-        :return: the star after has been created with MESA
-        '''
-        evolutionType = MESA()
-        print "evolving with MESA"
-        mainStar = evolutionType.particles.add_particle(self.star)
-        print "particle added, current radius = ", mainStar.radius, "target radius = ", self.radius
-        while mainStar.radius < self.radius:
-            mainStar.evolve_one_step()
-        return mainStar
 
     def CreateSphModel(self):
         '''
@@ -97,9 +160,16 @@ class Star:
                                self.relaxationTimeSteps, savedVersionPath= self.savedPath, relax= True)
         #return sphStar
 
+def GetRelativeVelocityAtApastron(total_mass, semimajor_axis, ecc):
+    return (constants.G * total_mass * ((1.0 - ecc)/(1.0 + ecc)) / semimajor_axis).sqrt()
 
-def CreateBinary(configurationFile="", configurationSection="", binaryMasses = [1.0 | units.MSun, 1.0 | units.MSun],
-                 binarySemimajorAxis = 0.1 | units.AU):
+def CalculateTotalMass(particles):
+    mass = 0.0 | units.MSun
+    for particle in particles:
+        mass += particle.mass
+    return mass
+
+class Binary:
     '''
     creating a binary star
     :param configurationFile: where to take the binary's attributes
@@ -108,18 +178,25 @@ def CreateBinary(configurationFile="", configurationSection="", binaryMasses = [
     :param binarySemimajorAxis: the semmimajor
     :return: binary star model
     '''
-    if configurationFile == "":
-        masses = binaryMasses
-        semimajor_axis = binarySemimajorAxis
-    else:
+    def __init__(self, configurationFile="", configurationSection=""):
+        print "Initializing ", configurationSection
+
         parser = ConfigParser.ConfigParser()
         parser.read(configurationFile)
         masses = [float(parser.get(configurationSection, "mass1")) | units.MSun,
                   float(parser.get(configurationSection, "mass2")) | units.MSun]
-        semimajor_axis = float(parser.get(configurationSection, "semmimajor")) | units.AU
-    binary = orbital_elements.new_binary_from_orbital_elements(
-        masses[0],
-        masses[1],
-        semimajor_axis, G=constants.G)
-    binary.move_to_center()
-    return binary
+        self.semimajorAxis = float(parser.get(configurationSection, "semmimajor")) | units.AU
+        self.inclination = float(parser.get(configurationSection, "inclination"))
+        self.eccentricity = float(parser.get(configurationSection, "eccentricity"))
+
+        stars =  Particles(2)
+        stars.mass = masses
+        stars.position = [0.0, 0.0, 0.0] | units.AU
+        stars.velocity = [0.0, 0.0, 0.0] | units.km / units.s
+        stars[0].y = self.semimajorAxis
+        stars[0].vx = -math.cos(self.inclination)*get_relative_velocity_at_apastron(
+            stars.total_mass(), self.semimajorAxis, 0)
+        stars[0].vz = math.sin(self.inclination)*get_relative_velocity_at_apastron(
+            stars.total_mass(), self.semimajorAxis, 0)
+        stars.move_to_center()
+        self.stars = stars

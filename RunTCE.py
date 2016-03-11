@@ -17,42 +17,49 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     creating the TCE
     :return:main star's mass, the envelope particles, the core particles, the binary stars and the triple semmimajor
     '''
+    giant = StarModels.CreatePointStar(configurationFile,configurationSection="MainStar")
+    innerBinary = StarModels.Binary(configurationFile, configurationSection="InnerBinary")
+    outerBinary = StarModels.Binary(configurationFile, configurationSection="OuterBinary")
+
+    giant.position = outerBinary.semimajorAxis * (1 + outerBinary.eccentricity) * ([1, 0, 0] | units.none);
+    giant.velocity = StarModels.GetRelativeVelocityAtApastron(
+        giant.mass + innerBinary.stars.total_mass(),
+        outerBinary.semimajorAxis, outerBinary.eccentricity) * ([0, 1, 0] | units.none)
+    triple = innerBinary.stars
+    giantInSet = triple.add_particle(giant)
+
+    triple.move_to_center()
+
     if takeSavedSPH:
         print "using saved ph saved file - {0}".format(savedPath)
-        starMass , tempBinary, starEnvelopeRadius= pickle.load(open(savedPath +".p", 'rb'))
-        starEnvelope = read_set_from_file(savedPath +"_envelope.hdf5",'amuse', close_file= True)
-        starCore = read_set_from_file(savedPath + "_core.hdf5",'amuse', close_file= True)[0]
+        starEnvelope = StarModels.LoadGas(savedPath +"_envelope.amuse")
+        starCore = StarModels.LoadDm(savedPath + "_core.amuse")
         native_plot.figure(figsize=(30, 30), dpi=60)
         sph_particles_plot(starEnvelope)
         #native_plot.show()
     else:
         if takeSavedMesa:
-            star = StarModels.Star(configurationFile, "MainStar", savedMesaStarPath = savedPath, takeSavedMesa= True)
+            sphStar = StarModels.SphStar(giantInSet,configurationFile,configurationSection="MainStar", savedMesaStarPath = savedPath)
         else:
-            star = StarModels.Star(configurationFile, "MainStar", savedMesaStarPath = savedPath, takeSavedMesa= False)
-        starMass = star.star.mass
-        starEnvelope = star.envelope
-        starEnvelopeRadius = star.envelopeRadius
-        starCore = star.core
-    # create the binary
-    binary = StarModels.CreateBinary(configurationFile, "BinaryStar")
+            sphStar = StarModels.SphStar(giantInSet,configurationFile,configurationSection="MainStar")
 
-    # create the binary with the main star
-    tripleMass = [starMass, binary[0].mass + binary[1].mass]
-    tripleSemmimajor = starEnvelopeRadius
-    triple = StarModels.CreateBinary(binaryMasses= tripleMass, binarySemimajorAxis= tripleSemmimajor)
+        starEnvelope = sphStar.sphStar.gas_particles
+        starCore = sphStar.sphStar.core_particle
+
+    starEnvelope, relaxedDM = EvolveNBody.Run(totalMass= giant.mass + innerBinary.stars[0].mass + innerBinary.stars[1].mass,
+                    semmiMajor= outerBinary.semimajorAxis, sphEnvelope= [starEnvelope], sphCore=starCore,stars=innerBinary.stars,
+                    endTime= sphStar.relaxationTime, timeSteps= sphStar.relaxationTimeSteps, relax=True)
+    starCore = relaxedDM[0]
 
     # fixing positions
-    starEnvelope.position += triple.position[0]
-    starCore.position += triple.position[0]
-    binary.position += triple.position[1]
+    starEnvelope.position += giant.position
+    starCore.position += giant.position
 
     # fixing velocities
-    starEnvelope.velocity += triple.velocity[0]
-    starCore.velocity += triple.velocity[0]
-    binary.velocity += triple.velocity[1]
+    starEnvelope.velocity += giant.velocity
+    starCore.velocity += giant.velocity
 
-    return starMass, starEnvelope, starCore, binary, tripleSemmimajor
+    return giant.mass, starEnvelope, starCore, innerBinary, outerBinary.semmimajorAxis
 
 def TakeSavedState(savedVersionPath, configurationFile):
     '''
@@ -61,16 +68,11 @@ def TakeSavedState(savedVersionPath, configurationFile):
     '''
     print "using saved state file - {0}".format(savedVersionPath)
     starMass, binary, tripleSemmimajor = pickle.load(open(savedVersionPath+".p", 'rb'))
-    starEnvelope = read_set_from_file(savedVersionPath+"_envelope.hdf5",'amuse', close_file= True)
-    starCore = read_set_from_file(savedVersionPath+"_core.hdf5",'amuse', close_file= True)[0]
-    #TODO: check this...
-    starEnvelope.move_to_center()
-    starCore.position = [0.0, 0.0, 0.0] | units.m
-
-
+    starEnvelope = StarModels.LoadGas(savedVersionPath+"_envelope.amuse")
+    starCore = StarModels.LoadDm(savedVersionPath+"_core.amuse")
 
     # create the binary
-    newBinary = StarModels.CreateBinary(configurationFile, "BinaryStar")
+    newBinary = StarModels.Binary(configurationFile, "BinaryStar").stars
     newBinary.position += 1.0 | units.AU
 
     native_plot.figure(figsize=(30, 30), dpi=60)
@@ -90,13 +92,13 @@ def SaveState(savedVersionPath, starMass, starEnvelope, starCore, binary, triple
     :param tripleSemmimajor: semmimajor of the triple system
     :return: None
     '''
-    pickle.dump([starMass, binary, tripleSemmimajor], open(savedVersionPath+".p", 'wb'), pickle.HIGHEST_PROTOCOL)
-    write_set_to_file(starEnvelope, savedVersionPath+"_envelope.hdf5", 'amuse' , append_to_file= False)
-    write_set_to_file(Particles(particles = [starCore]), savedVersionPath+"_core.hdf5", 'amuse', append_to_file= False)
+    StarModels.SaveGas(savedVersionPath+"_envelope.amuse", starEnvelope)
+    StarModels.SaveDm(savedVersionPath+"_core.amuse", starCore)
     print "state saved - {0}".format(savedVersionPath)
 
 
-def Start(savedVersionPath = "savings/TCE500000", takeSavedState = "False", configurationFile = "TCEConfiguration.ini"):
+
+def Start(savedVersionPath = "savings/TCETry", takeSavedState = "False", configurationFile = "TCEConfiguration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -140,6 +142,8 @@ def Start(savedVersionPath = "savings/TCE500000", takeSavedState = "False", conf
                     semmiMajor= tripleSemmimajor, gasParticles= [starEnvelope], dmParticles= [starCore , binary],
                     endTime= 100.0 | units.yr, timeSteps= 20)
     print "****************** Simulation Completed ******************"
+if __name__ == "__main__":
+    Start()
 
 def MakeAMovieFromSavedState(savedVersionPath= "savings/TCE500000" , steps = []):
     #TODO: do something

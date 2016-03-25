@@ -119,9 +119,9 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
 
     if step!= 0:
         sphEnvelope= StarModels.LoadGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step))
+        print "#particles: " , len(sphEnvelope)
         sphCore= StarModels.LoadDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step))[-1]
         currentTime = step * timeStep
-    print stars.stars
     hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
     print "evolving from step ", step
 

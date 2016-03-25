@@ -41,6 +41,8 @@ class SphStar:
         self.coreMass = float(parser.get(configurationSection, "coreMass")) | units.MSun
         self.relaxationTime = float(parser.get(configurationSection, "relaxationTime")) | units.yr
         self.relaxationTimeSteps = float(parser.get(configurationSection, "relaxationTimeSteps"))
+        self.evolutionTime = float(parser.get(configurationSection, "evolutionTime")) | units.yr
+	self.evolutionTimeSteps = float(parser.get(configurationSection, "evolutionTimeSteps"))
         self.numberOfWorkers = float(parser.get(configurationSection, "numberOfWorkers"))
 
         # Convert the star to SPH model ###

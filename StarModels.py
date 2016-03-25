@@ -2,7 +2,7 @@ import ConfigParser
 import numpy
 import pickle
 import math
-
+import os
 from amuse.lab import *
 from amuse.units import *
 from amuse.datamodel import Particle
@@ -23,6 +23,13 @@ def CreatePointStar(configurationFile="", configurationSection=""):
     star.metalicity = float(parser.get(configurationSection, "metalicity"))
     star.radius = float(parser.get(configurationSection, "radius")) | units.AU
     return star
+'''
+def CreatePointStar(mass = 1.0 | units.MSun, radius = 1.0 | units.RSun):
+    star = Particle()
+    star.mass = mass
+    star.radius = radius
+    return star
+'''
 
 class SphStar:
     def __init__(self, pointStar, configurationFile="", configurationSection="", savedMesaStarPath = "", takeSavedMesa = False,savedGas="", savedDm=""):
@@ -38,11 +45,11 @@ class SphStar:
 
         # Convert the star to SPH model ###
         if savedGas != "" and savedDm != "":
-            self.sphStar.gas_particles = LoadGas(savedGas)
-            self.sphStar.core_particle = LoadDm(savedDm)
+            self.gas_particles = LoadGas(savedGas)
+            self.core_particle = LoadDm(savedDm)
         else:
             if takeSavedMesa:
-                print "taking save state from: ", savedMesaStarPath+"/"+MESA.__name__
+                print "taking save state from: ", savedMesaStarPath + "/" + MESA.__name__
                 self.sphStar = convert_stellar_model_to_SPH(None, self.sphParticles, pickle_file = savedMesaStarPath + "/" + MESA.__name__,
                                                        with_core_particle = True, target_core_mass  = self.coreMass ,
                                                        do_store_composition = False,base_grid_options=dict(type="fcc"))
@@ -51,7 +58,8 @@ class SphStar:
 
                 self.sphStar = convert_stellar_model_to_SPH(mesaStar, self.sphParticles, do_relax = False, with_core_particle=True,
                                                     target_core_mass = self.coreMass)
-
+            self.gas_particles = self.sphStar.gas_particles
+            self.core_particle = self.sphStar.core_particle
 
 
 
@@ -66,6 +74,10 @@ class SphStar:
         print "particle added, current radius = ", mainStar.radius.as_quantity_in(units.AU), "target radius = ", self.pointStar.radius
         while mainStar.radius < self.pointStar.radius:
             mainStar.evolve_one_step()
+        try:
+            os.makedirs(savingPath)
+        except(OSError):
+            pass
         pickle_stellar_model(mainStar, savingPath + "/" + code.__name__)
         print "star saved to: ", savingPath + "/" + code.__name__
         return mainStar
@@ -75,7 +87,7 @@ def LoadGas(savedGas):
     return gas
 
 def LoadDm(savedDm):
-    dms = read_set_from_file(savedDm, format='amuse')[-1]
+    dms = read_set_from_file(savedDm, format='amuse')
     return dms
 
 def SaveGas(savingPath,gas):
@@ -143,7 +155,6 @@ class Star:
 
     def GetRelaxedSphModel(self,takeSavedMesa):
         '''
-
         :return: sph star after relaxation
         '''
         if takeSavedMesa:
@@ -195,6 +206,8 @@ class Binary:
         self.semimajorAxis = float(parser.get(configurationSection, "semmimajor")) | units.AU
         self.inclination = float(parser.get(configurationSection, "inclination"))
         self.eccentricity = float(parser.get(configurationSection, "eccentricity"))
+        self.radius = [float(parser.get(configurationSection, "radius1")) | units.AU,
+                  float(parser.get(configurationSection, "radius2")) | units.AU]
 
         stars =  Particles(2)
         stars.mass = masses

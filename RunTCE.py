@@ -29,26 +29,14 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
     triple.move_to_center()
 
-    if takeSavedSPH:
-        print "using saved sph saved file - {0}".format(savedPath)
-        starEnvelope = StarModels.LoadGas(savedPath +"/envelope.amuse")
-        starCore = StarModels.LoadDm(savedPath + "/core.amuse")
-        native_plot.figure(figsize=(30, 30), dpi=60)
-        sph_particles_plot(starEnvelope)
-        #TODO: save and get all the added data of the sph instance, such as relaxation time....
-        #native_plot.show()
-    else:
-        sphStar = StarModels.SphStar(giantInSet,configurationFile,configurationSection="MainStar",
-                                    savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
-        starEnvelope = sphStar.sphStar.gas_particles
-        starCore = sphStar.sphStar.core_particle
-
-
+    sphStar = StarModels.SphStar(giantInSet,configurationFile,configurationSection="MainStar",
+                                savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
     print "Now having the sph star and the binaries, ready for relaxing"
     starEnvelope, starCore = EvolveNBody.Run(totalMass= giant.mass + innerBinary.stars[0].mass +
                                                          innerBinary.stars[1].mass,
-                    semmiMajor= outerBinary.semimajorAxis, sphEnvelope= starEnvelope, sphCore=starCore,stars=innerBinary.stars,
-                    endTime= sphStar.relaxationTime, timeSteps= sphStar.relaxationTimeSteps, relax=True,
+                    semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
+                                             stars=innerBinary.stars, endTime= sphStar.relaxationTime,
+                                             timeSteps= sphStar.relaxationTimeSteps, relax=True,
                                               numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath)
 
     # fixing positions
@@ -58,6 +46,8 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     # fixing velocities
     starEnvelope.velocity += giant.velocity
     starCore.velocity += giant.velocity
+    if not takeSavedSPH:
+        SaveState(savedPath, giant.mass, starEnvelope, starCore, innerBinary, outerBinary.semimajorAxis)
     return giant.mass, starEnvelope, starCore[-1], innerBinary, outerBinary.semimajorAxis
 
 def TakeSavedState(savedVersionPath, configurationFile):
@@ -66,13 +56,13 @@ def TakeSavedState(savedVersionPath, configurationFile):
     :return: the saved system
     '''
     print "using saved state file - {0}".format(savedVersionPath)
-    starMass, binary, tripleSemmimajor = pickle.load(open(savedVersionPath+".p", 'rb'))
-    starEnvelope = StarModels.LoadGas(savedVersionPath+"/envelope.amuse")
-    starCore = StarModels.LoadDm(savedVersionPath+"/core.amuse")
+    starMass, binary, tripleSemmimajor = pickle.load(open(savedVersionPath+"/metaData.p", 'rb'))
+    starEnvelope = StarModels.LoadGas(savedVersionPath+"/gas_1.amuse")
+    starCore = StarModels.LoadDm(savedVersionPath+"/dm_1.amuse")
 
     # create the binary
-    newBinary = StarModels.Binary(configurationFile, "BinaryStar").stars
-    newBinary.position += 1.0 | units.AU
+    newBinary = StarModels.Binary(configurationFile, "InnerBinary")
+    newBinary.stars.position += 1.0 | units.AU
 
     native_plot.figure(figsize=(30, 30), dpi=60)
     sph_particles_plot(starEnvelope)
@@ -82,7 +72,6 @@ def TakeSavedState(savedVersionPath, configurationFile):
 
 def SaveState(savedVersionPath, starMass, starEnvelope, starCore, binary, tripleSemmimajor):
     '''
-
     :param savedVersionPath:  the path to where you want to save the state after creating the system
     :param starMass:
     :param starEnvelope: sphParticles
@@ -91,18 +80,26 @@ def SaveState(savedVersionPath, starMass, starEnvelope, starCore, binary, triple
     :param tripleSemmimajor: semmimajor of the triple system
     :return: None
     '''
-    StarModels.SaveGas(savedVersionPath+"/envelope.amuse", starEnvelope)
+
+    try:
+        os.makedirs(savedVersionPath)
+    except(OSError):
+        pass
+
+    pickle.dump([starMass,binary, tripleSemmimajor],open(savedVersionPath+"/metaData.p", 'wb'))
     StarModels.SaveDm(savedVersionPath+"/core.amuse", starCore)
+    StarModels.SaveGas(savedVersionPath+"/envelope.amuse", starEnvelope)
     print "state saved - {0}".format(savedVersionPath)
 
 
 
-def Start(savedVersionPath = "savings/TCETry", takeSavedState = "False", configurationFile = "TCEConfiguration.ini"):
+def Start(savedVersionPath = "savings/TCETry", takeSavedState = "False", step = 0, configurationFile = "TCEConfiguration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
-    :param takeSavedState: do you have a saved state you want to use? True or False if it is all saved ,
-                            Mesa if its only the Mesa Star, Sph - if its only the sph star (after relaxation)
+    :param takeSavedState: do you have a saved state you want to use? True or False if it is all saved right before the evolution, 
+			    Relax if its in the middle of the relaxation, Evolve if its in the evolutionProcess,
+                            Mesa if its only the Mesa Star
     :return: None
     '''
     try:
@@ -110,14 +107,12 @@ def Start(savedVersionPath = "savings/TCETry", takeSavedState = "False", configu
     except(OSError):
         pass
     # creating the triple system
-    if takeSavedState == "True":
-        starMass, starEnvelope, starCore, binary, tripleSemmimajor = TakeSavedState(savedVersionPath, configurationFile)
+    if takeSavedState == "True": #evolution:
+        starMass, starEnvelope, starCore, binary, tripleSemmimajor = TakeSavedState(savedVersionPath + "/evolution", configurationFile)
+    elif takeSaveState == "Relax":
+	starMass, starEnvelope, starCore, binary, tripleSemmimajor = TakeSavedState(savedVersionPath + "/relaxation", configurationFile)
     else:
-        if takeSavedState == "Sph":
-            starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile, savedVersionPath, takeSavedSPH= True)
-        elif takeSavedState == "Relax":
-            starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile, savedVersionPath, takeSavedSPH= True)
-        elif takeSavedState == "Mesa":
+        if takeSavedState == "Mesa":
             starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile, savedVersionPath, takeSavedMesa= True)
         else:
             starMass, starEnvelope, starCore, binary, tripleSemmimajor = CreateTripleSystem(configurationFile, savedVersionPath)
@@ -139,13 +134,13 @@ def Start(savedVersionPath = "savings/TCETry", takeSavedState = "False", configu
     # creating the NBody system with the 3 and evolving
     EvolveNBody.Run(totalMass= starMass + binary.stars[0].mass + binary.stars[1].mass,
                     semmiMajor= tripleSemmimajor, sphEnvelope= starEnvelope,
-                    sphCore=starCore,stars=binary.stars,
-                    endTime= 500.0 | units.yr, timeSteps= 50, numberOfWorkers= 1,
+                    sphCore=starCore[-1], stars=binary,
+                    endTime= 500.0 | units.yr, timeSteps= 50, numberOfWorkers= 1, step= step,
                     savedVersionPath=savedVersionPath)
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":
-    Start(takeSavedState="Mesa")
+    Start(takeSavedState="True", step= 49)
 
 def MakeAMovieFromSavedState(savedVersionPath= "savings/TCE500000" , steps = []):
     #TODO: do something

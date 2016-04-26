@@ -152,12 +152,12 @@ if __name__ == "__main__":
     
     new_working_directory()
     print "Initializing triple"
-    giant, binary = set_up_initial_conditions(relative_inclination)
-    print "\nInitialization done:\n", giant + binary
+    #giant, binary = set_up_initial_conditions(relative_inclination)
+    #print "\nInitialization done:\n", giant + binary
     
     sph_giant, core = load_sph_giant(gas_particles_file, dm_particles_file)
 
-    #binary = LoadBinaries(dm_particles_file)
+    binary = LoadBinaries(dm_particles_file)
 
     print "\nSetting up {0} to simulate triple system".format(sph_code.__name__)
     hydro = new_hydro(sph_code, sph_giant, core, t_end, n_steps, core.radius)

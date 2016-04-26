@@ -222,3 +222,13 @@ class Binary:
             stars.total_mass(), self.semimajorAxis, 0)
         stars.move_to_center()
         self.stars = stars
+    def LoadBinary(self,):
+        ''''
+        self.semimajorAxis = float(parser.get(configurationSection, "semmimajor")) | units.AU
+        self.inclination = float(parser.get(configurationSection, "inclination"))
+        self.eccentricity = float(parser.get(configurationSection, "eccentricity"))
+        self.radius = [float(parser.get(configurationSection, "radius1")) | units.AU,
+                  float(parser.get(configurationSection, "radius2")) | units.AU]
+
+        stars =  Particles(2)
+        '''

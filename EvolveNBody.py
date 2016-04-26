@@ -42,7 +42,9 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     system.parameters.begin_time = beginTime
     #if sphCode.__name__ =="Gadget2":
         #system.parameters.number_of_workers = numberOfWorkers
-    core.radius = core_radius * 2
+    system.parameters.time_limit_cpu = 7200000000 | units.s
+    if sphCode.__name__ == "Gadget2":
+        core.radius = core_radius * 2
     system.dm_particles.add_particle(core)
     system.gas_particles.add_particles(envelope)
     return system
@@ -66,7 +68,7 @@ def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = 
 
 
 def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | units.yr, timeSteps = 3 ,
-        savedVersionPath = "", saveAfterMinute = 15, step = 0, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
+        savedVersionPath = "", saveAfterMinute = 1, step = 0, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
          numberOfWorkers = 1):
     '''
 
@@ -179,10 +181,11 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
         print "pic {0} saved".format(step)
 
         currentTime += timeStep
-        if (time.time() - currentSecond) % timeToSave :
+        if (time.time() - currentSecond) % timeToSave == 0:
             if savedVersionPath != "":
                 StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step), coupledSystem.gas_particles)
                 StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step), coupledSystem.dm_particles)
+                #TODO: plot all the metadata
                 print "state saved - {0}".format(savedVersionPath) + "/" + adding
                 #TCEPlotting.PlotDensity(hydroSystem.gas_particles,hydroSystem.dm_particles, binarySystem.particles,
                 #                        step=step, plottingPath=savedVersionPath + '/pics/' + adding )

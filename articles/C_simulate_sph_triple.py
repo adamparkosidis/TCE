@@ -44,6 +44,11 @@ def load_sph_giant(gas_particles_file, dm_particles_file):
     core = read_set_from_file(dm_particles_file, format='amuse')[-1]
     return sph_giant, core
 
+def LoadBinaries(file):
+    load = read_set_from_file(file, format='amuse')
+    stars = Particles(2, particles= [load[0], load[1]])
+    return stars
+
 def new_coupled_system(hydro, binary_system, t_end, n_steps):
     kick_from_hydro = CalculateFieldForParticles(particles=hydro.particles, gravity_constant=constants.G)
     kick_from_hydro.smoothing_length_squared = 4.0 | units.RSun**2
@@ -77,7 +82,7 @@ def evolve_system(coupled_system, t_end, n_steps):
     native_plot.figure(figsize=(20, 20), dpi=60)
     sph_particles_plot(coupled_system.gas_particles)
     native_plot.savefig('plots/0.jpg')
-
+    begin_step = 123
     for i_step, time in enumerate(times):
         sinks.accrete(coupled_system.gas_particles)
         coupled_system.evolve_model(time)
@@ -86,11 +91,11 @@ def evolve_system(coupled_system, t_end, n_steps):
         kinetic_energies.append(coupled_system.kinetic_energy)
         thermal_energies.append(coupled_system.thermal_energy)
         print "   Energies calculated"
-        density_plot(coupled_system, i_step)
-        if i_step % 1 == 1:
-            snapshotfile = os.path.join("snapshots", "hydro_triple_{0:=06}_gas.amuse".format(i_step))
+        density_plot(coupled_system, i_step + begin_step)
+        if i_step % 1 == 0:
+            snapshotfile = os.path.join("snapshots", "hydro_triple_{0:=06}_gas.amuse".format(i_step + begin_step))
             write_set_to_file(coupled_system.gas_particles, snapshotfile, format='amuse')
-            snapshotfile = os.path.join("snapshots", "hydro_triple_{0:=06}_dm.amuse".format(i_step))
+            snapshotfile = os.path.join("snapshots", "hydro_triple_{0:=06}_dm.amuse".format(i_step + begin_step))
             write_set_to_file(coupled_system.dm_particles, snapshotfile, format='amuse')
             sph_particles_plot(coupled_system.gas_particles)
             #native_plot.savefig('plots/{0}.jpg'.format(i_step))
@@ -118,7 +123,7 @@ def evolve_system(coupled_system, t_end, n_steps):
 
 
 def energy_evolution_plot(time, kinetic, potential, thermal, figname = "energy_evolution1.png"):
-    time.prepend(0.0 | units.day)
+    time.prepend(247.0 | units.day)
     pyplot.figure(figsize = (5, 5))
     plot(time, kinetic, label='K')
     plot(time, potential, label='U')
@@ -130,15 +135,16 @@ def energy_evolution_plot(time, kinetic, potential, thermal, figname = "energy_e
     pyplot.savefig(figname)
     pyplot.close()
 
+
 if __name__ == "__main__":
     dynamics_code = Huayno
     sph_code = Fi
-    gas_particles_file = os.path.join(os.getcwd(), "run_001", "hydro_giant_gas.amuse")
-    dm_particles_file = os.path.join(os.getcwd(), "run_001", "hydro_giant_dm.amuse")
-    
+    gas_particles_file = os.path.join(os.getcwd(), "run_006/snapshots", "hydro_triple_001229_gas.amuse")
+    dm_particles_file = os.path.join(os.getcwd(), "run_006/snapshots", "hydro_triple_001229_dm.amuse")
+
     # Output from set_up_sph_giant in B_set_up_sph_giant.py:
     core_radius = 0.7047075092| units.RSun
-    
+
     relative_inclination = math.radians(9.0)
     
     t_end = 1400.0 | units.day
@@ -150,9 +156,11 @@ if __name__ == "__main__":
     print "\nInitialization done:\n", giant + binary
     
     sph_giant, core = load_sph_giant(gas_particles_file, dm_particles_file)
-    
+
+    #binary = LoadBinaries(dm_particles_file)
+
     print "\nSetting up {0} to simulate triple system".format(sph_code.__name__)
-    hydro = new_hydro(sph_code, sph_giant, core, t_end, n_steps, core_radius)
+    hydro = new_hydro(sph_code, sph_giant, core, t_end, n_steps, core.radius)
     print "\nSetting up {0} to simulate triple system".format(dynamics_code.__name__)
     binary_system = new_dynamics_for_binary(dynamics_code, binary)
     print "\nSetting up Bridge to simulate triple system"

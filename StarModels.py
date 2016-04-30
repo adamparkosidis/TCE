@@ -39,9 +39,9 @@ class SphStar:
         self.pointStar = pointStar
         self.sphParticles = float(parser.get(configurationSection, "sphParticles"))
         self.coreMass = float(parser.get(configurationSection, "coreMass")) | units.MSun
-        self.relaxationTime = float(parser.get(configurationSection, "relaxationTime")) | units.yr
+        self.relaxationTime = float(parser.get(configurationSection, "relaxationTime")) | units.day
         self.relaxationTimeSteps = float(parser.get(configurationSection, "relaxationTimeSteps"))
-        self.evolutionTime = float(parser.get(configurationSection, "evolutionTime")) | units.yr
+        self.evolutionTime = float(parser.get(configurationSection, "evolutionTime")) | units.day
         self.evolutionTimeSteps = float(parser.get(configurationSection, "evolutionTimeSteps"))
         self.numberOfWorkers = float(parser.get(configurationSection, "numberOfWorkers"))
 
@@ -115,7 +115,7 @@ class Star:
             self.star.radius = 1 | units.AU
             self.sphParticles = 100.0
             self.envelopeRadius = 1 | units.AU
-            self.relaxationTime = 10
+            self.relaxationTime = 10| units.day
             self.relaxationTimeSteps = 1
         else:
             print 'parsing configurations'
@@ -128,7 +128,7 @@ class Star:
             self.star.radius = float(parser.get(configurationSection, "radius")) | units.AU
             self.sphParticles = float(parser.get(configurationSection, "sphParticles"))
             self.envelopeRadius = float(parser.get(configurationSection, "envelopeRadius")) | units.AU
-            self.relaxationTime = float(parser.get(configurationSection, "relaxationTime"))
+            self.relaxationTime = float(parser.get(configurationSection, "relaxationTime")) | units.day
             self.relaxationTimeSteps = float(parser.get(configurationSection, "relaxationTimeSteps"))
             self.numberOfWorkers = float(parser.get(configurationSection, "numberOfWorkers"))
             self.semiMajorAxis = float(parser.get(configurationSection, "semiMajorAxis"))

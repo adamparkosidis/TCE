@@ -10,7 +10,6 @@ from amuse.ext.star_to_sph import convert_stellar_model_to_SPH
 from amuse.couple.bridge import Bridge, CalculateFieldForCodesUsingReinitialize
 
 from amuse.community.fi.interface import Fi
-from amuse.community.gadget2.interface import Gadget2
 from amuse.community.huayno.interface import Huayno
 from amuse.community.mi6.interface import MI6
 
@@ -18,7 +17,6 @@ import matplotlib
 matplotlib.use("Agg")
 from matplotlib import pyplot
 from amuse.plot import scatter, xlabel, ylabel, plot, pynbody_column_density_plot, HAS_PYNBODY
-from pynbody.snapshot import new as _new
 
 from xiTau_parameters import triple_parameters
 
@@ -79,7 +77,7 @@ def set_up_sph_giant(giant, stellar_structure_file, number_of_sph_particles):
         number_of_sph_particles, 
         pickle_file = stellar_structure_file, 
         with_core_particle = True,
-        target_core_mass  = 2.4 | units.MSun,
+        target_core_mass  = 2.0 | units.MSun,
         do_store_composition = False,
         base_grid_options=dict(type="fcc")
     )
@@ -113,8 +111,8 @@ def new_hydro(sph_code, sph_giant, core, t_end, n_steps, core_radius):
 
 def new_coupled_system(hydro, binary_system, t_end, n_steps):
     unit_converter = nbody_system.nbody_to_si(binary_system.particles.total_mass(), t_end)
-    kicker_code = MI6(unit_converter,number_of_workers= 8, redirection='file', redirect_file='kicker_code_mi6_out.log')
-    kicker_code.parameters.epsilon_squared = 1.0 | units.RSun**2
+    kicker_code = MI6(unit_converter, redirection='file', redirect_file='kicker_code_mi6_out.log')
+    kicker_code.parameters.epsilon_squared = 100 | units.RSun**2
     kick_from_binary = CalculateFieldForCodesUsingReinitialize(kicker_code, (binary_system,))
     
     coupled_system = Bridge(timestep=(t_end / (2 * n_steps)), verbose=False, use_threading=False)
@@ -157,8 +155,7 @@ def evolve_system(coupled_system, t_end, n_steps):
 
 def density_plot(coupled_system, i_step):
     if not HAS_PYNBODY:
-        print "problem plotting"
-        #return
+        return
     figname = os.path.join("plots", "hydro_giant{0:=04}.png".format(i_step))
     print "  -   Hydroplot saved to: ", figname
     pynbody_column_density_plot(coupled_system.gas_particles, width=3|units.AU, vmin=26, vmax=33)
@@ -182,9 +179,9 @@ def energy_evolution_plot(time, kinetic, potential, thermal, figname = "energy_e
 
 if __name__ == "__main__":
     dynamics_code = Huayno
-    sph_code = Gadget2
+    sph_code = Fi
     number_of_sph_particles = 100000
-    stellar_structure_file = os.path.join(os.getcwd(), "giant_models", "model_0074_111.6")
+    stellar_structure_file = os.path.join(os.getcwd(), "giant_models", "model_0100_100.2")
     
     relative_inclination = math.radians(0.0)
     

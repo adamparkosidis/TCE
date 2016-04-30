@@ -166,7 +166,7 @@ def density_plot(coupled_system, i_step):
         print "problem plotting"
         #return
     figname = os.path.join("plots", "hydro_giant{0:=04}.png".format(i_step))
-    pynbody_column_density_plot(coupled_system.gas_particles, width=5|units.AU)
+    pynbody_column_density_plot(coupled_system.gas_particles, width=5|units.AU, vmin= 1e16, vmax= 1e34)
     scatter(coupled_system.dm_particles[-1].x, coupled_system.dm_particles[-1].y, c="r")
     scatter(coupled_system.dm_particles[:-1].x, coupled_system.dm_particles[:-1].y, c="w")
     pyplot.savefig(figname)

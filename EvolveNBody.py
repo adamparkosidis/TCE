@@ -150,7 +150,6 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     #if step!= 0:
     #    x, y, z = pickle.load(open(savedVersionPath+"xyz.p", 'rb'))
     currentSecond = time.time()
-    timeToSave = saveAfterMinute * 60
 
     potential_energies = hydroSystem.potential_energy.as_vector_with_length(1).as_quantity_in(units.J)
     kinetic_energies = hydroSystem.kinetic_energy.as_vector_with_length(1).as_quantity_in(units.J)
@@ -169,19 +168,18 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
             sinks.accrete(coupledSystem.gas_particles)
 
         coupledSystem.evolve_model(currentTime)
-        print "   Evolved to:", currentTime
+        print "   Evolved to:", currentTime.as_quantity_in(units.day)
         gas = hydroSystem.gas_particles.copy()
         potential_energies.append(coupledSystem.potential_energy)
         kinetic_energies.append(coupledSystem.kinetic_energy)
         thermal_energies.append(coupledSystem.thermal_energy)
 
         print "   Energies calculated"
-        sph_particles_plot(gas)
+        #sph_particles_plot(gas)
         #native_plot.savefig(savedVersionPath + "/pics/" + adding + "_{0}".format(step))
-        print "pic {0} saved".format(step)
 
         currentTime += timeStep
-        if (time.time() - currentSecond) % timeToSave == 0:
+        if (time.time() - currentSecond) > saveAfterMinute * 60:
             if savedVersionPath != "":
                 StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step), coupledSystem.gas_particles)
                 StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step), coupledSystem.dm_particles)
@@ -189,6 +187,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
                 print "state saved - {0}".format(savedVersionPath) + "/" + adding
                 #TCEPlotting.PlotDensity(hydroSystem.gas_particles,hydroSystem.dm_particles, binarySystem.particles,
                 #                        step=step, plottingPath=savedVersionPath + '/pics/' + adding )
+                currentSecond = time.time()
         dm = hydroSystem.dm_particles.copy()
         gas = hydroSystem.gas_particles.copy()
         if not relax:

@@ -43,7 +43,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
                                              stars=innerBinary, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
-                                              numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath)
+                                              numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=15)
     sphMetaData = SphMetaData(sphStar)
 
     # fixing positions
@@ -147,7 +147,7 @@ def Start(savedVersionPath = "savings/TCETry", takeSavedState = "False", step = 
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":
-    Start()
+    Start(takeSavedState="True")
 
 def MakeAMovieFromSavedState(savedVersionPath= "savings/TCE500000" , steps = []):
     #TODO: do something

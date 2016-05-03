@@ -82,7 +82,7 @@ def evolve_system(coupled_system, t_end, n_steps):
     native_plot.figure(figsize=(20, 20), dpi=60)
     sph_particles_plot(coupled_system.gas_particles)
     native_plot.savefig('plots/0.jpg')
-    begin_step = 123
+    begin_step = 280
     for i_step, time in enumerate(times):
         sinks.accrete(coupled_system.gas_particles)
         coupled_system.evolve_model(time)
@@ -139,8 +139,8 @@ def energy_evolution_plot(time, kinetic, potential, thermal, figname = "energy_e
 if __name__ == "__main__":
     dynamics_code = Huayno
     sph_code = Fi
-    gas_particles_file = os.path.join(os.getcwd(), "run_006/snapshots", "hydro_triple_001229_gas.amuse")
-    dm_particles_file = os.path.join(os.getcwd(), "run_006/snapshots", "hydro_triple_001229_dm.amuse")
+    gas_particles_file = os.path.join(os.getcwd(), "run_002/snapshots", "hydro_triple_000280_gas.amuse")
+    dm_particles_file = os.path.join(os.getcwd(), "run_002/snapshots", "hydro_triple_000280_dm.amuse")
 
     # Output from set_up_sph_giant in B_set_up_sph_giant.py:
     core_radius = 0.7047075092| units.RSun

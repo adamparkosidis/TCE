@@ -97,7 +97,7 @@ def SaveGas(savingPath,gas):
 
 
 def SaveDm(savingPath,dms):
-    write_set_to_file(Particles(particles = [dms]),savingPath, 'amuse')
+    write_set_to_file(dms,savingPath, 'amuse')
 
 
 

@@ -100,7 +100,63 @@ def SaveDm(savingPath,dms):
     write_set_to_file(dms,savingPath, 'amuse')
 
 
+def TakeSavedState(savedVersionPath, configurationFile, step = -1 ):
+    '''
+    :param savedVersionPath: the path to where you have your saved state
+    :return: the saved system
+    '''
+    print "using saved state file - {0}".format(savedVersionPath)
+    outerBinary = Binary(configurationFile, configurationSection="OuterBinary")
+    if step > -1:
+        starEnvelope = LoadGas(savedVersionPath+"/gas_{0}.amuse".format(step))
+        load = LoadDm(savedVersionPath + "/dm_{0}.amuse".format(step))
+        innerBinary = Particles(2, particles=[load[0], load[1]])
+        starCore = load[-1]
+    else:
+        starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
+        load = LoadDm(savedVersionPath + "/dm.amuse")
+        starCore = load
 
+        giant = CreatePointStar(configurationFile,configurationSection="MainStar")
+        innerBinary = Binary(configurationFile, configurationSection="InnerBinary")
+        '''fix positions'''
+        giant.position = outerBinary.semimajorAxis * (1 + outerBinary.eccentricity) * ([1, 0, 0] | units.none);
+        giant.velocity = GetRelativeVelocityAtApastron(
+            giant.mass + innerBinary.stars.total_mass(),
+            outerBinary.semimajorAxis, outerBinary.eccentricity) * ([0, 1, 0] | units.none)
+        triple = innerBinary.stars
+        giantInSet = triple.add_particle(giant)
+
+        triple.move_to_center()
+        innerBinary.stars = triple - giantInSet
+    starMass = starEnvelope.total_mass() + starCore.mass
+
+    tripleSemmimajor = outerBinary.semimajorAxis
+
+    sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
+
+    return starMass, starEnvelope, starCore, innerBinary, tripleSemmimajor, sphMetaData
+
+def SaveState(savedVersionPath, starMass, starEnvelope, dms, tripleSemmimajor, sphMetaData):
+    '''
+    :param savedVersionPath:  the path to where you want to save the state after creating the system
+    :param starMass:
+    :param starEnvelope: sphParticles
+    :param starCore: dm particles after sph
+    :param binary: binary star
+    :param tripleSemmimajor: semmimajor of the triple system
+    :return: None
+    '''
+
+    try:
+        os.makedirs(savedVersionPath)
+    except(OSError):
+        pass
+
+    pickle.dump(sphMetaData,open(savedVersionPath+"/metaData.p", 'wb'), pickle.HIGHEST_PROTOCOL)
+    SaveDm(savedVersionPath+"/dm.amuse", dms)
+    SaveGas(savedVersionPath+"/envelope.amuse", starEnvelope)
+    print "state saved - {0}".format(savedVersionPath)
 
 class Star:
 
@@ -232,3 +288,4 @@ class Binary:
 
         stars =  Particles(2)
         '''
+

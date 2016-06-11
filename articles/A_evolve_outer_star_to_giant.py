@@ -5,7 +5,7 @@ from amuse.units import units
 from amuse.datamodel import Particle
 
 from amuse.ext.star_to_sph import pickle_stellar_model
-from amuse.community.evtwin.interface import EVtwin as stellar_evolution_code
+from amuse.community.mesa.interface import MESA as stellar_evolution_code
 
 from xiTau_parameters import triple_parameters
 
@@ -15,6 +15,7 @@ def evolve_giant(giant, stop_radius):
     giant_in_code = stellar_evolution.particles.add_particle(giant)
     while (giant_in_code.radius < 0.7 | units.AU):
         giant_in_code.evolve_one_step()
+
     
     print "Giant starts to ascend the giant branch, now saving model every step..."
     print giant_in_code.as_set()

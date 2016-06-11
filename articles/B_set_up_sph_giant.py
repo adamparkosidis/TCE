@@ -208,7 +208,7 @@ if __name__ == "__main__":
     print "Converting giant from file {0} to {1} SPH particles".format(stellar_structure_file, number_of_sph_particles)
     sph_giant, core, core_radius = set_up_sph_giant(giant, stellar_structure_file, number_of_sph_particles)
 
-    ''''
+
     print "\nSetting up {0} to simulate triple system".format(sph_code.__name__)
     hydro = new_hydro(sph_code, sph_giant, core, t_end, n_steps, core_radius)
     print "\nSetting up {0} to simulate triple system".format(dynamics_code.__name__)
@@ -220,4 +220,4 @@ if __name__ == "__main__":
     evolve_system(coupled_system, t_end, n_steps)
     
     print "Done"
-    '''
+

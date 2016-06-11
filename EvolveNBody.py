@@ -33,8 +33,7 @@ def DynamicsForBinarySystem(dynamicsCode, totalMass, semmiMajor, binary):
     return system
 
 def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius, numberOfWorkers = 1):
-    envelopeMass = StarModels.CalculateTotalMass(envelope)
-    unitConverter = nbody_system.nbody_to_si(envelopeMass + core.mass, t_end)
+    unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, t_end)
     system = sphCode(unitConverter, redirection="file", redirect_file="sph_code_out.log", number_of_workers = numberOfWorkers)
     if sphCode.__name__ == "Fi":
         system.parameters.timestep = t_end / n_steps

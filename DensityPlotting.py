@@ -76,19 +76,7 @@ class SphGiant:
             if separation < radius:
                 innerMass += particle.mass
         return innerMass
-    '''
-    innerMass = self.core.mass
-    i = 0
-    for particleRadius in self.gasParticles.radius:
-        #separation = CalculateVectorSize(CalculateSeparation(particle, self.core))
-        print radius.as_quantity_in(units.AU), particleRadius.as_quantity_in(units.AU)
-        if particleRadius < radius:
-            innerMass += self.gasParticles.mass[i]
-        else:
-            print particleRadius
-        i += 1
-    return innerMass
-    '''
+
 
     def CalculateSphVelocityInsideRadius(self,radius):
         self.innerGas.vxTot , self.innerGas.vyTot , self.innerGas.vzTot = ( 0.0 , 0.0, 0.0 )| units.m * units.s**-1
@@ -164,6 +152,7 @@ def CalculateInclination(V12,R12,V23,R23):
         
 
 def CalculateSpecificEnergy(V,R,particle1,particle2):
+    #TODO: should maybe take into acount only the inner mass?
     return -constants.G*(particle1.mass+particle2.mass)/(CalculateVectorSize(R)) + 0.5*(CalculateVectorSize(V)**2)
 
 
@@ -186,7 +175,6 @@ def CalculateVelocityDifference(particle1, particle2):
     vz = particle1.vz - particle2.vz
     return (vx,vy,vz)
 
-
 def GetPositionSize(particle):
     return CalculateVectorSize((particle.x ,particle.y,  particle.z))
 
@@ -194,10 +182,10 @@ def PlotDensity(sphGiant,core,binary,i):
     if not HAS_PYNBODY:
         print "problem plotting"
         return
-    pynbody_column_density_plot(sphGiant, width=5|units.AU, vmin= 1e16, vmax= 1e34)
+    pynbody_column_density_plot(sphGiant ,resolution=1000, width=5|units.AU, vmin= 1e16, vmax= 1e34)
     scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
-    pyplot.savefig("tempPics/plotting_{0}.jpg".format(i))
+    pyplot.savefig("tempPics2/plotting_{0}.jpg".format(i))
     pyplot.close()
 
 def PlotVelocity(sphGiant,core,binary,i):
@@ -213,9 +201,10 @@ def PlotVelocity(sphGiant,core,binary,i):
     UnitlessArgs.current_plot = native_plot.gca()
     scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
-    pyplot.savefig("tempPics/velocity/velocity_plotting_{0}.jpg".format(i))
+    pyplot.savefig("tempPics2/velocity/velocity_plotting_{0}.jpg".format(i))
     pyplot.close()
 
+'''
 def PlotOrbitalParameters(x,y,plotFile ='dynamics.jpg' ):
 
     pyplot.figure(figsize= (20, 20), dpi= 80)
@@ -227,33 +216,40 @@ def PlotOrbitalParameters(x,y,plotFile ='dynamics.jpg' ):
     pyplot.xlabel('RSun')
     pyplot.savefig(plotFile)
     pyplot.show()
-
-def Plot1Axe(x, fileName):
+'''
+def Plot1Axe(x, fileName, beginTime = 0):
+    if len(x) == 0:
+        return
     timeStep = 1400.0/7000.0
-    timeLine = [time*timeStep*3600*24 for time in xrange(len(x))] | units.day
+    timeLine = [beginTime + time * timeStep * 60 for time in xrange(len(x))] | units.minute
     native_plot.figure(figsize= (20, 20), dpi= 80)
-    #PlotOrbitalParameters(x,steps,plotFile=fileName)
     plot(timeLine,x)
-    xlabel('time[s]')
-    native_plot.savefig('tempPics/' + fileName + '.jpg')
+    xlabel('time[minutes]')
+    native_plot.savefig('tempPics2/' + fileName + '.jpg')
 
-def PlotSemiMajorAxis(semimajors):
+def PlotSemiMajorAxis(semimajors, beginTime = 0):
     for a in semimajors:
         if a[0]:
             Plot1Axe(a[0], a[1])
 
-def PlotEccentricity(eccentricities):
+def PlotEccentricity(eccentricities, beginTime = 0):
     for e in eccentricities:
         if e[0] != []:
             Plot1Axe(e[0], e[1])
 
-def PlotBinaryDistance(distances):
-    Plot1Axe(distances, "distances")
+def PlotBinaryDistance(distances, beginTime = 0):
+    for d in distances:
+        if d[0]:
+            Plot1Axe(d[0], d[1])
 
+def InitializeSnapshots():
+    '''
+    taking the snapshots directory of past run
+    Returns: sorted dm snapshots and gas snapshots
 
-if __name__ == "__main__":
-    beginStep = 0
-    snapshots = os.listdir(os.path.join(os.getcwd(), "run_008/snapshots"))
+    '''
+    snapshots = os.listdir(os.path.join(os.getcwd(),"tempPics2"))
+    numberOfSnapshots = len(snapshots) / 2
     dmFiles = []
     gasFiles = []
     for snapshotFile in snapshots:
@@ -263,6 +259,13 @@ if __name__ == "__main__":
             gasFiles.append(snapshotFile)
     dmFiles.sort()
     gasFiles.sort()
+    return gasFiles, dmFiles
+
+
+if __name__ == "__main__":
+    beginStep = 0
+    gasFiles, dmFiles = InitializeSnapshots()
+
     particle1x =  []
     particle2x = []
     corex = []
@@ -273,6 +276,8 @@ if __name__ == "__main__":
     particle2z = []
     corez = []
     binaryDistances = AdaptingVectorQuantity()
+    triple1Distances = AdaptingVectorQuantity()
+    triple2Distances = AdaptingVectorQuantity()
     aInners = AdaptingVectorQuantity()
     aOuters = AdaptingVectorQuantity()
     aOuters1 = AdaptingVectorQuantity() # for the couple particle1 + giant
@@ -282,14 +287,15 @@ if __name__ == "__main__":
     eOuters = []
     eOuters1 = [] # for the couple particle1 + giant
     eOuters2 = [] # for the couple particle2 + giant
-    giantMasses = []
-    particle1Masses = []
-    particle2Masses = []
+
     inclinations = []
+    separationTime = 0
+
     print len(dmFiles)
-    for i in xrange(len(dmFiles)):
-        gas_particles_file = os.path.join(os.getcwd(), "run_008/snapshots", gasFiles[i])
-        dm_particles_file = os.path.join(os.getcwd(), "run_008/snapshots", dmFiles[i])
+    for i in xrange(len (dmFiles)):
+        print "step #",i
+        gas_particles_file = os.path.join(os.getcwd(), "tempPics2",gasFiles[i])
+        dm_particles_file = os.path.join(os.getcwd(),"tempPics2", dmFiles[i])
         relative_inclination = math.radians(9.0)
 
         binary = LoadBinaries(dm_particles_file)
@@ -306,53 +312,71 @@ if __name__ == "__main__":
         eInner = CalculateEccentricity(particle1,particle2, aInner)
 
         if CalculateVectorSize(innerBinary.separation) < 13.0*(10**8) | units.m: #if its closer than 2 solar radiuses
-            print "merger between the inner binary!" , innerBinary.separation
+            print "merger between the inner binary!" , innerBinary.separation.as_quantity_in(units.RSun)
 
-        if CalculateVectorSize(triple1.separation) < 13.0*(10**8) | units.m: #if its closer than 2 solar raiuses
-            print "merger between particle1 and the giant!" , triple1.separation
-            break
+        if CalculateVectorSize(CalculateSeparation(sphGiant.core,particle1)) < sphGiant.core.radius * 2:
+            print "merger between particle1 and the giant!"
+            #break
 
-        if CalculateVectorSize(triple2.separation) < 13.0*(10**8) | units.m: #if its closer than 2 solar raiuses
-            print "merger between particle 2 and the giant!" , triple2.separation
-            break
+        if CalculateVectorSize(CalculateSeparation(sphGiant.core, particle2)) < sphGiant.core.radius * 2:
+            print "merger between particle 2 and the giant!"
+            #break
+        print particle1
+        print particle2
 
+
+
+        #check if the binry is breaking up
         if innerBinary.specificEnergy > 0 | (units.m **2 / units.s **2):
             print "binary is breaking up", innerBinary.specificEnergy
 
+            #check if the couple particle1 + giant are breaking up
             if triple1.specificEnergy > 0 | (units.m **2 / units.s **2):
                 print "triple1 is breaking up", triple1.specificEnergy
-                sphGiant.CalculateInnerSPH(particle2)
-                print "innerGasMas: ", sphGiant.innerGas.mass.value_in(units.MSun)
-                newBinaryVelocityDifference = CalculateVelocityDifference(particle2, sphGiant.innerGas)
-                newBinarySeparation = CalculateSeparation(particle2, sphGiant.innerGas)
-                newBinaryMass = particle2.mass + sphGiant.innerGas.mass
+                if separationTime == 0:
+                    separationTime = i * 1400/7000
+                #check if the couple particle2 + giant are also breaking up
+                if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
+                    print "triple2 is also breaking up", triple2.specificEnergy
+                    break
+                else:
+                    sphGiant.CalculateInnerSPH(particle2)
+                    print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
+                    newBinaryVelocityDifference = CalculateVelocityDifference(particle2, sphGiant.innerGas)
+                    newBinarySeparation = CalculateSeparation(particle2, sphGiant.innerGas)
+                    newBinaryMass = particle2.mass + sphGiant.innerGas.mass
 
-                aOuter1 = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass)
-                eOuter1 = CalculateEccentricity(particle2, sphGiant.innerGas, aOuter1)
-                aOuters1.append(aOuter1)
-                eOuters1.append(eOuter1)
+                    aOuter1 = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass)
+                    eOuter1 = CalculateEccentricity(particle2, sphGiant.innerGas, aOuter1)
+                    aOuters1.append(aOuter1)
+                    eOuters1.append(eOuter1)
+                    triple2Distances.append(CalculateVectorSize(newBinarySeparation))
+                    print newBinarySeparation
 
+            #check if the couple particle2 + giant are breaking up
             if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
                 print "triple2 is breaking up", triple2.specificEnergy
-                sphGiant.CalculateInnerSPH(particle1)
-                print "innerGasMas: ", sphGiant.innerGas.mass.value_in(units.MSun)
-                newBinaryVelocityDifference = CalculateVelocityDifference(particle1, sphGiant.innerGas)
-                newBinarySeparation = CalculateSeparation(particle1, sphGiant.innerGas)
-                newBinaryMass = particle1.mass + sphGiant.innerGas.mass
+                if separationTime == 0:
+                    separationTime = i * 1400/7000
+                #check if the couple particle1 + giant are also breaking up
+                if triple1.specificEnergy > 0 | (units.m **2 / units.s **2):
+                    print "triple1 is also breaking up", triple1.specificEnergy
+                    break
+                else:
+                    sphGiant.CalculateInnerSPH(particle1)
+                    print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
+                    newBinaryVelocityDifference = CalculateVelocityDifference(particle1, sphGiant.innerGas)
+                    newBinarySeparation = CalculateSeparation(particle1, sphGiant.innerGas)
+                    newBinaryMass = particle1.mass + sphGiant.innerGas.mass
 
-                aOuter2 = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass)
-                eOuter2 = CalculateEccentricity(particle1, sphGiant.innerGas, aOuter2)
-                eOuter2 = CalculateEccentricity(particle1, sphGiant.innerGas, aOuter2)
-                aOuters2.append(aOuter2)
-                eOuters2.append(eOuter2)
+                    aOuter2 = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass)
+                    eOuter2 = CalculateEccentricity(particle1, sphGiant.innerGas, aOuter2)
+                    aOuters2.append(aOuter2)
+                    eOuters2.append(eOuter2)
+                    triple1Distances.append(CalculateVectorSize(newBinarySeparation))
 
-        else:
-            #tripleVCOM = (innerBinary.mass * innerBinary.v + sphGiant.gas.mass*sphGiant.gas.v)/(innerBinary.mass + sphGiant.gas.mass)
-            #tripleCOM = (innerBinary.mass * innerBinary.position + sphGiant.gas.mass * sphGiant.gas.position) / (innerBinary.mass + sphGiant.gas.mass)
-            #print "System's Center Of Mass: ", tripleCOM[0].as_quantity_in(units.AU), tripleCOM[1].as_quantity_in(units.AU), tripleCOM[2].as_quantity_in(units.AU)
+        else:#all the three are connected
             tripleMass = innerBinary.mass + sphGiant.mass
-
-
             tripleVelocityDifference = CalculateVelocityDifference(innerBinary,sphGiant.gas)
             tripleSeparation = CalculateSeparation(innerBinary,sphGiant.gas)
 
@@ -381,14 +405,14 @@ if __name__ == "__main__":
         corez.append(sphGiant.core.z| units.RSun)
 
 
-        #PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep)
+        PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep)
         #PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep)
-
         #print  aOuter / aInner
-    PlotBinaryDistance(binaryDistances)
-    PlotSemiMajorAxis([(aInners,"aInners"),(aOuters, "aOuters"), (aOuters1, "aOuters1"), (aOuters2, "aOuters2")])
-    PlotEccentricity([(eInners, "eInners"), (eOuters, "eOuters"), (eOuters1, "eOuters1"), (eOuters2, "eOuters2")])
-
+    PlotBinaryDistance([(binaryDistances, "InnerBinaryDistances"), (triple1Distances, "triple1Distances"), (triple2Distances, "triple2Distances")])
+    PlotSemiMajorAxis([(aInners,"aInners"),(aOuters, "aOuters")])
+    PlotSemiMajorAxis([(aOuters1, "aOuters1"), (aOuters2, "aOuters2")], separationTime)
+    PlotEccentricity([(eInners, "eInners"), (eOuters, "eOuters")])
+    PlotEccentricity([(eOuters1, "eOuters1"), (eOuters2, "eOuters2")],separationTime)
     Plot1Axe(inclinations,"inclinations")
     #PlotOrbitalParameters(particle1x,particle1y, "tempPics/orbitalsParticle1.jpg")
 

@@ -1,4 +1,4 @@
-from matplotlib import pyplot
+#from matplotlib import pyplot
 #from matplotlib.animation as animation
 import time
 import pickle
@@ -10,7 +10,7 @@ from amuse.community.fi.interface import Fi
 from amuse.community.hermite0.interface import  Hermite
 from amuse.units import units , nbody_system
 from amuse.units.units import *
-from amuse.plot import plot as aplot, native_plot, sph_particles_plot
+#from amuse.plot import plot as aplot, native_plot, sph_particles_plot
 from amuse.lab import Particles
 from amuse.io import read_set_from_file, write_set_to_file
 
@@ -126,8 +126,6 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
     print "evolving from step ", step
 
-    native_plot.figure(figsize=(20, 20), dpi=60)
-
     print "\nSetting up {0} to simulate triple system".format(dynamicsCode.__name__)
     binarySystem = DynamicsForBinarySystem(dynamicsCode, totalMass, semmiMajor, stars.stars)
 
@@ -137,9 +135,6 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     dm = coupledSystem.dm_particles.copy()
     gas = coupledSystem.gas_particles.copy()
 
-    sph_particles_plot(hydroSystem.gas_particles)
-    #native_plot.show()
-    native_plot.savefig(savedVersionPath + '/pics/' + adding + '_0.jpg')
     centerOfMassRadius = coupledSystem.particles.center_of_mass()
     centerOfMassV = coupledSystem.particles.center_of_mass_velocity()
 
@@ -240,6 +235,7 @@ def EvolveBinary(totalMass, semmiMajor, binary, endTime= 10000 | units.yr, timeS
     pyplot.plot(x[:, 1], y[:, 1], 'g.')
     pyplot.xlim(-1, 1)
     pyplot.ylim(-1, 1)
+    pyplot.xlabel('AU')
     pyplot.xlabel('AU')
     pyplot.savefig(orbitPlotPath)
     evolutionCode.stop()

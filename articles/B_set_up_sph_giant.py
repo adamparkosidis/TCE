@@ -18,14 +18,14 @@ import matplotlib
 matplotlib.use("Agg")
 from matplotlib import pyplot
 from amuse.plot import scatter, xlabel, ylabel, plot, pynbody_column_density_plot, HAS_PYNBODY
-from pynbody.snapshot import new as _new
+#from pynbody.snapshot import new as _new
 
 from xiTau_parameters import triple_parameters
 
 
 def new_working_directory():
     i = 0
-    current_directory = os.getcwd()
+    current_directory = os.getcwd()+"/../../BIGDATA/code/amuse-10.0/"
     while os.path.exists(os.path.join(current_directory, "run_{0:=03}".format(i))):
         i += 1
     new_directory = os.path.join(current_directory, "run_{0:=03}".format(i))
@@ -192,7 +192,7 @@ if __name__ == "__main__":
     dynamics_code = Huayno
     sph_code = Fi
     number_of_sph_particles = 100000
-    stellar_structure_file = os.path.join(os.getcwd(), "giant_models", "model_0074_111.6")
+    stellar_structure_file = os.path.join(os.getcwd(), "giant_models", "model_0016_1.0")
     
     relative_inclination = math.radians(9.0)
     

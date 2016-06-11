@@ -30,7 +30,7 @@ def evolve_giant(giant, stop_radius):
     
 
 if __name__ == "__main__":
-    model_directory = os.path.join(os.getcwd(), "giant_models")
+    model_directory = os.path.join("../../../../../BIGDATA/code/amuse-10.0", "giant_models")
     if not os.path.exists(model_directory):
         os.mkdir(model_directory)
     os.chdir(model_directory)

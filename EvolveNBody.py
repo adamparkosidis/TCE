@@ -1,4 +1,4 @@
-from matplotlib import pyplot
+#from matplotlib import pyplot
 #from matplotlib.animation as animation
 import time
 import pickle
@@ -20,7 +20,7 @@ from amuse.community.huayno.interface import Huayno
 from amuse.ext.sink import new_sink_particles
 
 import StarModels
-import TCEPlotting
+#import TCEPlotting
 
 def DynamicsForBinarySystem(dynamicsCode, totalMass, semmiMajor, binary):
 
@@ -32,16 +32,18 @@ def DynamicsForBinarySystem(dynamicsCode, totalMass, semmiMajor, binary):
     system.particles.add_particles(binary)
     return system
 
-def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius, numberOfWorkers = 1):
+def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius, numberOfWorkers):
     unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, t_end)
-    system = sphCode(unitConverter, redirection="file", redirect_file="sph_code_out.log", number_of_workers = numberOfWorkers)
+    print "preparing the hydro system", envelope.total_mass() + core.mass, t_end, sphCode.__name__
+    system = sphCode(unitConverter, redirection='file', redirect_file='sph_code__out.log', number_of_workers= numberOfWorkers)
+    print "hydro is almost ready"
     if sphCode.__name__ == "Fi":
         system.parameters.timestep = t_end / n_steps
         system.parameters.eps_is_h_flag = True
     system.parameters.begin_time = beginTime
     #if sphCode.__name__ =="Gadget2":
         #system.parameters.number_of_workers = numberOfWorkers
-    system.parameters.time_limit_cpu = 7200000000 | units.s
+    #system.parameters.time_limit_cpu = 7200000000 | units.s
     if sphCode.__name__ == "Gadget2":
         core.radius = core_radius * 2
     system.dm_particles.add_particle(core)
@@ -67,7 +69,7 @@ def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = 
 
 
 def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | units.yr, timeSteps = 3 ,
-        savedVersionPath = "", saveAfterMinute = 1, step = 0, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
+        savedVersionPath = "", saveAfterMinute = 0, step = 0, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
          numberOfWorkers = 1):
     '''
 
@@ -123,10 +125,11 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
         print "#particles: " , len(sphEnvelope)
         sphCore= StarModels.LoadDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step))[-1]
         currentTime = step * timeStep
+    print "preparing the run"
     hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
     print "evolving from step ", step
 
-    native_plot.figure(figsize=(20, 20), dpi=60)
+    #native_plot.figure(figsize=(20, 20), dpi=60)
 
     print "\nSetting up {0} to simulate triple system".format(dynamicsCode.__name__)
     binarySystem = DynamicsForBinarySystem(dynamicsCode, totalMass,semmiMajor,stars.stars)
@@ -137,9 +140,9 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     dm = hydroSystem.dm_particles.copy()
     gas = hydroSystem.gas_particles.copy()
 
-    sph_particles_plot(hydroSystem.gas_particles)
+    #sph_particles_plot(hydroSystem.gas_particles)
     #native_plot.show()
-    native_plot.savefig(savedVersionPath + '/pics/' + adding + '_0.jpg')
+    #native_plot.savefig(savedVersionPath + '/pics/' + adding + '_0.jpg')
     centerOfMassRadius = coupledSystem.particles.center_of_mass()
     centerOfMassV = coupledSystem.particles.center_of_mass_velocity()
 
@@ -172,16 +175,15 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
         potential_energies.append(coupledSystem.potential_energy)
         kinetic_energies.append(coupledSystem.kinetic_energy)
         thermal_energies.append(coupledSystem.thermal_energy)
-
         print "   Energies calculated"
         #sph_particles_plot(gas)
         #native_plot.savefig(savedVersionPath + "/pics/" + adding + "_{0}".format(step))
-
         currentTime += timeStep
+        print "currentTime= ",currentTime, "timeStep= ", timeStep
         if (time.time() - currentSecond) > saveAfterMinute * 60:
             if savedVersionPath != "":
                 StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step), coupledSystem.gas_particles)
-                StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step), coupledSystem.dm_particles)
+                StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step), coupledSystem.dm_particles)                
                 #TODO: plot all the metadata
                 print "state saved - {0}".format(savedVersionPath) + "/" + adding
                 #TCEPlotting.PlotDensity(hydroSystem.gas_particles,hydroSystem.dm_particles, binarySystem.particles,
@@ -189,8 +191,6 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
                 currentSecond = time.time()
         dm = hydroSystem.dm_particles.copy()
         gas = hydroSystem.gas_particles.copy()
-        if not relax:
-            print "masses: ", sinks.mass.as_quantity_in(units.MSun)
     coupledSystem.stop()
     return gas, dm
 

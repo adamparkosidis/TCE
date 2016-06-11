@@ -139,8 +139,8 @@ def energy_evolution_plot(time, kinetic, potential, thermal, figname = "energy_e
 if __name__ == "__main__":
     dynamics_code = Huayno
     sph_code = Fi
-    gas_particles_file = os.path.join(os.getcwd(), "run_002/snapshots", "hydro_triple_000280_gas.amuse")
-    dm_particles_file = os.path.join(os.getcwd(), "run_002/snapshots", "hydro_triple_000280_dm.amuse")
+    gas_particles_file = os.path.join(os.getcwd(), "run_001", "hydro_giant_gas.amuse")
+    dm_particles_file = os.path.join(os.getcwd(), "run_001", "hydro_giant_dm.amuse")
 
     # Output from set_up_sph_giant in B_set_up_sph_giant.py:
     core_radius = 0.7047075092| units.RSun

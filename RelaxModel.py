@@ -10,7 +10,7 @@ class RelaxedModel:
         nbody = nbody_system.nbody_to_si(totalMass, semmiMajor)
 
         # evolve
-        evolutionCode = Gadget2(nbody, number_of_workers=7)
+        evolutionCode = Gadget2(nbody, number_of_workers=12)
         evolutionCode.parameters.time_limit_cpu = 1000000 | units.s
         for gasParticle in gasParticles:
             evolutionCode.gas_particles.add_particles(gasParticle)

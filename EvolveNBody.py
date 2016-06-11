@@ -193,9 +193,9 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
             print "masses: ", sinks.mass.as_quantity_in(units.MSun)
     coupledSystem.stop()
     #saving state
-    StarModels.SaveGas(savedVersionPath + "/envelope.amuse".format(step), coupledSystem.gas_particles)
-    StarModels.SaveDm(savedVersionPath + "/dm.amuse".format(step), coupledSystem.dm_particles)
-
+    if relax:
+        StarModels.SaveGas(savedVersionPath + "/envelope.amuse".format(step), coupledSystem.gas_particles)
+        StarModels.SaveDm(savedVersionPath + "/dm.amuse".format(step), coupledSystem.dm_particles)
     return gas, dm
 
 def EvolveBinary(totalMass, semmiMajor, binary, endTime= 10000 | units.yr, timeSteps = 10,

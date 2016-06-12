@@ -83,7 +83,7 @@ class SphStar:
         pickle_stellar_model(mainStar, savingPath + "/" + code.__name__)
         print "star saved to: ", savingPath + "/" + code.__name__
         return mainStar
-    
+
 class SphMetaData:
     def __init__(self,sphStar):
         self.relaxationTime = sphStar.relaxationTime

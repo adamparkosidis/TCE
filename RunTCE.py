@@ -83,7 +83,7 @@ def Start(savedVersionPath = "Glanz/savings/TCETry", takeSavedState = "False", s
     # creating the NBody system with the 3 and evolving
     EvolveNBody.Run(totalMass= starMass + binary.stars[0].mass + binary.stars[1].mass,
                     semmiMajor= tripleSemmimajor, sphEnvelope= starEnvelope,
-                    sphCore=starCore[-1], stars=binary,
+                    sphCore=starCore, stars=binary,
                     endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
                     savedVersionPath=savedVersionPath)
 

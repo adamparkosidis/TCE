@@ -83,6 +83,14 @@ class SphStar:
         pickle_stellar_model(mainStar, savingPath + "/" + code.__name__)
         print "star saved to: ", savingPath + "/" + code.__name__
         return mainStar
+    
+class SphMetaData:
+    def __init__(self,sphStar):
+        self.relaxationTime = sphStar.relaxationTime
+        self.relaxationTimeSteps = sphStar.relaxationTimeSteps
+        self.evolutionTime = sphStar.evolutionTime
+        self.evolutionTimeSteps = sphStar.evolutionTimeSteps
+        self.numberOfWorkers = sphStar.numberOfWorkers
 
 def LoadGas(savedGas):
     gas = read_set_from_file(savedGas, format='amuse')

@@ -10,13 +10,7 @@ from amuse.io import read_set_from_file
 import StarModels
 import EvolveNBody
 
-class SphMetaData:
-    def __init__(self,sphStar):
-        self.relaxationTime = sphStar.relaxationTime
-        self.relaxationTimeSteps = sphStar.relaxationTimeSteps
-        self.evolutionTime = sphStar.evolutionTime
-        self.evolutionTimeSteps = sphStar.evolutionTimeSteps
-        self.numberOfWorkers = sphStar.numberOfWorkers
+
 
 def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, takeSavedMesa = False):
     '''
@@ -47,7 +41,10 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
                                               numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=15)
     starCore = dmStars[-1]
-    sphMetaData = SphMetaData(sphStar)
+    sphMetaData = StarModels.SphMetaData(sphStar)
+
+    #saved state
+    StarModels.SaveState(savedPath, giant.mass, starEnvelope, dmStars, outerBinary.semimajorAxis, sphMetaData)
 
     return giant.mass, starEnvelope, starCore, innerBinary, outerBinary.semimajorAxis, sphMetaData
 
@@ -76,9 +73,6 @@ def Start(savedVersionPath = "Glanz/savings/TCETry", takeSavedState = "False", s
             starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = CreateTripleSystem(configurationFile, savedVersionPath, takeSavedMesa= True)
         else:
             starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = CreateTripleSystem(configurationFile, savedVersionPath)
-
-
-    #TODO: change positions of binary stars
 
     # creating the NBody system with the 3 and evolving
     EvolveNBody.Run(totalMass= starMass + binary.stars[0].mass + binary.stars[1].mass,

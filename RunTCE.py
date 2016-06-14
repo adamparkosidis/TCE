@@ -75,6 +75,7 @@ def Start(savedVersionPath = "Glanz/savings/TCETry", takeSavedState = "False", s
             starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = CreateTripleSystem(configurationFile, savedVersionPath)
 
     # creating the NBody system with the 3 and evolving
+    print starCore
     EvolveNBody.Run(totalMass= starMass + binary.stars[0].mass + binary.stars[1].mass,
                     semmiMajor= tripleSemmimajor, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=binary,

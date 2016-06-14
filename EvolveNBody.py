@@ -67,7 +67,7 @@ def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = 
 
 
 def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | units.yr, timeSteps = 3 ,
-        savedVersionPath = "", saveAfterMinute = 1, step = 0, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
+        savedVersionPath = "", saveAfterMinute = 1, step = -1, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
          numberOfWorkers = 1):
     '''
 
@@ -118,7 +118,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     timeStep = endTime / timeSteps
     currentTime = 0.0 | units.Myr
 
-    if step!= 0:
+    if step!= -1:
         sphEnvelope= StarModels.LoadGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step))
         print "#particles: " , len(sphEnvelope)
         sphCore= StarModels.LoadDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step))[-1]

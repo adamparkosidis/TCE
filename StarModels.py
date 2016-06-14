@@ -119,11 +119,9 @@ def TakeSavedState(savedVersionPath, configurationFile, step = -1 ):
         starEnvelope = LoadGas(savedVersionPath+"/gas_{0}.amuse".format(step))
         load = LoadDm(savedVersionPath + "/dm_{0}.amuse".format(step))
         innerBinary = Particles(2, particles=[load[0], load[1]])
-        starCore = load[-1]
     else:
         starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
         load = LoadDm(savedVersionPath + "/dm.amuse")
-        starCore = load
 
         giant = CreatePointStar(configurationFile,configurationSection="MainStar")
         innerBinary = Binary(configurationFile, configurationSection="InnerBinary")
@@ -137,6 +135,7 @@ def TakeSavedState(savedVersionPath, configurationFile, step = -1 ):
 
         triple.move_to_center()
         innerBinary.stars = triple - giantInSet
+    starCore=load[-1]
     starMass = starEnvelope.total_mass() + starCore.mass
 
     tripleSemmimajor = outerBinary.semimajorAxis

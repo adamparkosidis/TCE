@@ -274,7 +274,7 @@ class Binary:
         self.radius = [float(parser.get(configurationSection, "radius1")) | units.AU,
                   float(parser.get(configurationSection, "radius2")) | units.AU]
 
-        stars =  Particles(2)
+        stars = Particles(2)
         stars.mass = masses
         stars.position = [0.0, 0.0, 0.0] | units.AU
         stars.velocity = [0.0, 0.0, 0.0] | units.km / units.s

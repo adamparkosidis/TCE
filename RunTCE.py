@@ -84,7 +84,7 @@ def Start(savedVersionPath = "Glanz/savings/TCETry", takeSavedState = "False", s
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":
-    Start(takeSavedState="True")
+    Start(takeSavedState="Mesa")
 
 def MakeAMovieFromSavedState(savedVersionPath= "savings/TCE500000" , steps = []):
     #TODO: do something

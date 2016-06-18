@@ -81,7 +81,7 @@ class SphStar:
         except(OSError):
             pass
         pickle_stellar_model(mainStar, savingPath + "/" + code.__name__)
-        print "star saved to: ", savingPath + "/" + code.__name__
+        print "star saved to: ", savingPath + "/" + code.__name__ , "mass: ",mainStar.mass, "stellar type:", mainStar.stellar_type
         return mainStar
 
 class SphMetaData:

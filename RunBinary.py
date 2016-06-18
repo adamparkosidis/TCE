@@ -50,7 +50,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = F
     sphStar1 = StarModels.SphStar(binary[0],configurationFile,configurationSection="SphStar1",
                                 savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
 
-    print "Now having the firest sph star , ready for relaxing"
+    print "Now having the first sph star , ready for relaxing"
     star1Envelope, dmStars1 = EvolveNBody.Run(totalMass= binary.stars.total_mass(),
                     semmiMajor= binary.semimajorAxis, sphEnvelope= sphStar1.gas_particles, sphCore=sphStar1.core_particle,
                                              stars=binary, endTime= sphStar1.relaxationTime,

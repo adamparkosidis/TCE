@@ -39,7 +39,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
                                              stars=innerBinary, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
-                                              numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=15)
+                                              numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=10)
     starCore = dmStars[-1]
     sphMetaData = StarModels.SphMetaData(sphStar)
 
@@ -50,7 +50,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
 
 
-def Start(savedVersionPath = "Glanz/savings/TCETry", takeSavedState = "False", step = -1, configurationFile = "TCEConfiguration.ini"):
+def Start(savedVersionPath = "Glanz/savings/TCE0511R_123aOut", takeSavedState = "False", step = -1, configurationFile = "TCEConfiguration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -80,7 +80,7 @@ def Start(savedVersionPath = "Glanz/savings/TCETry", takeSavedState = "False", s
                     semmiMajor= tripleSemmimajor, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=binary,
                     endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
-                    savedVersionPath=savedVersionPath)
+                    savedVersionPath=savedVersionPath, saveAfterMinute= 0)
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":

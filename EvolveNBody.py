@@ -141,7 +141,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     centerOfMassV = coupledSystem.particles.center_of_mass_velocity()
 
     if not relax:
-        sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[0]*2)
+        sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[0]*5)
 
     #if step!= 0:
     #    x, y, z = pickle.load(open(savedVersionPath+"xyz.p", 'rb'))

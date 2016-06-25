@@ -81,7 +81,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = F
     return [star1Envelope, star2Envelope], [star1Core,star2Core] , binary, binary.semimajorAxis, sph1MetaData
 
 
-def Start(savedVersionPath = "Binary", takeSavedState = "False", step = -1, configurationFile = "PassyConfiguration.ini"):
+def Start(savedVersionPath = "Passy", takeSavedState = "False", step = -1, configurationFile = "Passy/PassyConfiguration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -106,15 +106,14 @@ def Start(savedVersionPath = "Binary", takeSavedState = "False", step = -1, conf
             starEnvelope, starCore, binary, semmimajor, sphMetaData = CreateBinarySystem(configurationFile, savedVersionPath)
 
     # creating the NBody system with the 3 and evolving
-    print starCore
-    EvolveNBody.EvolveBinary(totalMass= binary.stars[0].mass + binary.stars[1].mass,
+    EvolveNBody.EvolveBinary(totalMass= binary.stars.total_mass(),
                     semmiMajor= semmimajor, sphEnvelope= starEnvelope,
-                    sphCore=starCore, stars=binary + StarModels.CreatePointStar(configurationFile,"MainStar"),
+                    sphCore=starCore, stars=binary,
                     endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
-                    savedVersionPath=savedVersionPath)
+                    savedVersionPath=savedVersionPath,relax= False)
 
     print "****************** Simulation Completed ******************"
 
 if __name__ == "__main__":
-    Start(takeSavedState="Mesa")
+    Start(takeSavedState="True")
 

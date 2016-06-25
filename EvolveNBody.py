@@ -122,9 +122,6 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     currentTime = 0.0 | units.Myr
 
     if step!= -1:
-        sphEnvelope= StarModels.LoadGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step))
-        print "#particles: " , len(sphEnvelope)
-        sphCore= StarModels.LoadDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step))[-1]
         currentTime = step * timeStep
     hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
 
@@ -141,7 +138,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     centerOfMassV = coupledSystem.particles.center_of_mass_velocity()
 
     if not relax:
-        sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[0]*5)
+        sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[0]*2)
 
     #if step!= 0:
     #    x, y, z = pickle.load(open(savedVersionPath+"xyz.p", 'rb'))
@@ -240,9 +237,6 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
     currentTime = 0.0 | units.Myr
 
     if step!= -1:
-        sphEnvelope= StarModels.LoadGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step))
-        print "#particles: " , len(sphEnvelope)
-        sphCore= StarModels.LoadDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step))[-1]
         currentTime = step * timeStep
     hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
 

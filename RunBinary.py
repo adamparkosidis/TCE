@@ -96,9 +96,11 @@ def Start(savedVersionPath = "Passy", takeSavedState = "False", step = -1, confi
         pass
     # creating the triple system
     if takeSavedState == "True":
-        starEnvelope, starCore, binary, semmimajor, sphMetaData = StarModels.TakeSavedState(savedVersionPath, configurationFile, step= -1)
+        starEnvelope, starCore, binary, semmimajor, sphMetaData = \
+            StarModels.TakeBinarySavedState(savedVersionPath, configurationFile, step= -1)
     elif takeSavedState == "Evolve":
-        starEnvelope, starCore, binart, semmimajor,sphMetaData = StarModels.TakeSavedState(savedVersionPath + "/evolution", configurationFile, step)
+        starEnvelope, starCore, binary, semmimajor,sphMetaData = \
+            StarModels.TakeBinarySavedState(savedVersionPath + "/evolution", configurationFile, step)
     else:
         if takeSavedState == "Mesa":
             starEnvelope, starCore, binary, semmimajor, sphMetaData = CreateBinarySystem(configurationFile, savedVersionPath, takeSavedMesa= True)

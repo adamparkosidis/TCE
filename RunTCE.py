@@ -65,9 +65,11 @@ def Start(savedVersionPath = "Glanz/savings/TCE0511R_123aOut", takeSavedState = 
         pass
     # creating the triple system
     if takeSavedState == "True":
-        starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = StarModels.TakeSavedState(savedVersionPath, configurationFile, step= -1)
+        starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = \
+            StarModels.TakeTripleSavedState(savedVersionPath, configurationFile, step= -1)
     elif takeSavedState == "Evolve":
-        starMass, starEnvelope, starCore, binart, tripleSemmimajor,sphMetaData = StarModels.TakeSavedState(savedVersionPath + "/evolution", configurationFile, step)
+        starMass, starEnvelope, starCore, binary, tripleSemmimajor,sphMetaData = \
+            StarModels.TakeTripleSavedState(savedVersionPath + "/evolution", configurationFile, step)
     else:
         if takeSavedState == "Mesa":
             starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = CreateTripleSystem(configurationFile, savedVersionPath, takeSavedMesa= True)

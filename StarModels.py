@@ -9,7 +9,7 @@ from amuse.datamodel import Particle
 from amuse.ext import orbital_elements
 from amuse.plot import plot, native_plot, sph_particles_plot
 
-import EvolveNBody
+import EvolveNBody, BinaryCalculations
 
 def get_relative_velocity_at_apastron(total_mass, semimajor_axis, ecc):
     return (constants.G * total_mass * ((1.0 - ecc)/(1.0 + ecc)) / semimajor_axis).sqrt()
@@ -108,25 +108,27 @@ def SaveDm(savingPath,dms):
     write_set_to_file(dms,savingPath, 'amuse')
 
 
-def TakeSavedState(savedVersionPath, configurationFile, step = -1 ):
+def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 ):
     '''
     :param savedVersionPath: the path to where you have your saved state
     :return: the saved system
     '''
     print "using saved state file - {0}".format(savedVersionPath)
-    outerBinary = Binary(configurationFile, configurationSection="OuterBinary")
     if step > -1:
-        starEnvelope = LoadGas(savedVersionPath+"/gas_{0}.amuse".format(step))
-        load = LoadDm(savedVersionPath + "/dm_{0}.amuse".format(step))
-        innerBinary = Particles(2, particles=[load[0], load[1]])
+        starEnvelope= LoadGas(savedVersionPath + "/gas_{0}.amuse".format(step))
+        load= LoadDm(savedVersionPath + "/dm_{0}.amuse".format(step))
+        starCore=load[-1]
+        innerBinary = Binary(particles=Particles(2, particles=[load[0], load[1]]))
     else:
         starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
         load = LoadDm(savedVersionPath + "/dm.amuse")
-
-        giant = CreatePointStar(configurationFile,configurationSection="MainStar")
+        starCore=load[-1]
         innerBinary = Binary(configurationFile, configurationSection="InnerBinary")
-        '''fix positions'''
-        giant.position = outerBinary.semimajorAxis * (1 + outerBinary.eccentricity) * ([1, 0, 0] | units.none);
+        outerBinary = Binary(configurationFile, configurationSection="OuterBinary")
+        #fix the position
+        giant = Particle()
+        giant.mass = starEnvelope.total_mass() + starCore.mass
+        giant.position = outerBinary.semimajorAxis * (1 + outerBinary.eccentricity) * ([1, 0, 0] | units.none)
         giant.velocity = GetRelativeVelocityAtApastron(
             giant.mass + innerBinary.stars.total_mass(),
             outerBinary.semimajorAxis, outerBinary.eccentricity) * ([0, 1, 0] | units.none)
@@ -135,14 +137,47 @@ def TakeSavedState(savedVersionPath, configurationFile, step = -1 ):
 
         triple.move_to_center()
         innerBinary.stars = triple - giantInSet
-    starCore=load[-1]
-    starMass = starEnvelope.total_mass() + starCore.mass
+        tripleSemmimajor = outerBinary.semimajorAxis
 
-    tripleSemmimajor = outerBinary.semimajorAxis
+    starMass = starEnvelope.total_mass() + starCore.mass
+    if step > -1:
+        tripleVelocityDifference = BinaryCalculations.CalculateVelocityDifference(innerBinary, giant)
+        tripleSeparation = BinaryCalculations.CalculateSeparation(innerBinary, giant)
+        tripleSemmimajor = BinaryCalculations.CalculateSemiMajor(tripleVelocityDifference, tripleSeparation,
+                                                             starMass + innerBinary.stars.total_mass())
 
     sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
 
     return starMass, starEnvelope, starCore, innerBinary, tripleSemmimajor, sphMetaData
+
+def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
+    '''
+    :param savedVersionPath: the path to where you have your saved state
+    :return: the saved system
+    '''
+    print "using saved state file - {0}".format(savedVersionPath)
+    if step > -1:
+        starEnvelope = LoadGas(savedVersionPath+"/gas_{0}.amuse".format(step))
+        load = LoadDm(savedVersionPath + "/dm_{0}.amuse".format(step))
+        starCore=load[-1]
+        starMass = starEnvelope.total_mass() + starCore.mass
+        binary = Binary(particles=Particles(2, particles=[load[0], load[1]]))
+    else:
+        starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
+        load = LoadDm(savedVersionPath + "/dm.amuse")
+        binary = Binary(configurationFile, configurationSection="Binary")
+        binary.stars.radius = binary.radius
+        starCore=load[-1]
+        starMass = starEnvelope.total_mass() + starCore.mass
+        #changing the mass to the one after relaxation
+        binary.stars[0].mass = starMass
+        binary.stars[0].velocity = (starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass() +
+                          (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass
+        print "(giant, star): ", binary
+
+    sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
+
+    return starMass, starEnvelope, starCore, binary, binary.semimajorAxis, sphMetaData
 
 def SaveState(savedVersionPath, starMass, starEnvelope, dms, tripleSemmimajor, sphMetaData):
     '''
@@ -164,7 +199,6 @@ def SaveState(savedVersionPath, starMass, starEnvelope, dms, tripleSemmimajor, s
     SaveDm(savedVersionPath+"/dm.amuse", dms)
     SaveGas(savedVersionPath+"/envelope.amuse", starEnvelope)
     print "state saved - {0}".format(savedVersionPath)
-
 class Star:
 
     def __init__(self, configurationFile="", configurationSection="", savedMesaStarPath = "", takeSavedMesa = False):
@@ -261,38 +295,44 @@ class Binary:
     :param binarySemimajorAxis: the semmimajor
     :return: binary star model
     '''
-    def __init__(self, configurationFile="", configurationSection=""):
-        print "Initializing ", configurationSection
+    def __init__(self, configurationFile="", configurationSection="", particles=None):
+        if particles is None:
+            print "Initializing ", configurationSection
+            parser = ConfigParser.ConfigParser()
+            parser.read(configurationFile)
+            masses = [float(parser.get(configurationSection, "mass1")) | units.MSun,
+                      float(parser.get(configurationSection, "mass2")) | units.MSun]
+            self.semimajorAxis = float(parser.get(configurationSection, "semmimajor")) | units.AU
+            self.inclination = float(parser.get(configurationSection, "inclination"))
+            self.eccentricity = float(parser.get(configurationSection, "eccentricity"))
+            self.radius = [float(parser.get(configurationSection, "radius1")) | units.AU,
+                      float(parser.get(configurationSection, "radius2")) | units.AU]
 
-        parser = ConfigParser.ConfigParser()
-        parser.read(configurationFile)
-        masses = [float(parser.get(configurationSection, "mass1")) | units.MSun,
-                  float(parser.get(configurationSection, "mass2")) | units.MSun]
-        self.semimajorAxis = float(parser.get(configurationSection, "semmimajor")) | units.AU
-        self.inclination = float(parser.get(configurationSection, "inclination"))
-        self.eccentricity = float(parser.get(configurationSection, "eccentricity"))
-        self.radius = [float(parser.get(configurationSection, "radius1")) | units.AU,
-                  float(parser.get(configurationSection, "radius2")) | units.AU]
+            stars = Particles(2)
+            stars.mass = masses
+            stars.position = [0.0, 0.0, 0.0] | units.AU
+            stars.velocity = [0.0, 0.0, 0.0] | units.km / units.s
+            stars[0].y = self.semimajorAxis
+            stars[0].vx = -math.cos(self.inclination)*get_relative_velocity_at_apastron(
+                stars.total_mass(), self.semimajorAxis, 0)
+            stars[0].vz = math.sin(self.inclination)*get_relative_velocity_at_apastron(
+                stars.total_mass(), self.semimajorAxis, 0)
+            stars.move_to_center()
+            self.stars = stars
+        else:
+            self.LoadBinary(particles)
+    def LoadBinary(self, particles):
 
-        stars = Particles(2)
-        stars.mass = masses
-        stars.position = [0.0, 0.0, 0.0] | units.AU
-        stars.velocity = [0.0, 0.0, 0.0] | units.km / units.s
-        stars[0].y = self.semimajorAxis
-        stars[0].vx = -math.cos(self.inclination)*get_relative_velocity_at_apastron(
-            stars.total_mass(), self.semimajorAxis, 0)
-        stars[0].vz = math.sin(self.inclination)*get_relative_velocity_at_apastron(
-            stars.total_mass(), self.semimajorAxis, 0)
-        stars.move_to_center()
-        self.stars = stars
-    def LoadBinary(self,):
-        ''''
-        self.semimajorAxis = float(parser.get(configurationSection, "semmimajor")) | units.AU
-        self.inclination = float(parser.get(configurationSection, "inclination"))
-        self.eccentricity = float(parser.get(configurationSection, "eccentricity"))
-        self.radius = [float(parser.get(configurationSection, "radius1")) | units.AU,
-                  float(parser.get(configurationSection, "radius2")) | units.AU]
+        print "loading binary "
+        self.stars = particles
+        masses = [particles[0].mass,particles[1].mass]
+        velocityDifference = BinaryCalculations.CalculateVelocityDifference(self.stars[0], self.stars[1])
+        separation = BinaryCalculations.CalculateSeparation(self.stars[0], self.stars[1])
+        mass = particles.total_mass()
 
-        stars =  Particles(2)
-        '''
+        self.semimajorAxis = BinaryCalculations.CalculateSemiMajor(velocityDifference,separation,mass)
+        self.inclination = BinaryCalculations.CalculateInclination((0,0,0) | (units.m / units.s),(0,0,0)| units.m,
+                                                                   velocityDifference, separation)
+        self.eccentricity =BinaryCalculations.CalculateEccentricity(self.stars[0],self.stars[1],self.semimajorAxis)
+
 

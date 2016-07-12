@@ -11,8 +11,6 @@ from amuse.plot import plot, native_plot, sph_particles_plot
 
 import EvolveNBody, BinaryCalculations
 
-def get_relative_velocity_at_apastron(total_mass, semimajor_axis, ecc):
-    return (constants.G * total_mass * ((1.0 - ecc)/(1.0 + ecc)) / semimajor_axis).sqrt()
 
 def CreatePointStar(configurationFile="", configurationSection=""):
     star = Particle()
@@ -311,14 +309,16 @@ class Binary:
 
             stars = Particles(2)
             stars.mass = masses
+
             stars.position = [0.0, 0.0, 0.0] | units.AU
             stars.velocity = [0.0, 0.0, 0.0] | units.km / units.s
             stars[0].y = self.semimajorAxis
-            stars[0].vx = -math.cos(self.inclination)*get_relative_velocity_at_apastron(
-                stars.total_mass(), self.semimajorAxis, 0)
-            stars[0].vz = math.sin(self.inclination)*get_relative_velocity_at_apastron(
-                stars.total_mass(), self.semimajorAxis, 0)
+            stars[0].vx = -math.cos(self.inclination)*GetRelativeVelocityAtApastron(
+                stars.total_mass(), self.semimajorAxis, self.eccentricity)
+            stars[0].vz = math.sin(self.inclination)*GetRelativeVelocityAtApastron(
+                stars.total_mass(), self.semimajorAxis, self.eccentricity)
             stars.move_to_center()
+
             self.stars = stars
         else:
             self.LoadBinary(particles)

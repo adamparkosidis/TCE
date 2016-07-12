@@ -19,12 +19,13 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     '''
     giant = StarModels.CreatePointStar(configurationFile,configurationSection="MainStar")
     innerBinary = StarModels.Binary(configurationFile, configurationSection="InnerBinary")
-    outerBinary = StarModels.Binary(configurationFile, configurationSection="OuterBinary")
 
-    giant.position = outerBinary.semimajorAxis * (1 + outerBinary.eccentricity) * ([1, 0, 0] | units.none);
-    giant.velocity = StarModels.GetRelativeVelocityAtApastron(
-        giant.mass + innerBinary.stars.total_mass(),
+    #now setting up the giant (want it to be relaxed and spinning)
+    outerBinary = StarModels.Binary(configurationFile, configurationSection="OuterBinary")
+    giant.position = outerBinary.semimajorAxis * (1 + outerBinary.eccentricity) * ([1, 0, 0] | units.none)
+    giant.velocity = StarModels.GetRelativeVelocityAtApastron(giant.mass + innerBinary.stars.total_mass(),
         outerBinary.semimajorAxis, outerBinary.eccentricity) * ([0, 1, 0] | units.none)
+
     triple = innerBinary.stars
     giantInSet = triple.add_particle(giant)
 
@@ -77,7 +78,9 @@ def Start(savedVersionPath = "Glanz/savings/TCE0511R_123aOut", takeSavedState = 
             starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = CreateTripleSystem(configurationFile, savedVersionPath)
 
     # creating the NBody system with the 3 and evolving
-    print starCore
+
+
+
     EvolveNBody.Run(totalMass= starMass + binary.stars[0].mass + binary.stars[1].mass,
                     semmiMajor= tripleSemmimajor, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=binary,
@@ -86,7 +89,7 @@ def Start(savedVersionPath = "Glanz/savings/TCE0511R_123aOut", takeSavedState = 
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":
-    Start(takeSavedState="Mesa")
+    Start()
 
 def MakeAMovieFromSavedState(savedVersionPath= "savings/TCE500000" , steps = []):
     #TODO: do something

@@ -117,5 +117,5 @@ def Start(savedVersionPath = "Passy", takeSavedState = "False", step = -1, confi
     print "****************** Simulation Completed ******************"
 
 if __name__ == "__main__":
-    Start(takeSavedState="True")
+    Start()
 

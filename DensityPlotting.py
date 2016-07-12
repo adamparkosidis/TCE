@@ -1,9 +1,12 @@
 import os
 import os.path
+import sys
 import shutil
 import math
 import pickle
 
+import matplotlib
+matplotlib.use('Agg')
 from amuse.units import units, constants, nbody_system
 from amuse.units import *
 
@@ -15,6 +18,7 @@ from amuse.io import write_set_to_file, read_set_from_file
 from amuse.plot import scatter, xlabel, ylabel, plot, pynbody_column_density_plot, HAS_PYNBODY, _smart_length_units_for_pynbody_data, convert_particles_to_pynbody_data, UnitlessArgs
 
 from matplotlib import pyplot
+import pynbody
 import pynbody.plot.sph as pynbody_sph
 from amuse.plot import scatter, xlabel, ylabel, plot, native_plot, sph_particles_plot
 
@@ -117,7 +121,7 @@ def SqalarMul(v1,v2):
     return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2]
 
 def CalculateSemiMajor(V,R,M):#as in 2.134 in Solar System Dynamics bd C.D Murray and S.F Dermott
-    a = 1/((2/CalculateVectorSize(R))-(CalculateVectorSize(V)**2)/(constants.G*(particle1.mass+particle2.mass)))
+    a = 1/((2/CalculateVectorSize(R))-(CalculateVectorSize(V)**2)/(constants.G*M))
     return abs(a)
 
 def CalculateSpecificMomentum(V,R):
@@ -178,18 +182,19 @@ def CalculateVelocityDifference(particle1, particle2):
 def GetPositionSize(particle):
     return CalculateVectorSize((particle.x ,particle.y,  particle.z))
 
-def PlotDensity(sphGiant,core,binary,i, outputDir):
+def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax):
     if not HAS_PYNBODY:
         print "problem plotting"
         return
-    pynbody_column_density_plot(sphGiant ,resolution=1000, width=5|units.AU, vmin= 1e16, vmax= 1e34)
+    pynbody_column_density_plot(sphGiant ,resolution=1000, vmin= vmin, vmax= vmax)
     scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
     pyplot.savefig(outputDir + "/plotting_{0}.jpg".format(i))
     pyplot.close()
 
-def PlotVelocity(sphGiant,core,binary,i, outputDir):
+def PlotVelocity(sphGiant,core,binary,i, outputDir, vmin, vmax):
     if not HAS_PYNBODY:
+        print HAS_PYNBODY
         print "problem plotting"
         return
     width = 2.0 * sphGiant.position.lengths_squared().amax().sqrt()
@@ -197,7 +202,7 @@ def PlotVelocity(sphGiant,core,binary,i, outputDir):
     pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
     units = 'm_p cm^-2'
-    pynbody_sph.velocity_image(pyndata, width=width.value_in(length_unit), units=units,vmin= 1e16, vmax= 1e34)
+    pynbody_sph.velocity_image(pyndata, width=width.value_in(length_unit), units=units,vmin= vmin, vmax= vmax)
     UnitlessArgs.current_plot = native_plot.gca()
     scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
@@ -257,8 +262,10 @@ def InitializeSnapshots(savingDir):
             dmFiles.append(snapshotFile)
         if 'gas' in snapshotFile:
             gasFiles.append(snapshotFile)
-    dmFiles.sort(cmp=compare)
-    gasFiles.sort(cmp= compare)
+    #dmFiles.sort(cmp=compare)
+    #gasFiles.sort(cmp= compare)
+    dmFiles.sort()
+    gasFiles.sort()
     return gasFiles, dmFiles
 
 def compare(st1, st2):
@@ -269,13 +276,44 @@ def compare(st1, st2):
     return 1
 
 
-if __name__ == "__main__":
-    beginStep = 0
-    savingDir = "xiTau"
-    outputDir = "xiTau/tempPics"
+def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0,1e16,1e34]):
+    if len(args) > 1:
+        directory=args[1]
+    else:
+        directory = args[0]
+    if len(args) > 2:
+        savingDir = directory + "/" + args[2]
+    else:
+        savingDir = directory + "/evolution"
+    if len(args) > 3:
+        beginStep = int(args[3])
+    else:
+        beginStep = 0
+    if len(args) > 4:
+        vmin= float(args[4])
+    else:
+        vmin = 1e16
+    if len(args) > 5:
+        vmax = float(args[5])
+    else:
+        vmax= 1e34
+    outputDir = directory + "/pics"
+    print "plotting pics to " +  outputDir +  " from " +  savingDir +" begin step = " , beginStep , " vmin, vmax = " , vmin, vmax
+    try:
+        os.makedirs(outputDir)
+    except(OSError):
+        pass
+    try:
+        os.makedirs(outputDir + "/velocity")
+    except(OSError):
+        pass
+    try:
+        os.makedirs(outputDir + "/graphs")
+    except (OSError):
+        pass
     gasFiles, dmFiles = InitializeSnapshots(savingDir)
 
-    print gasFiles
+    #print gasFiles[0:100]
 
     particle1x =  []
     particle2x = []
@@ -303,17 +341,16 @@ if __name__ == "__main__":
     separationTime = 0
 
     print len(dmFiles)
-    for i in xrange(len (dmFiles)):
+    for i in xrange(beginStep,len (dmFiles),1):
         print "step #",i
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i])
         dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i])
 
         sphGiant = SphGiant(gas_particles_file, dm_particles_file)
 
-        relative_inclination = math.radians(9.0)
-
         #binary = Particles(2,pickle.load(open(os.path.join(os.getcwd(),savingDir,"binary.p"),"rb")))
         binary = LoadBinaries(dm_particles_file)
+        #print binary
         particle1 , particle2 = binary[0] , binary[1]
 
         innerBinary = Star(particle1,particle2)
@@ -417,15 +454,16 @@ if __name__ == "__main__":
         corez.append(sphGiant.core.z| units.RSun)
 
 
-        PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir)
-        #PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep)
+        PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
+        PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
         #print  aOuter / aInner
-    PlotBinaryDistance([(binaryDistances, "InnerBinaryDistances"), (triple1Distances, "triple1Distances"), (triple2Distances, "triple2Distances")], outputDir)
-    PlotSemiMajorAxis([(aInners,"aInners"),(aOuters, "aOuters")], outputDir)
-    PlotSemiMajorAxis([(aOuters1, "aOuters1"), (aOuters2, "aOuters2")], outputDir, separationTime)
-    PlotEccentricity([(eInners, "eInners"), (eOuters, "eOuters")], outputDir)
-    PlotEccentricity([(eOuters1, "eOuters1"), (eOuters2, "eOuters2")],outputDir, separationTime)
-    Plot1Axe(inclinations,"inclinations", outputDir)
+    PlotBinaryDistance([(binaryDistances, "InnerBinaryDistances"), (triple1Distances, "triple1Distances"), (triple2Distances, "triple2Distances")], outputDir + "/graphs")
+    PlotSemiMajorAxis([(aInners,"aInners"),(aOuters, "aOuters")], outputDir+"/graphs")
+    PlotSemiMajorAxis([(aOuters1, "aOuters1"), (aOuters2, "aOuters2")], outputDir+ "/graphs", separationTime)
+    PlotEccentricity([(eInners, "eInners"), (eOuters, "eOuters")], outputDir + "/graphs")
+    PlotEccentricity([(eOuters1, "eOuters1"), (eOuters2, "eOuters2")],outputDir + "/graphs", separationTime)
+    Plot1Axe(inclinations,"inclinations", outputDir+"/graphs")
     #PlotOrbitalParameters(particle1x,particle1y, "tempPics/orbitalsParticle1.jpg")
 
-
+if __name__ == "__main__":
+    main(sys.argv)

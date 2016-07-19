@@ -186,7 +186,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax):
     if not HAS_PYNBODY:
         print "problem plotting"
         return
-    pynbody_column_density_plot(sphGiant ,resolution=1000, vmin= vmin, vmax= vmax)
+    pynbody_column_density_plot(sphGiant ,resolution=1000, width= 5|units.AU,vmin= vmin, vmax= vmax)
     scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
     pyplot.savefig(outputDir + "/plotting_{0}.jpg".format(i))
@@ -247,7 +247,7 @@ def PlotBinaryDistance(distances, outputDir, beginTime = 0):
         if d[0]:
             Plot1Axe(d[0], d[1], outputDir)
 
-def InitializeSnapshots(savingDir):
+def InitializeSnapshots(savingDir, toCompare=False):
     '''
     taking the snapshots directory of past run
     Returns: sorted dm snapshots and gas snapshots
@@ -262,10 +262,12 @@ def InitializeSnapshots(savingDir):
             dmFiles.append(snapshotFile)
         if 'gas' in snapshotFile:
             gasFiles.append(snapshotFile)
-    #dmFiles.sort(cmp=compare)
-    #gasFiles.sort(cmp= compare)
-    dmFiles.sort()
-    gasFiles.sort()
+    if toCompare:
+        dmFiles.sort(cmp=compare)
+        gasFiles.sort(cmp= compare)
+    else:
+        dmFiles.sort()
+        gasFiles.sort()
     return gasFiles, dmFiles
 
 def compare(st1, st2):
@@ -283,8 +285,13 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
         directory = args[0]
     if len(args) > 2:
         savingDir = directory + "/" + args[2]
+        if args[2] == "evolution":
+            toCompare = True
+        else:
+            toCompare = False
     else:
         savingDir = directory + "/evolution"
+        toCompare = True
     if len(args) > 3:
         beginStep = int(args[3])
     else:
@@ -298,7 +305,7 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
     else:
         vmax= 1e34
     outputDir = directory + "/pics"
-    print "plotting pics to " +  outputDir +  " from " +  savingDir +" begin step = " , beginStep , " vmin, vmax = " , vmin, vmax
+    print "plotting pics to " +  outputDir +  " from " +  savingDir +" begin step = " , beginStep , " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare
     try:
         os.makedirs(outputDir)
     except(OSError):
@@ -311,7 +318,7 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
         os.makedirs(outputDir + "/graphs")
     except (OSError):
         pass
-    gasFiles, dmFiles = InitializeSnapshots(savingDir)
+    gasFiles, dmFiles = InitializeSnapshots(savingDir, toCompare)
 
     #print gasFiles[0:100]
 

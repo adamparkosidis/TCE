@@ -51,16 +51,16 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     print system.parameters.timestep
     return system
 
-def CoupledSystem(hydroSystem, binarySystem, separation, t_end, n_steps, beginTime, relax = False):
+def CoupledSystem(hydroSystem, binarySystem, epsilonSquared, t_end, n_steps, beginTime, relax = False):
     unitConverter = nbody_system.nbody_to_si(binarySystem.particles.total_mass(), t_end)
     kickerCode = MI6(unitConverter,number_of_workers= 8, redirection='file', redirect_file='kicker_code_mi6_out.log')
-    kickerCode.parameters.epsilon_squared = separation * (1.0 | units.AU)
+    kickerCode.parameters.epsilon_squared = epsilonSquared
     kickFromBinary = CalculateFieldForCodesUsingReinitialize(kickerCode, (binarySystem,))
     coupledSystem = Bridge(timestep=(t_end / (2 * n_steps)), verbose=False, use_threading=False)
     if not relax:
         kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.particles, gravity_constant=constants.G)
         #TODO: what is the length?
-        kick_from_hydro.smoothing_length_squared = separation * (1.0 | units.AU)
+        kick_from_hydro.smoothing_length_squared = kickerCode.parameters.epsilon_squared
         coupledSystem.add_system(binarySystem, (kick_from_hydro,), False)
     coupledSystem.add_system(hydroSystem, (kickFromBinary,), False)
 
@@ -129,7 +129,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     binarySystem = DynamicsForBinarySystem(dynamicsCode, totalMass, semmiMajor, stars.stars)
 
     print "\nSetting up Bridge to simulate triple system"
-    coupledSystem = CoupledSystem(hydroSystem, binarySystem,semmiMajor, endTime, timeSteps, currentTime, relax=relax)
+    coupledSystem = CoupledSystem(hydroSystem, binarySystem,(semmiMajor**2)/(len(sphEnvelope)+3), endTime, timeSteps, currentTime, relax=relax)
 
     dm = coupledSystem.dm_particles.copy()
     gas = coupledSystem.gas_particles.copy()

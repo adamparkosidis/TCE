@@ -51,7 +51,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
 
 
-def Start(savedVersionPath = "Glanz/savings/TCE0511R_123aOut", takeSavedState = "False", step = -1, configurationFile = "TCEConfiguration.ini"):
+def Start(savedVersionPath = "Glanz/savings/TCE100000", takeSavedState = "False", step = -1, configurationFile = "TCEConfiguration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -89,7 +89,7 @@ def Start(savedVersionPath = "Glanz/savings/TCE0511R_123aOut", takeSavedState = 
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":
-    Start()
+    Start(takeSavedState="Mesa")
 
 def MakeAMovieFromSavedState(savedVersionPath= "savings/TCE500000" , steps = []):
     #TODO: do something

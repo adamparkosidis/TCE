@@ -23,9 +23,9 @@ from amuse.ext.sink import new_sink_particles
 import StarModels
 import TCEPlotting
 
-def DynamicsForBinarySystem(dynamicsCode, totalMass, semmiMajor, binary):
+def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary):
 
-    unitConverter = nbody_system.nbody_to_si(totalMass, semmiMajor)
+    unitConverter = nbody_system.nbody_to_si(binary.total_mass(), semmiMajor)
     system = dynamicsCode(unitConverter, redirection="file", redirect_file="dynamics_code_out.log")
     system.parameters.epsilon_squared = 0 | units.m**2
     system.parameters.inttype_parameter = system.inttypes.SHARED10
@@ -54,13 +54,14 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
 def CoupledSystem(hydroSystem, binarySystem, epsilonSquared, t_end, n_steps, beginTime, relax = False):
     unitConverter = nbody_system.nbody_to_si(binarySystem.particles.total_mass(), t_end)
     kickerCode = MI6(unitConverter,number_of_workers= 8, redirection='file', redirect_file='kicker_code_mi6_out.log')
-    kickerCode.parameters.epsilon_squared = epsilonSquared 
+    kickerCode.parameters.epsilon_squared = epsilonSquared
     kickFromBinary = CalculateFieldForCodesUsingReinitialize(kickerCode, (binarySystem,))
     coupledSystem = Bridge(timestep=(t_end / (2 * n_steps)), verbose=False, use_threading=False)
     if not relax:
         kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.particles, gravity_constant=constants.G)
-        kickerCode.parameters.epsilon_squared = kickerCode.parameters.epsilon_squared * 4.0
-        kick_from_hydro.smoothing_length_squared = kickerCode.parameters.epsilon_squared
+        #TODO: CHANGE I TO BE WITHOUT THE 4!!!!!!
+        kickerCode.parameters.epsilon_squared = epsilonSquared * 4.0
+        kick_from_hydro.smoothing_length_squared = epsilonSquared * 4.0
         coupledSystem.add_system(binarySystem, (kick_from_hydro,), False)
     coupledSystem.add_system(hydroSystem, (kickFromBinary,), False)
 
@@ -126,10 +127,11 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
 
     print "\nSetting up {0} to simulate triple system".format(dynamicsCode.__name__)
-    binarySystem = DynamicsForBinarySystem(dynamicsCode, totalMass, semmiMajor, stars.stars)
+    binarySystem = DynamicsForBinarySystem(dynamicsCode, semmiMajor, stars.stars)
 
     print "\nSetting up Bridge to simulate triple system"
-    coupledSystem = CoupledSystem(hydroSystem, binarySystem,2.0 * (semmiMajor**2)/(len(sphEnvelope)+3), endTime, timeSteps, currentTime, relax=relax)
+    #TODO: CHANGE THE EPSILON TO SOMETHING ELSE!
+    coupledSystem = CoupledSystem(hydroSystem, binarySystem, stars.radius[0] ** 2, endTime, timeSteps, currentTime, relax=relax)
 
     dm = coupledSystem.dm_particles.copy()
     gas = coupledSystem.gas_particles.copy()
@@ -156,14 +158,13 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
         particles = coupledSystem.particles
         if relax:
             particles.position += (centerOfMassRadius - particles.center_of_mass())
-            relaxingVFactor = (step / timeSteps)
-            particles.velocity = relaxingVFactor * (particles.velocity - gas.center_of_mass_velocity()) + centerOfMassV
+            relaxingVFactor = (step * 1.0 / timeSteps)
+            particles.velocity = relaxingVFactor * (particles.velocity - particles.center_of_mass_velocity()) + centerOfMassV
         else:
             sinks.accrete(coupledSystem.gas_particles)
 
         coupledSystem.evolve_model(currentTime)
         print "   Evolved to:", currentTime.as_quantity_in(units.day)
-        gas = hydroSystem.gas_particles.copy()
         potential_energies.append(coupledSystem.potential_energy)
         kinetic_energies.append(coupledSystem.kinetic_energy)
         thermal_energies.append(coupledSystem.thermal_energy)

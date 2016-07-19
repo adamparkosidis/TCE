@@ -57,9 +57,13 @@ class SphStar:
                 mesaStar = self.EvolveStarWithStellarCode(MESA, savedMesaStarPath)
 
                 self.sphStar = convert_stellar_model_to_SPH(mesaStar, self.sphParticles, do_relax = False, with_core_particle=True,
-                                                    target_core_mass = self.coreMass)
+                                                    target_core_mass = self.coreMass, base_grid_options=dict(type="fcc"))
             self.gas_particles = self.sphStar.gas_particles
             self.core_particle = self.sphStar.core_particle
+            self.gas_particles.position += pointStar.position
+            self.gas_particles.velocity += pointStar.velocity
+            self.core_particle.position += pointStar.position
+            self.core_particle.velocity += pointStar.velocity
 
 
 

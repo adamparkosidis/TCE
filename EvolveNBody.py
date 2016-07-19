@@ -59,7 +59,7 @@ def CoupledSystem(hydroSystem, binarySystem, epsilonSquared, t_end, n_steps, beg
     coupledSystem = Bridge(timestep=(t_end / (2 * n_steps)), verbose=False, use_threading=False)
     if not relax:
         kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.particles, gravity_constant=constants.G)
-        #TODO: what is the length?
+        kickerCode.parameters.epsilon_squared = kickerCode.parameters.epsilon_squared * 4.0
         kick_from_hydro.smoothing_length_squared = kickerCode.parameters.epsilon_squared
         coupledSystem.add_system(binarySystem, (kick_from_hydro,), False)
     coupledSystem.add_system(hydroSystem, (kickFromBinary,), False)

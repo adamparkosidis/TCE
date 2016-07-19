@@ -56,16 +56,14 @@ def CoupledSystem(hydroSystem, binarySystem, epsilonSquared, t_end, n_steps, beg
     kickerCode = MI6(unitConverter,number_of_workers= 8, redirection='file', redirect_file='kicker_code_mi6_out.log')
     kickerCode.parameters.epsilon_squared = epsilonSquared
     kickFromBinary = CalculateFieldForCodesUsingReinitialize(kickerCode, (binarySystem,))
-    coupledSystem = Bridge(timestep=(t_end / (2 * n_steps)), verbose=False, use_threading=False)
+    coupledSystem = Bridge(timestep=(t_end / (2 * n_steps)), verbose=False, use_threading= not relax)
     if not relax:
         kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.particles, gravity_constant=constants.G)
         #TODO: CHANGE I TO BE WITHOUT THE 4!!!!!!
-        kickerCode.parameters.epsilon_squared = epsilonSquared * 4.0
+        kickerCode.parameters.epsilon_squared = epsilonSquared * 4.0 #TODO: delete this
         kick_from_hydro.smoothing_length_squared = epsilonSquared * 4.0
         coupledSystem.add_system(binarySystem, (kick_from_hydro,), False)
     coupledSystem.add_system(hydroSystem, (kickFromBinary,), False)
-
-
     return coupledSystem
 
 
@@ -162,16 +160,12 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
             particles.velocity = relaxingVFactor * (particles.velocity - particles.center_of_mass_velocity()) + centerOfMassV
         else:
             sinks.accrete(coupledSystem.gas_particles)
-
         coupledSystem.evolve_model(currentTime)
         print "   Evolved to:", currentTime.as_quantity_in(units.day)
         potential_energies.append(coupledSystem.potential_energy)
         kinetic_energies.append(coupledSystem.kinetic_energy)
         thermal_energies.append(coupledSystem.thermal_energy)
-
         print "   Energies calculated"
-        #sph_particles_plot(gas)
-        #native_plot.savefig(savedVersionPath + "/pics/" + adding + "_{0}".format(step))
 
         currentTime += timeStep
         if (time.time() - currentSecond) > saveAfterMinute * 60:
@@ -292,7 +286,6 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
             if savedVersionPath != "":
                 StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step), coupledSystem.gas_particles)
                 StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step), coupledSystem.dm_particles)
-                #TODO: plot all the metadata
                 print "state saved - {0}".format(savedVersionPath) + "/" + adding
                 currentSecond = time.time()
         dm = coupledSystem.dm_particles.copy()

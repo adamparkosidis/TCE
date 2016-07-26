@@ -306,7 +306,7 @@ class Binary:
             masses = [float(parser.get(configurationSection, "mass1")) | units.MSun,
                       float(parser.get(configurationSection, "mass2")) | units.MSun]
             self.semimajorAxis = float(parser.get(configurationSection, "semmimajor")) | units.AU
-            self.inclination = float(parser.get(configurationSection, "inclination"))
+            self.inclination = math.radians(float(parser.get(configurationSection, "inclination")))
             self.eccentricity = float(parser.get(configurationSection, "eccentricity"))
             self.radius = [float(parser.get(configurationSection, "radius1")) | units.AU,
                       float(parser.get(configurationSection, "radius2")) | units.AU]
@@ -336,8 +336,8 @@ class Binary:
         mass = particles.total_mass()
 
         self.semimajorAxis = BinaryCalculations.CalculateSemiMajor(velocityDifference,separation,mass)
-        self.inclination = BinaryCalculations.CalculateInclination((0,0,0) | (units.m / units.s),(0,0,0)| units.m,
-                                                                   velocityDifference, separation)
+        self.inclination = math.radians(BinaryCalculations.CalculateInclination((0,0,0) | (units.m / units.s),(0,0,0)| units.m,
+                                                                   velocityDifference, separation))
         self.eccentricity =BinaryCalculations.CalculateEccentricity(self.stars[0],self.stars[1],self.semimajorAxis)
 
 

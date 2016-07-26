@@ -11,7 +11,6 @@ from amuse.community.fi.interface import Fi
 from amuse.community.hermite0.interface import  Hermite
 from amuse.units import units , nbody_system
 from amuse.units.units import *
-#from amuse.plot import plot as aplot, native_plot, sph_particles_plot
 from amuse.lab import Particles
 from amuse.io import read_set_from_file, write_set_to_file
 
@@ -252,8 +251,6 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
     if not relax:
         sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[-1]*2)
 
-    #if step!= 0:
-    #    x, y, z = pickle.load(open(savedVersionPath+"xyz.p", 'rb'))
     currentSecond = time.time()
 
     potential_energies = hydroSystem.potential_energy.as_vector_with_length(1).as_quantity_in(units.J)

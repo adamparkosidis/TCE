@@ -4,6 +4,8 @@ import sys
 import shutil
 import math
 import pickle
+import gc
+import h5py
 
 import matplotlib
 matplotlib.use('Agg')
@@ -186,7 +188,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax):
     if not HAS_PYNBODY:
         print "problem plotting"
         return
-    pynbody_column_density_plot(sphGiant ,resolution=1000, width= 5|units.AU,vmin= vmin, vmax= vmax)
+    pynbody_column_density_plot(sphGiant ,resolution=1000, width= 2|units.AU,vmin= vmin, vmax= vmax,cmap= "hot")
     scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
     pyplot.savefig(outputDir + "/plotting_{0}.jpg".format(i))
@@ -348,7 +350,7 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
     separationTime = 0
 
     print len(dmFiles)
-    for i in xrange(beginStep,len (dmFiles),1):
+    for i in xrange(beginStep,len (dmFiles),5):
         print "step #",i
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i])
         dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i])
@@ -464,6 +466,11 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
         PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
         PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
         #print  aOuter / aInner
+        for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
+            try:
+                f.close()
+            except:
+                pass
     PlotBinaryDistance([(binaryDistances, "InnerBinaryDistances"), (triple1Distances, "triple1Distances"), (triple2Distances, "triple2Distances")], outputDir + "/graphs")
     PlotSemiMajorAxis([(aInners,"aInners"),(aOuters, "aOuters")], outputDir+"/graphs")
     PlotSemiMajorAxis([(aOuters1, "aOuters1"), (aOuters2, "aOuters2")], outputDir+ "/graphs", separationTime)

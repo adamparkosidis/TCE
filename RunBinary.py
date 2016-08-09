@@ -29,7 +29,7 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                     semmiMajor= binary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
                                              stars=binary, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
-                                              numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=15)
+                                              numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=15, takeCompanionInRelaxation= False)
     starCore = dmStars[-1]
     sphMetaData = StarModels.SphMetaData(sphStar)
 
@@ -81,7 +81,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = F
     return [star1Envelope, star2Envelope], [star1Core,star2Core] , binary, binary.semimajorAxis, sph1MetaData
 
 
-def Start(savedVersionPath = "Passy/100000", takeSavedState = "False", step = -1, configurationFile = "Passy/PassyConfiguration.ini"):
+def Start(savedVersionPath = "Glanz/Passy/500000", takeSavedState = "False", step = -1, configurationFile = "Glanz/PassyConfiguration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -118,4 +118,3 @@ def Start(savedVersionPath = "Passy/100000", takeSavedState = "False", step = -1
 
 if __name__ == "__main__":
     Start(takeSavedState="Mesa")
-

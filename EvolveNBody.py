@@ -232,13 +232,15 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
     hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
 
     if not relax or takeCompanionInRelaxation:
-        print "\nSetting up {0} to simulate triple system".format(dynamicsCode.__name__)
-        nbody = nbody_system.nbody_to_si(stars.stars.total_mass(), endTime)
-        binarySystem = ph4(nbody)
-        binarySystem.particles.add_particle(stars.stars[-1])
+        print "\nSetting up {0} to simulate binary system".format(dynamicsCode.__name__)
+        #nbody = nbody_system.nbody_to_si(stars.stars.total_mass(), endTime)
+        #binarySystem = ph4(nbody)
+        #binarySystem.particles.add_particle(stars.stars[-1])
 
-        print "\nSetting up Bridge to simulate triple system"
-        coupledSystem = CoupledSystem(hydroSystem, binarySystem, endTime, timeSteps, currentTime, relax=relax)
+        print "\nSetting up Bridge to simulate binary system"
+        #coupledSystem = CoupledSystem(hydroSystem, binarySystem, endTime, timeSteps, currentTime, relax=relax)
+        hydroSystem.dm_particles.add_particle(stars.stars[-1])
+        coupledSystem = hydroSystem
     else:
         coupledSystem = hydroSystem
 
@@ -249,7 +251,8 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
     centerOfMassV = coupledSystem.particles.center_of_mass_velocity()
 
     if not relax:
-        sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[-1]*2)
+        #sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[-1]*2)
+        sinks = new_sink_particles(coupledSystem.dm_particles[-1], sink_radius= stars.radius[-1]*2)
 
     currentSecond = time.time()
 
@@ -260,9 +263,13 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
     print "starting SPH " + adding
     print "evolving from step ", step + 1
 
+    particles = coupledSystem.particles
+    print "particles- ", len(particles)# TODO: remove this
+
     while currentTime < endTime:
         step += 1
         particles = coupledSystem.particles
+        print particles# TODO: remove this
         if relax:
             particles.position += (centerOfMassRadius - particles.center_of_mass())
             relaxingVFactor = (step / timeSteps)

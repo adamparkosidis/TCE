@@ -248,84 +248,85 @@ def PlotBinaryDistance(distances, outputDir, beginTime = 0):
     for d in distances:
         if d[0]:
             Plot1Axe(d[0], d[1], outputDir)
+def AnalyzeBinary(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax):
+    binaryDistances = AdaptingVectorQuantity()
+    semmimajors = AdaptingVectorQuantity()
+    eccentricities = []
+    inclinations = []
+    separationTime = 0
 
-def InitializeSnapshots(savingDir, toCompare=False):
-    '''
-    taking the snapshots directory of past run
-    Returns: sorted dm snapshots and gas snapshots
+    print len(dmFiles)
+    for i in xrange(beginStep,len (dmFiles),5):
+        print "step #",i
+        gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i])
+        dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i])
 
-    '''
-    snapshots = os.listdir(os.path.join(os.getcwd(),savingDir))
-    numberOfSnapshots = len(snapshots) / 2
-    dmFiles = []
-    gasFiles = []
-    for snapshotFile in snapshots:
-        if 'dm' in snapshotFile: #if the word dm is in the filename
-            dmFiles.append(snapshotFile)
-        if 'gas' in snapshotFile:
-            gasFiles.append(snapshotFile)
-    if toCompare:
-        dmFiles.sort(cmp=compare)
-        gasFiles.sort(cmp= compare)
-    else:
-        dmFiles.sort()
-        gasFiles.sort()
-    return gasFiles, dmFiles
-
-def compare(st1, st2):
-    num1 = int(st1.split("_")[1].split(".")[0])
-    num2 = int(st2.split("_")[1].split(".")[0])
-    if num1 < num2:
-        return -1
-    return 1
-
-
-def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0,1e16,1e34]):
-    if len(args) > 1:
-        directory=args[1]
-    else:
-        directory = args[0]
-    if len(args) > 2:
-        savingDir = directory + "/" + args[2]
-        if args[2] == "evolution":
-            toCompare = True
+        sphGiant = SphGiant(gas_particles_file, dm_particles_file)
+        try:
+            binary = LoadBinaries(dm_particles_file)
+            companion = binary[0]
+        except: #no binary
+            binary = []
+            companion = sphGiant
+        #print binary
+        if len(binary) > 1:
+            binary = Star(companion, sphGiant)
         else:
-            toCompare = False
-    else:
-        savingDir = directory + "/evolution"
-        toCompare = True
-    if len(args) > 3:
-        beginStep = int(args[3])
-    else:
-        beginStep = 0
-    if len(args) > 4:
-        vmin= float(args[4])
-    else:
-        vmin = 1e16
-    if len(args) > 5:
-        vmax = float(args[5])
-    else:
-        vmax= 1e34
-    outputDir = directory + "/pics"
-    print "plotting pics to " +  outputDir +  " from " +  savingDir +" begin step = " , beginStep , " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare
-    try:
-        os.makedirs(outputDir)
-    except(OSError):
-        pass
-    try:
-        os.makedirs(outputDir + "/velocity")
-    except(OSError):
-        pass
-    try:
-        os.makedirs(outputDir + "/graphs")
-    except (OSError):
-        pass
-    gasFiles, dmFiles = InitializeSnapshots(savingDir, toCompare)
+            binary = Star(sphGiant, sphGiant)
 
-    #print gasFiles[0:100]
+        if CalculateVectorSize(CalculateSeparation(sphGiant.core,companion)) < sphGiant.core.radius * 2:
+            print "merger between companion and the giant!"
+            #break
 
-    particle1x =  []
+        #check if the binary is breaking up
+        if binary.specificEnergy > 0 | (units.m **2 / units.s **2):
+            print "binary is breaking up", binary.specificEnergy
+            break
+
+        #TODO: check if the companion is inside
+        '''
+        sphGiant.CalculateInnerSPH(companion)
+        print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
+        newBinaryVelocityDifference = CalculateVelocityDifference(companion, sphGiant.innerGas)
+        newBinarySeparation = CalculateSeparation(companion, sphGiant.innerGas)
+        newBinaryMass = companion.mass + sphGiant.innerGas.mass
+
+        semmimajor = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass)
+        eccentricity = CalculateEccentricity(companion, sphGiant.innerGas, semmimajor)
+        semmimajors.append(semmimajor)
+        eccentricities.append(eccentricity)
+        binaryDistances.append(CalculateVectorSize(newBinarySeparation))
+        print newBinarySeparation
+        '''
+
+
+        semmimajor = CalculateSemiMajor(binary.velocityDifference, binary.separation, binary.mass)
+        eccentricity = CalculateEccentricity(companion, sphGiant, semmimajor)
+        inclination = CalculateInclination(binary.velocityDifference, binary.separation, 0.0 | units.m/units.s, 0.0 | units.m)
+        binaryDistances.append(CalculateVectorSize(binary.separation))
+
+        semmimajors.append(semmimajor)
+        eccentricities.append(eccentricity)
+        inclinations.append(inclination)
+
+        PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
+        PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
+
+        #close opened handles
+        for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
+            try:
+                f.close()
+            except:
+                pass
+
+    PlotBinaryDistance([(binaryDistances, "InnerBinaryDistances")], outputDir + "/graphs")
+    PlotSemiMajorAxis([(semmimajors,"aInners")], outputDir+"/graphs")
+    PlotEccentricity([(eccentricities, "eInners")], outputDir + "/graphs")
+    Plot1Axe(inclinations,"inclinations", outputDir+"/graphs")
+
+def AnalyzeTriple(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax ):
     particle2x = []
+    particle1x =  []
     corex = []
     particle1y = []
     particle2y = []
@@ -360,11 +361,10 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
         #binary = Particles(2,pickle.load(open(os.path.join(os.getcwd(),savingDir,"binary.p"),"rb")))
         binary = LoadBinaries(dm_particles_file)
         #print binary
+
         particle1 , particle2 = binary[0] , binary[1]
 
         innerBinary = Star(particle1,particle2)
-
-
         triple1 = Star(particle1, sphGiant)
         triple2 = Star(particle2, sphGiant)
 
@@ -381,8 +381,6 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
         if CalculateVectorSize(CalculateSeparation(sphGiant.core, particle2)) < sphGiant.core.radius * 2:
             print "merger between particle 2 and the giant!"
             #break
-
-
 
         #check if the binry is breaking up
         if innerBinary.specificEnergy > 0 | (units.m **2 / units.s **2):
@@ -420,6 +418,7 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
                 if triple1.specificEnergy > 0 | (units.m **2 / units.s **2):
                     print "triple1 is also breaking up", triple1.specificEnergy
                     break
+
                 else:
                     sphGiant.CalculateInnerSPH(particle1)
                     print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
@@ -433,24 +432,24 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
                     eOuters2.append(eOuter2)
                     triple1Distances.append(CalculateVectorSize(newBinarySeparation))
 
-        else:#all the three are connected
-            tripleMass = innerBinary.mass + sphGiant.mass
-            tripleVelocityDifference = CalculateVelocityDifference(innerBinary,sphGiant.gas)
-            tripleSeparation = CalculateSeparation(innerBinary,sphGiant.gas)
+            else:#all the three are connected
+                tripleMass = innerBinary.mass + sphGiant.mass
+                tripleVelocityDifference = CalculateVelocityDifference(innerBinary,sphGiant.gas)
+                tripleSeparation = CalculateSeparation(innerBinary,sphGiant.gas)
 
-            aOuter = CalculateSemiMajor(tripleVelocityDifference, tripleSeparation, tripleMass)
-            eOuter = CalculateEccentricity(innerBinary,sphGiant.gas, aOuter)
+                aOuter = CalculateSemiMajor(tripleVelocityDifference, tripleSeparation, tripleMass)
+                eOuter = CalculateEccentricity(innerBinary,sphGiant.gas, aOuter)
 
-            inclination = CalculateInclination(tripleVelocityDifference, tripleSeparation, innerBinary.velocityDifference, innerBinary.separation)
-            tripleSpecificEnergy = CalculateSpecificEnergy(innerBinary.velocityDifference, innerBinary.separation, particle1, particle2)
+                inclination = CalculateInclination(tripleVelocityDifference, tripleSeparation, innerBinary.velocityDifference, innerBinary.separation)
+                tripleSpecificEnergy = CalculateSpecificEnergy(innerBinary.velocityDifference, innerBinary.separation, particle1, particle2)
 
-            binaryDistances.append(CalculateVectorSize(innerBinary.separation))
+                binaryDistances.append(CalculateVectorSize(innerBinary.separation))
 
-            aInners.append(aInner)
-            aOuters.append(aOuter)
-            eInners.append(eInner)
-            eOuters.append(eOuter)
-            inclinations.append(inclination)
+                aInners.append(aInner)
+                aOuters.append(aOuter)
+                eInners.append(eInner)
+                eOuters.append(eOuter)
+                inclinations.append(inclination)
 
         particle1x.append(particle1.x| units.RSun)
         particle2x.append(particle2.x| units.RSun)
@@ -462,15 +461,16 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
         particle2z.append(particle2.z| units.RSun)
         corez.append(sphGiant.core.z| units.RSun)
 
-
         PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
         PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
-        #print  aOuter / aInner
+
+        #close opened handles
         for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
             try:
                 f.close()
             except:
                 pass
+
     PlotBinaryDistance([(binaryDistances, "InnerBinaryDistances"), (triple1Distances, "triple1Distances"), (triple2Distances, "triple2Distances")], outputDir + "/graphs")
     PlotSemiMajorAxis([(aInners,"aInners"),(aOuters, "aOuters")], outputDir+"/graphs")
     PlotSemiMajorAxis([(aOuters1, "aOuters1"), (aOuters2, "aOuters2")], outputDir+ "/graphs", separationTime)
@@ -478,6 +478,91 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
     PlotEccentricity([(eOuters1, "eOuters1"), (eOuters2, "eOuters2")],outputDir + "/graphs", separationTime)
     Plot1Axe(inclinations,"inclinations", outputDir+"/graphs")
     #PlotOrbitalParameters(particle1x,particle1y, "tempPics/orbitalsParticle1.jpg")
+
+def GetArgs(args):
+    if len(args) > 1:
+        directory=args[1]
+    else:
+        directory = args[0]
+    if len(args) > 2:
+        savingDir = directory + "/" + args[2]
+        if args[2] == "evolution":
+            toCompare = True
+        else:
+            toCompare = False
+    else:
+        savingDir = directory + "/evolution"
+        toCompare = True
+    if len(args) > 3:
+        beginStep = int(args[3])
+    else:
+        beginStep = 0
+    if len(args) > 4:
+        vmin= float(args[4])
+    else:
+        vmin = 1e16
+    if len(args) > 5:
+        vmax = float(args[5])
+    else:
+        vmax= 1e34
+    outputDir = directory + "/pics"
+    return savingDir, toCompare, beginStep, vmin, vmax, outputDir
+
+def InitializeSnapshots(savingDir, toCompare=False):
+    '''
+    taking the snapshots directory of past run
+    Returns: sorted dm snapshots and gas snapshots
+
+    '''
+    snapshots = os.listdir(os.path.join(os.getcwd(),savingDir))
+    numberOfSnapshots = len(snapshots) / 2
+    dmFiles = []
+    gasFiles = []
+    for snapshotFile in snapshots:
+        if 'dm' in snapshotFile: #if the word dm is in the filename
+            dmFiles.append(snapshotFile)
+        if 'envelope' in snapshotFile:
+            gasFiles.append(snapshotFile)
+    if toCompare:
+        dmFiles.sort(cmp=compare)
+        gasFiles.sort(cmp= compare)
+    else:
+        dmFiles.sort()
+        gasFiles.sort()
+    numberOfCompanion = 0
+    if len(dmFiles) > 0:
+        numberOfCompanion = len(read_set_from_file(os.path.join(os.getcwd(), savingDir,dmFiles[0]), format='amuse'))
+    return gasFiles, dmFiles, numberOfCompanion
+
+def compare(st1, st2):
+    num1 = int(st1.split("_")[1].split(".")[0])
+    num2 = int(st2.split("_")[1].split(".")[0])
+    if num1 < num2:
+        return -1
+    return 1
+
+
+def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0,1e16,1e34]):
+    savingDir, toCompare, beginStep, vmin, vmax, outputDir = GetArgs(args)
+    print "plotting pics to " +  outputDir +  " from " +  savingDir +" begin step = " , beginStep , " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare
+    try:
+        os.makedirs(outputDir)
+    except(OSError):
+        pass
+    try:
+        os.makedirs(outputDir + "/velocity")
+    except(OSError):
+        pass
+    try:
+        os.makedirs(outputDir + "/graphs")
+    except (OSError):
+        pass
+    gasFiles, dmFiles, numberOfCompanion = InitializeSnapshots(savingDir, toCompare)
+
+    if numberOfCompanion <= 2: #binary
+       AnalyzeBinary(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax)
+    elif numberOfCompanion ==3: #triple
+        AnalyzeTriple(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax)
 
 if __name__ == "__main__":
     main(sys.argv)

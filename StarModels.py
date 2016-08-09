@@ -340,4 +340,19 @@ class Binary:
                                                                    velocityDifference, separation))
         self.eccentricity =BinaryCalculations.CalculateEccentricity(self.stars[0],self.stars[1],self.semimajorAxis)
 
+    def CalculateEccentricity(self):
+        V= self.CalculateVelocityDifference()
+        R = self.CalculateSeparation()
+        h = CalculateSpecificMomentum(V,R)
+        hSize = CalculateVectorSize(h)
+        miu = constants.G*(self.stars.total_mass())
+        element2 = (R[0].value_in(units.m),R[1].value_in(units.m),R[2].value_in(units.m))/(CalculateVectorSize(R).value_in(units.m))
+        vxh = VectorCross(V,h)
+        element10 = (vxh[0].value_in(units.m**3*units.s**-2),vxh[1].value_in(units.m**3*units.s**-2),vxh[2].value_in(units.m**3*units.s**-2))
+        element11 = miu.value_in(units.m**3*units.s**-2)
+        element1 = element10/element11
+        eAttitude1 = CalculateVectorSize(element1 - element2)
+        eAttitude2 = (1 + (2 * CalculateSpecificEnergy(V,R,self.stars[0],self.stars[1])*(hSize**2))/(constants.G*(self.stars.total_mass()))**2)**0.5
+        return eAttitude1
+
 

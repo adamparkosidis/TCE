@@ -302,15 +302,15 @@ def AnalyzeBinary(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax
 
         semmimajor = CalculateSemiMajor(binary.velocityDifference, binary.separation, binary.mass)
         eccentricity = CalculateEccentricity(companion, sphGiant, semmimajor)
-        inclination = CalculateInclination(binary.velocityDifference, binary.separation, 0.0 | units.m/units.s, 0.0 | units.m)
+        inclination = CalculateInclination(binary.velocityDifference, binary.separation, [0.0,0.0,0.0] | units.m/units.s, [0.0,0.0,0.0] | units.m)
         binaryDistances.append(CalculateVectorSize(binary.separation))
 
         semmimajors.append(semmimajor)
         eccentricities.append(eccentricity)
         inclinations.append(inclination)
 
-        PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
-        PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
+        PlotDensity(sphGiant.gasParticles,sphGiant.core,companion,i + beginStep, outputDir, vmin, vmax)
+        PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion,i + beginStep, outputDir, vmin, vmax)
 
         #close opened handles
         for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
@@ -486,10 +486,10 @@ def GetArgs(args):
         directory = args[0]
     if len(args) > 2:
         savingDir = directory + "/" + args[2]
-        if args[2] == "evolution":
-            toCompare = True
-        else:
+        if args[2] == "snapshots":
             toCompare = False
+        else:
+            toCompare = True
     else:
         savingDir = directory + "/evolution"
         toCompare = True
@@ -521,7 +521,7 @@ def InitializeSnapshots(savingDir, toCompare=False):
     for snapshotFile in snapshots:
         if 'dm' in snapshotFile: #if the word dm is in the filename
             dmFiles.append(snapshotFile)
-        if 'envelope' in snapshotFile:
+        if 'gas' in snapshotFile:
             gasFiles.append(snapshotFile)
     if toCompare:
         dmFiles.sort(cmp=compare)

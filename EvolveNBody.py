@@ -38,7 +38,6 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     if sphCode.__name__ == "Fi":
         system.parameters.timestep = t_end / n_steps
         system.parameters.eps_is_h_flag = True
-    print envelope.total_mass() , t_end
     system.parameters.begin_time = beginTime
     #if sphCode.__name__ =="Gadget2":
         #system.parameters.number_of_workers = numberOfWorkers
@@ -47,6 +46,8 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
         core.radius = core_radius * 2
     system.dm_particles.add_particle(core)
     system.gas_particles.add_particles(envelope)
+    print system.parameters.epsilon_squared
+    print system.parameters.gas_epsilon
     print system.parameters.timestep
     return system
 
@@ -232,12 +233,12 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
     hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
 
     if not relax or takeCompanionInRelaxation:
-        print "\nSetting up {0} to simulate binary system".format(dynamicsCode.__name__)
+        #print "\nSetting up {0} to simulate binary system".format(dynamicsCode.__name__)
         #nbody = nbody_system.nbody_to_si(stars.stars.total_mass(), endTime)
         #binarySystem = ph4(nbody)
         #binarySystem.particles.add_particle(stars.stars[-1])
 
-        print "\nSetting up Bridge to simulate binary system"
+        #print "\nSetting up Bridge to simulate binary system"
         #coupledSystem = CoupledSystem(hydroSystem, binarySystem, endTime, timeSteps, currentTime, relax=relax)
         hydroSystem.dm_particles.add_particle(stars.stars[-1])
         coupledSystem = hydroSystem
@@ -250,9 +251,8 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
     centerOfMassRadius = coupledSystem.particles.center_of_mass()
     centerOfMassV = coupledSystem.particles.center_of_mass_velocity()
 
-    if not relax:
-        #sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[-1]*2)
-        sinks = new_sink_particles(coupledSystem.dm_particles[-1], sink_radius= stars.radius[-1]*2)
+    if not relax:#sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[-1]*2)
+        sinks = new_sink_particles(coupledSystem.dm_particles[-1:], sink_radius= stars.radius[-1]*2)
 
     currentSecond = time.time()
 
@@ -269,7 +269,6 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
     while currentTime < endTime:
         step += 1
         particles = coupledSystem.particles
-        print particles# TODO: remove this
         if relax:
             particles.position += (centerOfMassRadius - particles.center_of_mass())
             relaxingVFactor = (step / timeSteps)

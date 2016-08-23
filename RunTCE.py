@@ -42,6 +42,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
                                               numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=10)
     starCore = dmStars[-1]
+    starCore.radius = sphStar.core_particle.radius
     sphMetaData = StarModels.SphMetaData(sphStar)
 
     #saved state

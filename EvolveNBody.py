@@ -34,7 +34,7 @@ def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary):
 
 def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius, numberOfWorkers = 1):
     unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, t_end)
-    system = sphCode(unitConverter, redirection="file", redirect_file="sph_code_out.log", number_of_workers = numberOfWorkers)
+    system = sphCode(unitConverter, redirection="file", redirect_file="sph_code_out.log")
     if sphCode.__name__ == "Fi":
         system.parameters.timestep = t_end / n_steps
         system.parameters.eps_is_h_flag = True
@@ -44,8 +44,14 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     system.parameters.time_limit_cpu = 7200000000 | units.s
     if sphCode.__name__ == "Gadget2":
         core.radius = core_radius * 2
+    else:
+        core.radius = core_radius
+    print "core radius:",core.radius.as_string_in(units.RSun)
     system.dm_particles.add_particle(core)
     system.gas_particles.add_particles(envelope)
+    print system.parameters.gas_epsilon
+    print system.dm_particles
+    system.parameters.epsilon_squared = core_radius ** 2#TODO:check this!
     print system.parameters.epsilon_squared
     print system.parameters.gas_epsilon
     print system.parameters.timestep
@@ -182,7 +188,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     return gas, dm
 
 def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | units.yr, timeSteps = 3 ,
-        savedVersionPath = "", saveAfterMinute = 1, step = -1, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
+        savedVersionPath = "", saveAfterMinute = 1, step = -1, relax = False, sphCode = Fi, dynamicsCode = Huayno,
          numberOfWorkers = 1, takeCompanionInRelaxation = True):
     '''
 
@@ -230,8 +236,8 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
 
     if step!= -1:
         currentTime = step * timeStep
+    #hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, 20.1731812713 | units.RSun, numberOfWorkers)
     hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
-
     if not relax or takeCompanionInRelaxation:
         #print "\nSetting up {0} to simulate binary system".format(dynamicsCode.__name__)
         #nbody = nbody_system.nbody_to_si(stars.stars.total_mass(), endTime)
@@ -240,7 +246,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
 
         #print "\nSetting up Bridge to simulate binary system"
         #coupledSystem = CoupledSystem(hydroSystem, binarySystem, endTime, timeSteps, currentTime, relax=relax)
-        hydroSystem.dm_particles.add_particle(stars.stars[-1])
+        #hydroSystem.dm_particles.add_particle(stars.stars[-1])
         coupledSystem = hydroSystem
     else:
         coupledSystem = hydroSystem
@@ -251,8 +257,8 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
     centerOfMassRadius = coupledSystem.particles.center_of_mass()
     centerOfMassV = coupledSystem.particles.center_of_mass_velocity()
 
-    if not relax:#sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[-1]*2)
-        sinks = new_sink_particles(coupledSystem.dm_particles[-1:], sink_radius= stars.radius[-1]*2)
+    #if not relax:#sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[-1]*2)
+    #    sinks = new_sink_particles(coupledSystem.dm_particles[-1:], sink_radius= stars.radius[-1]*2)
 
     currentSecond = time.time()
 
@@ -273,8 +279,8 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
             particles.position += (centerOfMassRadius - particles.center_of_mass())
             relaxingVFactor = (step / timeSteps)
             particles.velocity = relaxingVFactor * (particles.velocity - gas.center_of_mass_velocity()) + centerOfMassV
-        else:
-            sinks.accrete(coupledSystem.gas_particles)
+        #else:
+        #    sinks.accrete(coupledSystem.gas_particles)
 
         coupledSystem.evolve_model(currentTime)
         print "   Evolved to:", currentTime.as_quantity_in(units.day)
@@ -293,7 +299,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
                 currentSecond = time.time()
         dm = coupledSystem.dm_particles.copy()
         gas = coupledSystem.gas_particles.copy()
-        if not relax:
-            print "masses: ", sinks.mass.as_quantity_in(units.MSun)
+        #if not relax:
+        #    print "masses: ", sinks.mass.as_quantity_in(units.MSun)
     coupledSystem.stop()
     return gas, dm

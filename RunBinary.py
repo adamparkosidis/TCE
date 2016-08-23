@@ -31,6 +31,7 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
                                               numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=15, takeCompanionInRelaxation= False)
     starCore = dmStars[-1]
+    starCore.radius = sphStar.core_particle.radius
     sphMetaData = StarModels.SphMetaData(sphStar)
 
     #saved state
@@ -81,7 +82,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = F
     return [star1Envelope, star2Envelope], [star1Core,star2Core] , binary, binary.semimajorAxis, sph1MetaData
 
 
-def Start(savedVersionPath = "Glanz/Passy/500000/2", takeSavedState = "False", step = -1, configurationFile = "Glanz/PassyConfiguration.ini"):
+def Start(savedVersionPath = "Glanz/savings/rg/Fi", takeSavedState = "False", step = -1, configurationFile = "Glanz/RGConfiguration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state

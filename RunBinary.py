@@ -82,7 +82,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = F
     return [star1Envelope, star2Envelope], [star1Core,star2Core] , binary, binary.semimajorAxis, sph1MetaData
 
 
-def Start(savedVersionPath = "Glanz/savings/rg/Fi", takeSavedState = "False", step = -1, configurationFile = "Glanz/RGConfiguration.ini"):
+def Start(savedVersionPath = "Glanz/Passy/500000/rg", takeSavedState = "False", step = -1, configurationFile = "Glanz/PassyConfiguration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -118,4 +118,4 @@ def Start(savedVersionPath = "Glanz/savings/rg/Fi", takeSavedState = "False", st
     print "****************** Simulation Completed ******************"
 
 if __name__ == "__main__":
-    Start(takeSavedState="True")
+    Start(takeSavedState= "True")

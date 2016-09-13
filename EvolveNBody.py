@@ -42,15 +42,20 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     #if sphCode.__name__ =="Gadget2":
         #system.parameters.number_of_workers = numberOfWorkers
     system.parameters.time_limit_cpu = 7200000000 | units.s
+    print "core radius before: ", core.radius
     if sphCode.__name__ == "Gadget2":
-        core.radius = core_radius * 2
+        core.radius = core_radius * 2 
+        #core.radius = core_radius
     else:
         core.radius = core_radius
     print "core radius:",core.radius.as_string_in(units.RSun)
+    #print "core: ", core
     system.dm_particles.add_particle(core)
     system.gas_particles.add_particles(envelope)
-    print system.parameters.gas_epsilon
+    #print system.parameters.gas_epsilon
+    #print system.parameters.radius
     print system.dm_particles
+    #print system.parameters.epsilon_squared
     system.parameters.epsilon_squared = core_radius ** 2#TODO:check this!
     print system.parameters.epsilon_squared
     print system.parameters.gas_epsilon
@@ -188,7 +193,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     return gas, dm
 
 def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | units.yr, timeSteps = 3 ,
-        savedVersionPath = "", saveAfterMinute = 1, step = -1, relax = False, sphCode = Fi, dynamicsCode = Huayno,
+        savedVersionPath = "", saveAfterMinute = 1, step = -1, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
          numberOfWorkers = 1, takeCompanionInRelaxation = True):
     '''
 
@@ -297,6 +302,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
                 StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step), coupledSystem.dm_particles)
                 print "state saved - {0}".format(savedVersionPath) + "/" + adding
                 currentSecond = time.time()
+        print len(coupledSystem.gas_particles)
         dm = coupledSystem.dm_particles.copy()
         gas = coupledSystem.gas_particles.copy()
         #if not relax:

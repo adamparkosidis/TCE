@@ -110,6 +110,7 @@ class SphGiant:
 
 def LoadBinaries(file):
     load = read_set_from_file(file, format='amuse')
+    print load
     stars = Particles(2, particles= [load[0], load[1]])
     return stars
 
@@ -256,7 +257,7 @@ def AnalyzeBinary(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax
     separationTime = 0
 
     print len(dmFiles)
-    for i in xrange(beginStep,len (dmFiles),5):
+    for i in xrange(beginStep,len (dmFiles),1):
         print "step #",i
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i])
         dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i])
@@ -270,8 +271,10 @@ def AnalyzeBinary(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax
             companion = sphGiant
         #print binary
         if len(binary) > 1:
-            binary = Star(companion, sphGiant)
+            isBinary= True
+            binary = Star(companion, sphGiant)            
         else:
+            isBinary=False
             binary = Star(sphGiant, sphGiant)
 
         if CalculateVectorSize(CalculateSeparation(sphGiant.core,companion)) < sphGiant.core.radius * 2:
@@ -282,7 +285,6 @@ def AnalyzeBinary(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax
         if binary.specificEnergy > 0 | (units.m **2 / units.s **2):
             print "binary is breaking up", binary.specificEnergy
             break
-
         #TODO: check if the companion is inside
         '''
         sphGiant.CalculateInnerSPH(companion)
@@ -299,15 +301,14 @@ def AnalyzeBinary(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax
         print newBinarySeparation
         '''
 
-
-        semmimajor = CalculateSemiMajor(binary.velocityDifference, binary.separation, binary.mass)
-        eccentricity = CalculateEccentricity(companion, sphGiant, semmimajor)
-        inclination = CalculateInclination(binary.velocityDifference, binary.separation, [0.0,0.0,0.0] | units.m/units.s, [0.0,0.0,0.0] | units.m)
-        binaryDistances.append(CalculateVectorSize(binary.separation))
-
-        semmimajors.append(semmimajor)
-        eccentricities.append(eccentricity)
-        inclinations.append(inclination)
+        if isBinary:
+            semmimajor = CalculateSemiMajor(binary.velocityDifference, binary.separation, binary.mass)
+            eccentricity = CalculateEccentricity(companion, sphGiant, semmimajor)
+            inclination = CalculateInclination(binary.velocityDifference, binary.separation, [0.0,0.0,0.0] | units.m/units.s, [0.0,0.0,0.0] | units.m)
+            binaryDistances.append(CalculateVectorSize(binary.separation))
+            semmimajors.append(semmimajor)
+            eccentricities.append(eccentricity)
+            inclinations.append(inclination)
 
         PlotDensity(sphGiant.gasParticles,sphGiant.core,companion,i + beginStep, outputDir, vmin, vmax)
         PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion,i + beginStep, outputDir, vmin, vmax)
@@ -560,7 +561,8 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
     gasFiles, dmFiles, numberOfCompanion = InitializeSnapshots(savingDir, toCompare)
 
     if numberOfCompanion <= 2: #binary
-       AnalyzeBinary(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax)
+        print "analyzing binary"
+        AnalyzeBinary(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax)
     elif numberOfCompanion ==3: #triple
         AnalyzeTriple(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax)
 

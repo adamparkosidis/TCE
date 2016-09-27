@@ -9,7 +9,7 @@ from amuse.datamodel import Particle
 from amuse.ext import orbital_elements
 from amuse.plot import plot, native_plot, sph_particles_plot
 
-import EvolveNBody, BinaryCalculations
+import EvolveNBody
 
 
 def CreatePointStar(configurationFile="", configurationSection=""):
@@ -20,6 +20,8 @@ def CreatePointStar(configurationFile="", configurationSection=""):
     star.mass = float(parser.get(configurationSection, "mass")) | units.MSun
     star.metalicity = float(parser.get(configurationSection, "metalicity"))
     star.radius = float(parser.get(configurationSection, "radius")) | units.AU
+    star.position = [0.0,0.0,0.0]|units.AU
+    star.velocity = [0.0,0.0,0.0]|units.km/units.s
     return star
 '''
 def CreatePointStar(mass = 1.0 | units.MSun, radius = 1.0 | units.RSun):

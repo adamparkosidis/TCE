@@ -285,7 +285,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
         step += 1
         particles = coupledSystem.particles
         if relax:
-            particles.position += (centerOfMassRadius - particles.center_of_mass())
+            particles.position = particles.position + (centerOfMassRadius - particles.center_of_mass())
             relaxingVFactor = (step / timeSteps)
             particles.velocity = relaxingVFactor * (particles.velocity - gas.center_of_mass_velocity()) + centerOfMassV
         #else:

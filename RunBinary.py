@@ -19,9 +19,14 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     '''
     binary = StarModels.Binary(configurationFile, configurationSection="Binary")
     binary.stars.radius = binary.radius
+    nextGiant = binary.stars[0].copy()
+    binary.stars[0].position=[0.0,0.0,0.0] | units.AU
+    binary.stars[0].velocity = [0.0,0.0,0.0] | units.km/units.s
+    binary.stars[0].y = 0.0 | units.AU
+    binary.stars[0].vx = 0.0 | units.km/units.s
+    binary.stars[0].vz = 0.0 | units.km/units.s
     giant = binary.stars[0]
-    print binary
-
+    print "giant: ", giant
     sphStar = StarModels.SphStar(giant,configurationFile,configurationSection="MainStar",
                                 savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
     print "Now having the sph star and the binaries, ready for relaxing"
@@ -29,14 +34,22 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                     semmiMajor= binary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
                                              stars=binary, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
-                                              numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=15, takeCompanionInRelaxation= False)
+                                              numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=5, takeCompanionInRelaxation= False)
     starCore = dmStars[-1]
     starCore.radius = sphStar.core_particle.radius
     sphMetaData = StarModels.SphMetaData(sphStar)
 
     #saved state
-    StarModels.SaveState(savedPath, giant.mass, starEnvelope, dmStars, binary.semimajorAxis, sphMetaData)
+    print "current: ", binary.stars[0] 
+    binary.stars[0].position =  nextGiant.position
+    binary.stars[0].velocity = nextGiant.velocity
+    print "next: ", binary.stars[0]
+    starEnvelope.position += binary.stars[0].position
+    starCore.position += binary.stars[0].position
+    starEnvelope.velocity += binary.stars[0].velocity
+    starCore.velocity +=binary.stars[0].velocity
 
+    StarModels.SaveState(savedPath, giant.mass, starEnvelope, dmStars, binary.semimajorAxis, sphMetaData)
     return starEnvelope, starCore, binary, binary.semimajorAxis, sphMetaData
 
 def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, takeSavedMesa = False):
@@ -82,7 +95,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = F
     return [star1Envelope, star2Envelope], [star1Core,star2Core] , binary, binary.semimajorAxis, sph1MetaData
 
 
-def Start(savedVersionPath = "Glanz/Passy/500000/rg", takeSavedState = "False", step = -1, configurationFile = "Glanz/PassyConfiguration.ini"):
+def Start(savedVersionPath = "Glanz/Passy/500000/rg/noVelocity", takeSavedState = "False", step = -1, configurationFile = "Glanz/PassyConfiguration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -118,4 +131,4 @@ def Start(savedVersionPath = "Glanz/Passy/500000/rg", takeSavedState = "False", 
     print "****************** Simulation Completed ******************"
 
 if __name__ == "__main__":
-    Start(takeSavedState= "True")
+    Start(takeSavedState="Mesa")

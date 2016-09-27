@@ -506,7 +506,7 @@ def GetArgs(args):
         vmax = float(args[5])
     else:
         vmax= 1e34
-    outputDir = directory + "/pics"
+    outputDir = savingDir + "/pics"
     return savingDir, toCompare, beginStep, vmin, vmax, outputDir
 
 def InitializeSnapshots(savingDir, toCompare=False):

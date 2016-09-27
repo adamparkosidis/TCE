@@ -44,8 +44,8 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     system.parameters.time_limit_cpu = 7200000000 | units.s
     print "core radius before: ", core.radius
     if sphCode.__name__ == "Gadget2":
-        core.radius = core_radius * 2 
-        #core.radius = core_radius
+        #core.radius = core_radius * 2 
+        core.radius = core_radius
     else:
         core.radius = core_radius
     print "core radius:",core.radius.as_string_in(units.RSun)
@@ -56,7 +56,7 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     #print system.parameters.radius
     print system.dm_particles
     #print system.parameters.epsilon_squared
-    system.parameters.epsilon_squared = core_radius ** 2#TODO:check this!
+    #system.parameters.epsilon_squared = core_radius ** 2#TODO:check this!
     print system.parameters.epsilon_squared
     print system.parameters.gas_epsilon
     print system.parameters.timestep
@@ -274,9 +274,13 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
     print "starting SPH " + adding
     print "evolving from step ", step + 1
 
-    particles = coupledSystem.particles
+    particles = coupledSystem.particles.copy()
     print "particles- ", len(particles)# TODO: remove this
-
+    
+    StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse",coupledSystem.gas_particles)
+    StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse",coupledSystem.dm_particles)
+    print "pre - state saved"
+    
     while currentTime < endTime:
         step += 1
         particles = coupledSystem.particles

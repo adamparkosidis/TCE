@@ -44,10 +44,10 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     binary.stars[0].position =  nextGiant.position
     binary.stars[0].velocity = nextGiant.velocity
     print "next: ", binary.stars[0]
-    starEnvelope.position += binary.stars[0].position
-    starCore.position += binary.stars[0].position
-    starEnvelope.velocity += binary.stars[0].velocity
-    starCore.velocity +=binary.stars[0].velocity
+   #starEnvelope.position += binary.stars[0].position
+   #starCore.position += binary.stars[0].position
+   #starEnvelope.velocity += binary.stars[0].velocity
+   #starCore.velocity +=binary.stars[0].velocity
 
     StarModels.SaveState(savedPath, giant.mass, starEnvelope, dmStars, binary.semimajorAxis, sphMetaData)
     return starEnvelope, starCore, binary, binary.semimajorAxis, sphMetaData

@@ -107,4 +107,4 @@ def Relax(sphEnvelope, sphCore, endTime= 10000 | units.yr, timeSteps = 3 ,
     return gas, dm
 
 if __name__ == "__main__":
-    Run(configurationFile="configuration.ini", mesaPath = "../trunk/")
+    Run(configurationFile="configuration.ini", mesaPath = "../amuse-master/")

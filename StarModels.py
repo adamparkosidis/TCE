@@ -9,7 +9,7 @@ from amuse.datamodel import Particle
 from amuse.ext import orbital_elements
 from amuse.plot import plot, native_plot, sph_particles_plot
 
-import EvolveNBody
+import EvolveNBody, BinaryCalculations
 
 
 def CreatePointStar(configurationFile="", configurationSection=""):
@@ -318,10 +318,10 @@ class Binary:
 
             stars.position = [0.0, 0.0, 0.0] | units.AU
             stars.velocity = [0.0, 0.0, 0.0] | units.km / units.s
-            stars[0].y = self.semimajorAxis
-            stars[0].vx = -math.cos(self.inclination)*GetRelativeVelocityAtApastron(
+            stars[1].y = self.semimajorAxis
+            stars[1].vx = -math.cos(self.inclination)*GetRelativeVelocityAtApastron(
                 stars.total_mass(), self.semimajorAxis, self.eccentricity)
-            stars[0].vz = math.sin(self.inclination)*GetRelativeVelocityAtApastron(
+            stars[1].vz = math.sin(self.inclination)*GetRelativeVelocityAtApastron(
                 stars.total_mass(), self.semimajorAxis, self.eccentricity)
             stars.move_to_center()
 
@@ -345,16 +345,16 @@ class Binary:
     def CalculateEccentricity(self):
         V= self.CalculateVelocityDifference()
         R = self.CalculateSeparation()
-        h = CalculateSpecificMomentum(V,R)
-        hSize = CalculateVectorSize(h)
+        h = BinaryCalculations.CalculateSpecificMomentum(V,R)
+        hSize = BinaryCalculations.CalculateVectorSize(h)
         miu = constants.G*(self.stars.total_mass())
-        element2 = (R[0].value_in(units.m),R[1].value_in(units.m),R[2].value_in(units.m))/(CalculateVectorSize(R).value_in(units.m))
-        vxh = VectorCross(V,h)
+        element2 = (R[0].value_in(units.m),R[1].value_in(units.m),R[2].value_in(units.m))/(BinaryCalculations.CalculateVectorSize(R).value_in(units.m))
+        vxh = BinaryCalculations.VectorCross(V,h)
         element10 = (vxh[0].value_in(units.m**3*units.s**-2),vxh[1].value_in(units.m**3*units.s**-2),vxh[2].value_in(units.m**3*units.s**-2))
         element11 = miu.value_in(units.m**3*units.s**-2)
         element1 = element10/element11
-        eAttitude1 = CalculateVectorSize(element1 - element2)
-        eAttitude2 = (1 + (2 * CalculateSpecificEnergy(V,R,self.stars[0],self.stars[1])*(hSize**2))/(constants.G*(self.stars.total_mass()))**2)**0.5
+        eAttitude1 = BinaryCalculations.CalculateVectorSize(element1 - element2)
+        eAttitude2 = (1 + (2 * BinaryCalculations.CalculateSpecificEnergy(V,R,self.stars[0],self.stars[1])*(hSize**2))/(constants.G*(self.stars.total_mass()))**2)**0.5
         return eAttitude1
 
 

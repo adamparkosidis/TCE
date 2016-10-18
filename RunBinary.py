@@ -41,8 +41,8 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
     #saved state
     print "current: ", binary.stars[0] 
-    binary.stars[0].position =  nextGiant.position
-    binary.stars[0].velocity = nextGiant.velocity
+    #binary.stars[0].position =  nextGiant.position
+    #binary.stars[0].velocity = nextGiant.velocity
     print "next: ", binary.stars[0]
    #starEnvelope.position += binary.stars[0].position
    #starCore.position += binary.stars[0].position

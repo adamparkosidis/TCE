@@ -34,7 +34,8 @@ def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary):
 
 def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius, numberOfWorkers = 1):
     unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*1000)
-    system = sphCode(unitConverter, redirection="file", redirect_file="sph_code_out.log")
+    system = sphCode(unitConverter)
+    #, redirection="file", redirect_file="sph_code_out.log", cpu_file="cpu_code_out.txt")
     if sphCode.__name__ == "Fi":
         system.parameters.timestep = t_end / n_steps
         system.parameters.eps_is_h_flag = True
@@ -44,8 +45,8 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     system.parameters.time_limit_cpu = 7200000000 | units.s
     print "core radius before: ", core.radius
     if sphCode.__name__ == "Gadget2":
-        #core.radius = core_radius * 2 
-        core.radius = core_radius
+        core.radius = core_radius * 2 
+        #core.radius = core_radius
     else:
         core.radius = core_radius
     print "core radius:",core.radius.as_string_in(units.RSun)
@@ -55,11 +56,13 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     #print system.parameters.gas_epsilon
     #print system.parameters.radius
     print system.dm_particles
+    #print system.particles
     #print system.parameters.epsilon_squared
     #system.parameters.epsilon_squared = core_radius ** 2#TODO:check this!
     print system.parameters.epsilon_squared
     print system.parameters.gas_epsilon
     print system.parameters.timestep
+    print "info file: ", system.parameters.info_file
     return system
 
 def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = False):
@@ -159,7 +162,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
 
     print "starting SPH " + adding
     print "evolving from step ", step + 1
-
+    
     while currentTime < endTime:
         step += 1
         particles = coupledSystem.particles
@@ -193,7 +196,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     return gas, dm
 
 def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | units.yr, timeSteps = 3 ,
-        savedVersionPath = "", saveAfterMinute = 1, step = -1, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
+        savedVersionPath = "", saveAfterMinute = 0, step = -1, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
          numberOfWorkers = 1, takeCompanionInRelaxation = True):
     '''
 
@@ -251,7 +254,8 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
 
         #print "\nSetting up Bridge to simulate binary system"
         #coupledSystem = CoupledSystem(hydroSystem, binarySystem, endTime, timeSteps, currentTime, relax=relax)
-        hydroSystem.dm_particles.add_particle(stars.stars[-1])
+        if step == -1:
+            hydroSystem.dm_particles.add_particle(stars.stars[-1])
         coupledSystem = hydroSystem
     else:
         coupledSystem = hydroSystem
@@ -303,6 +307,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
             if savedVersionPath != "":
                 StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step), coupledSystem.gas_particles)
                 StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step), coupledSystem.dm_particles)
+                #pickle.dump(StarModels.SphMetaData(coupledSystem.gas_particles),open(savedVersionPath+"/metaData_{0}.p".format(step), 'wb'), pickle.HIGHEST_PROTOCOL)
                 print "state saved - {0}".format(savedVersionPath) + "/" + adding
                 currentSecond = time.time()
         print len(coupledSystem.gas_particles)

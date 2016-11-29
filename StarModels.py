@@ -166,6 +166,7 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
         starCore=load[-1]
         starMass = starEnvelope.total_mass() + starCore.mass
         binary = Binary(particles=Particles(2, particles=[load[0], load[1]]))
+        sphMetaData = pickle.load(open(savedVersionPath + "/../metaData.p", "rb"))
     else:
         starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
         load = LoadDm(savedVersionPath + "/dm.amuse")
@@ -181,7 +182,7 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
         binary.stars[0].velocity = (starEnvelopeV * starEnvelope.total_mass() +
                           (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass
         print "(giant, star): ", binary.stars    
-    sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
+        sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
     return starEnvelope, starCore, binary, binary.semimajorAxis, sphMetaData
 
 def SaveState(savedVersionPath, starMass, starEnvelope, dms, tripleSemmimajor, sphMetaData):
@@ -230,6 +231,8 @@ class Star:
             self.star.radius = float(parser.get(configurationSection, "radius")) | units.AU
             self.sphParticles = float(parser.get(configurationSection, "sphParticles"))
             self.envelopeRadius = float(parser.get(configurationSection, "envelopeRadius")) | units.AU
+            self.relaxationTime = float(parser.get(configurationSection, "relaxationTime")) | units.day
+            self.relaxationTimeSteps = float(parser.get(configurationSection, "relaxationTimeSteps"))
             self.relaxationTime = float(parser.get(configurationSection, "relaxationTime")) | units.day
             self.relaxationTimeSteps = float(parser.get(configurationSection, "relaxationTimeSteps"))
             self.numberOfWorkers = float(parser.get(configurationSection, "numberOfWorkers"))
@@ -333,6 +336,7 @@ class Binary:
         print "loading binary "
         self.stars = particles
         masses = [particles[0].mass,particles[1].mass]
+        self.radius = particles.radius
         velocityDifference = BinaryCalculations.CalculateVelocityDifference(self.stars[0], self.stars[1])
         separation = BinaryCalculations.CalculateSeparation(self.stars[0], self.stars[1])
         mass = particles.total_mass()
@@ -356,5 +360,3 @@ class Binary:
         eAttitude1 = BinaryCalculations.CalculateVectorSize(element1 - element2)
         eAttitude2 = (1 + (2 * BinaryCalculations.CalculateSpecificEnergy(V,R,self.stars[0],self.stars[1])*(hSize**2))/(constants.G*(self.stars.total_mass()))**2)**0.5
         return eAttitude1
-
-

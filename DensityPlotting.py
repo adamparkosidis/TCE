@@ -189,27 +189,30 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax):
     if not HAS_PYNBODY:
         print "problem plotting"
         return
-    pynbody_column_density_plot(sphGiant ,resolution=1000, width= 2|units.AU,vmin= vmin, vmax= vmax,cmap= "hot")
+    pynbody_column_density_plot(sphGiant ,resolution=1000, width=2.0|units.AU,vmin= vmin, vmax= vmax,cmap= "hot")
     scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
     pyplot.savefig(outputDir + "/plotting_{0}.jpg".format(i))
     pyplot.close()
 
-def PlotVelocity(sphGiant,core,binary,i, outputDir, vmin, vmax):
+def PlotVelocity(sphGiant,core,binary,step, outputDir, vmin, vmax):
     if not HAS_PYNBODY:
         print HAS_PYNBODY
         print "problem plotting"
         return
-    width = 2.0 * sphGiant.position.lengths_squared().amax().sqrt()
+    
+    width = 1.7 * sphGiant.position.lengths_squared().amax().sqrt()
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
     pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
     units = 'm_p cm^-2'
     pynbody_sph.velocity_image(pyndata, width=width.value_in(length_unit), units=units,vmin= vmin, vmax= vmax)
+    print width
     UnitlessArgs.current_plot = native_plot.gca()
     scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
-    pyplot.savefig(outputDir + "/velocity/velocity_plotting_{0}.jpg".format(i))
+    pyplot.savefig(outputDir + "/velocity/velocity_plotting_{0}.jpg".format(step))
+    print outputDir + "/velocity_plotting_{0}.jpg".format(step)
     pyplot.close()
 
 '''
@@ -310,8 +313,8 @@ def AnalyzeBinary(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax
             eccentricities.append(eccentricity)
             inclinations.append(inclination)
 
-        PlotDensity(sphGiant.gasParticles,sphGiant.core,companion,i + beginStep, outputDir, vmin, vmax)
-        PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion,i + beginStep, outputDir, vmin, vmax)
+        PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i , outputDir, vmin, vmax)
+        PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion, i, outputDir, vmin, vmax)
 
         #close opened handles
         for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:

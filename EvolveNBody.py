@@ -161,9 +161,10 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
 
     print "starting SPH " + adding
     print "evolving from step ", step + 1
-    StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_0.amuse", coupledSystem.gas_particles)
-    StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_0.amuse".format(step+1), coupledSystem.dm_particles)
-    print "pre state saved - {0}".format(savedVersionPath) + "/" + adding
+    if step ==-1:
+        StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_0.amuse", coupledSystem.gas_particles)
+        StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_0.amuse".format(step+1), coupledSystem.dm_particles)
+        print "pre state saved - {0}".format(savedVersionPath) + "/" + adding
     
     while currentTime < endTime:
         step += 1
@@ -281,10 +282,10 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
     print "evolving from step ", step + 1
 
     particles = coupledSystem.particles.copy()
-    
-    StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse",coupledSystem.gas_particles)
-    StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse",coupledSystem.dm_particles)
-    print "pre - state saved"
+    if step == -1:
+        StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse",coupledSystem.gas_particles)
+        StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse",coupledSystem.dm_particles)
+        print "pre - state saved"
     
     while currentTime < endTime:
         step += 1

@@ -229,8 +229,8 @@ def PlotOrbitalParameters(x,y,plotFile ='dynamics.jpg' ):
 def Plot1Axe(x, fileName, outputDir, beginTime = 0):
     if len(x) == 0:
         return
-    timeStep = 1400.0/7000.0
-    timeLine = [beginTime + time * timeStep * 60 for time in xrange(len(x))] | units.minute
+    timeStep = 1400.0/7000.0 | units.day
+    timeLine = [beginTime + time * timeStep * 60 for time in xrange(len(x))]
     native_plot.figure(figsize= (20, 20), dpi= 80)
     plot(timeLine,x)
     xlabel('time[minutes]')
@@ -303,10 +303,10 @@ def AnalyzeBinary(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax
         '''
 
         if isBinary:
-            semmimajor = CalculateSemiMajor(binary.velocityDifference, binary.separation, binary.mass)
-            eccentricity = CalculateEccentricity(companion, sphGiant, semmimajor)
+            semmimajor = CalculateSemiMajor(binary.velocityDifference, binary.separation, binary.mass).as_quantity_in(units.AU)
+            eccentricity = CalculateEccentricity(companion, sphGiant, semmimajor).as_quantity_in(units.AU)
             inclination = CalculateInclination(binary.velocityDifference, binary.separation, [0.0,0.0,0.0] | units.m/units.s, [0.0,0.0,0.0] | units.m)
-            binaryDistances.append(CalculateVectorSize(binary.separation))
+            binaryDistances.append(CalculateVectorSize(binary.separation)).as_quantity_in(units.AU)
             semmimajors.append(semmimajor)
             eccentricities.append(eccentricity)
             inclinations.append(inclination)

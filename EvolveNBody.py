@@ -34,8 +34,7 @@ def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary):
 
 def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius, numberOfWorkers = 1):
     unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*1000)
-    system = sphCode(unitConverter)
-    #, redirection="file", redirect_file="sph_code_out.log", cpu_file="cpu_code_out.txt")
+    system = sphCode(unitConverter, redirection="file", redirect_file="sph_code_out.log",cpu_file="cpu_code_out.txt")
     if sphCode.__name__ == "Fi":
         system.parameters.timestep = t_end / n_steps
         system.parameters.eps_is_h_flag = True
@@ -162,6 +161,9 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
 
     print "starting SPH " + adding
     print "evolving from step ", step + 1
+    StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_0.amuse", coupledSystem.gas_particles)
+    StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_0.amuse".format(step+1), coupledSystem.dm_particles)
+    print "pre state saved - {0}".format(savedVersionPath) + "/" + adding
     
     while currentTime < endTime:
         step += 1
@@ -305,8 +307,8 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
         currentTime += timeStep
         if (time.time() - currentSecond) > saveAfterMinute * 60:
             if savedVersionPath != "":
-                StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step), coupledSystem.gas_particles)
-                StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step), coupledSystem.dm_particles)
+                StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step+1), coupledSystem.gas_particles)
+                StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step+1), coupledSystem.dm_particles)
                 #pickle.dump(StarModels.SphMetaData(coupledSystem.gas_particles),open(savedVersionPath+"/metaData_{0}.p".format(step), 'wb'), pickle.HIGHEST_PROTOCOL)
                 print "state saved - {0}".format(savedVersionPath) + "/" + adding
                 currentSecond = time.time()

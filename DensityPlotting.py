@@ -52,7 +52,7 @@ class Star:
 class SphGiant:
     def __init__(self, gas_particles_file, dm_particles_file):
         self.gasParticles = read_set_from_file(gas_particles_file, format='amuse')
-        self.core = read_set_from_file(dm_particles_file, format='amuse')[-1]
+        self.core = read_set_from_file(dm_particles_file, format='amuse')[0]
         self.gas = Star(None, None)
         self.gas.mass = self.gasParticles.total_mass()
         self.gas.position = self.gasParticles.center_of_mass()
@@ -266,7 +266,7 @@ def AnalyzeBinary(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax
         sphGiant = SphGiant(gas_particles_file, dm_particles_file)
         try:
             binary = LoadBinaries(dm_particles_file)
-            companion = binary[0]
+            companion = binary[1]
         except: #no binary
             binary = []
             companion = sphGiant
@@ -364,7 +364,7 @@ def AnalyzeTriple(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax
         binary = LoadBinaries(dm_particles_file)
         #print binary
 
-        particle1 , particle2 = binary[0] , binary[1]
+        particle1 , particle2 = binary[1] , binary[2]
 
         innerBinary = Star(particle1,particle2)
         triple1 = Star(particle1, sphGiant)

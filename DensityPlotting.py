@@ -304,7 +304,7 @@ def AnalyzeBinary(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax
 
         if isBinary:
             semmimajor = CalculateSemiMajor(binary.velocityDifference, binary.separation, binary.mass).as_quantity_in(units.AU)
-            eccentricity = CalculateEccentricity(companion, sphGiant, semmimajor).as_quantity_in(units.AU)
+            eccentricity = CalculateEccentricity(companion, sphGiant, semmimajor)
             inclination = CalculateInclination(binary.velocityDifference, binary.separation, [0.0,0.0,0.0] | units.m/units.s, [0.0,0.0,0.0] | units.m)
             binaryDistances.append(CalculateVectorSize(binary.separation)).as_quantity_in(units.AU)
             semmimajors.append(semmimajor)

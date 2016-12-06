@@ -59,10 +59,13 @@ class SphGiant:
         self.gas.x , self.gas.y, self.gas.z = self.gasParticles.center_of_mass()
         self.gas.vx, self.gas.vy, self.gas.vz = self.gasParticles.center_of_mass_velocity()
         self.gas.v = (self.gas.vx, self.gas.vy, self.gas.vz)
-
+        print "gas position: ", self.gas.position, " core position: ", self.core.position
         self.mass = self.gas.mass + self.core.mass
+        print "core mass: ",self.core.mass.as_quantity_in(units.MSun)," gas mass: ", self.gas.mass.as_quantity_in(units.MSun), " total star mass: ", self.mass.as_quantity_in(units.MSun)
         self.x , self.y, self.z = (self.gas.position * self.gas.mass + self.core.position * self.core.mass) / self.mass
+        #self.x , self.y, self.z = self.core.position
         self.vx, self.vy, self.vz = (self.gas.v * self.gas.mass + (self.core.vx, self.core.vy, self.core.vz) * self.core.mass) / self.mass
+        #self.vx, self.vy, self.vz =  self.core.vx, self.core.vy, self.core.vz
         self.v = (self.vx, self.vy, self.vz)
 
 
@@ -124,6 +127,7 @@ def SqalarMul(v1,v2):
     return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2]
 
 def CalculateSemiMajor(V,R,M):#as in 2.134 in Solar System Dynamics bd C.D Murray and S.F Dermott
+    print "R: ", R ," V: ",V," M: ",M
     a = 1/((2/CalculateVectorSize(R))-(CalculateVectorSize(V)**2)/(constants.G*M))
     return abs(a)
 
@@ -250,19 +254,19 @@ def PlotBinaryDistance(distances, outputDir, beginTime = 0):
     for d in distances:
         if d[0]:
             Plot1Axe(d[0], d[1], outputDir)
-def AnalyzeBinary(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax):
+def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax):
     binaryDistances = AdaptingVectorQuantity()
     semmimajors = AdaptingVectorQuantity()
     eccentricities = []
     inclinations = []
     separationTime = 0
-
-    print len(dmFiles)
-    for i in xrange(beginStep,len (dmFiles),1):
+    if lastStep == 0 : # no boundary on last step
+        lastStep = len(dmFiles)
+    print lastStep
+    for i in xrange(beginStep,lastStep,1):
         print "step #",i
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i])
         dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i])
-
         sphGiant = SphGiant(gas_particles_file, dm_particles_file)
         try:
             binary = LoadBinaries(dm_particles_file)
@@ -305,8 +309,9 @@ def AnalyzeBinary(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax
         if isBinary:
             semmimajor = CalculateSemiMajor(binary.velocityDifference, binary.separation, binary.mass).as_quantity_in(units.AU)
             eccentricity = CalculateEccentricity(companion, sphGiant, semmimajor)
+            print eccentricity
             inclination = CalculateInclination(binary.velocityDifference, binary.separation, [0.0,0.0,0.0] | units.m/units.s, [0.0,0.0,0.0] | units.m)
-            binaryDistances.append(CalculateVectorSize(binary.separation)).as_quantity_in(units.AU)
+            binaryDistances.append(CalculateVectorSize(binary.separation))
             semmimajors.append(semmimajor)
             eccentricities.append(eccentricity)
             inclinations.append(inclination)
@@ -326,7 +331,7 @@ def AnalyzeBinary(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax
     PlotEccentricity([(eccentricities, "eInners")], outputDir + "/graphs")
     Plot1Axe(inclinations,"inclinations", outputDir+"/graphs")
 
-def AnalyzeTriple(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax ):
+def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax ):
     particle2x = []
     particle1x =  []
     corex = []
@@ -351,12 +356,14 @@ def AnalyzeTriple(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax
 
     inclinations = []
     separationTime = 0
-
-    print len(dmFiles)
-    for i in xrange(beginStep,len (dmFiles),5):
+    if lastStep == 0 : # no boundary on last step
+        lastStep = len(dmFiles)
+    print lastStep
+    for i in xrange(beginStep,lastStep,5):
         print "step #",i
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i])
         dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i])
+        print len(gas_particles)
 
         sphGiant = SphGiant(gas_particles_file, dm_particles_file)
 
@@ -499,16 +506,20 @@ def GetArgs(args):
         beginStep = int(args[3])
     else:
         beginStep = 0
-    if len(args) > 4:
-        vmin= float(args[4])
+    if (args) > 4:
+        lastStep = int(args[4])
+    else:
+        lastStep = 0
+    if len(args) > 5:
+        vmin= float(args[5])
     else:
         vmin = 1e16
-    if len(args) > 5:
-        vmax = float(args[5])
+    if len(args) > 6:
+        vmax = float(args[6])
     else:
         vmax= 1e34
     outputDir = savingDir + "/pics"
-    return savingDir, toCompare, beginStep, vmin, vmax, outputDir
+    return savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir
 
 def InitializeSnapshots(savingDir, toCompare=False):
     '''
@@ -545,7 +556,7 @@ def compare(st1, st2):
 
 
 def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0,1e16,1e34]):
-    savingDir, toCompare, beginStep, vmin, vmax, outputDir = GetArgs(args)
+    savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir = GetArgs(args)
     print "plotting pics to " +  outputDir +  " from " +  savingDir +" begin step = " , beginStep , " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare
     try:
         os.makedirs(outputDir)
@@ -563,9 +574,9 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
 
     if numberOfCompanion <= 2: #binary
         print "analyzing binary"
-        AnalyzeBinary(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax)
+        AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax)
     elif numberOfCompanion ==3: #triple
-        AnalyzeTriple(beginStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax)
+        AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax)
 
 if __name__ == "__main__":
     main(sys.argv)

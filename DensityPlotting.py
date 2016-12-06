@@ -175,9 +175,9 @@ def GetVelocitySize(particle):
     return  CalculateVectorSize((particle.vx,particle.vy,particle.vz))
 
 def CalculateSeparation(particle1, particle2):
-    x = particle1.x - particle2.x
-    y = particle1.y - particle2.y
-    z = particle1.z - particle2.z
+    x = (particle1.x - particle2.x).as_quantity_in(units.AU)
+    y = (particle1.y - particle2.y).as_quantity_in(units.AU)
+    z = (particle1.z - particle2.z).as_quantity_in(units.AU)
     return (x,y,z)
 
 def CalculateVelocityDifference(particle1, particle2):
@@ -290,27 +290,30 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         if binary.specificEnergy > 0 | (units.m **2 / units.s **2):
             print "binary is breaking up", binary.specificEnergy
             break
-        #TODO: check if the companion is inside
-        '''
-        sphGiant.CalculateInnerSPH(companion)
-        print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
-        newBinaryVelocityDifference = CalculateVelocityDifference(companion, sphGiant.innerGas)
-        newBinarySeparation = CalculateSeparation(companion, sphGiant.innerGas)
-        newBinaryMass = companion.mass + sphGiant.innerGas.mass
 
-        semmimajor = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass)
-        eccentricity = CalculateEccentricity(companion, sphGiant.innerGas, semmimajor)
-        semmimajors.append(semmimajor)
-        eccentricities.append(eccentricity)
-        binaryDistances.append(CalculateVectorSize(newBinarySeparation))
-        print newBinarySeparation
-        '''
 
         if isBinary:
+            #check if the companion is inside, take into account only the inner mass of the companion's orbit
+            sphGiant.CalculateInnerSPH(companion)
+            print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
+            newBinaryVelocityDifference = CalculateVelocityDifference(companion, sphGiant.innerGas)
+            newBinarySeparation = CalculateSeparation(companion, sphGiant.innerGas)
+            newBinaryMass = companion.mass + sphGiant.innerGas.mass
+
+            semmimajor = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass)
+            eccentricity = CalculateEccentricity(companion, sphGiant.innerGas, semmimajor)
+            semmimajors.append(semmimajor)
+            eccentricities.append(eccentricity)
+            binaryDistances.append(CalculateVectorSize(newBinarySeparation))
+            print newBinarySeparation
+            '''
             semmimajor = CalculateSemiMajor(binary.velocityDifference, binary.separation, binary.mass).as_quantity_in(units.AU)
             eccentricity = CalculateEccentricity(companion, sphGiant, semmimajor)
             print eccentricity
             inclination = CalculateInclination(binary.velocityDifference, binary.separation, [0.0,0.0,0.0] | units.m/units.s, [0.0,0.0,0.0] | units.m)
+            '''
+
+            inclination = CalculateInclination(newBinaryVelocityDifference,newBinarySeparation, [0.0,0.0,0.0] | units.m/units.s, [0.0,0.0,0.0] | units.m)
             binaryDistances.append(CalculateVectorSize(binary.separation))
             semmimajors.append(semmimajor)
             eccentricities.append(eccentricity)

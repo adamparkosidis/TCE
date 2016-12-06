@@ -233,11 +233,11 @@ def PlotOrbitalParameters(x,y,plotFile ='dynamics.jpg' ):
 def Plot1Axe(x, fileName, outputDir, beginTime = 0):
     if len(x) == 0:
         return
-    timeStep = 1400.0/7000.0 | units.day
-    timeLine = [beginTime + time * timeStep * 60 for time in xrange(len(x))]
+    timeStep = 1400.0/7000.0
+    timeLine = [beginTime + time * timeStep for time in xrange(len(x))] | units.day
     native_plot.figure(figsize= (20, 20), dpi= 80)
     plot(timeLine,x)
-    xlabel('time[minutes]')
+    xlabel('time[days]')
     native_plot.savefig(outputDir + '/' + fileName + '.jpg')
 
 def PlotSemiMajorAxis(semimajors, outputDir, beginTime = 0):

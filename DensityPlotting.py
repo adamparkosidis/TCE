@@ -300,21 +300,25 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
             newBinarySeparation = CalculateSeparation(companion, sphGiant.innerGas)
             newBinaryMass = companion.mass + sphGiant.innerGas.mass
 
-            semmimajor = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass)
+            semmimajor = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass).as_quantity_in(units.AU)
             eccentricity = CalculateEccentricity(companion, sphGiant.innerGas, semmimajor)
             semmimajors.append(semmimajor)
             eccentricities.append(eccentricity)
-            binaryDistances.append(CalculateVectorSize(newBinarySeparation))
+            binaryDistances.append(CalculateVectorSize(newBinarySeparation).as_quantity_in(units.RSun))
+            
+            print "semmimajor: ",semmimajor," eccentricity: ",eccentricity, "separation: ",CalculateVectorSize(newBinarySeparation).as_quantity_in(units.RSun)
+            
             print newBinarySeparation
             '''
             semmimajor = CalculateSemiMajor(binary.velocityDifference, binary.separation, binary.mass).as_quantity_in(units.AU)
             eccentricity = CalculateEccentricity(companion, sphGiant, semmimajor)
             print eccentricity
             inclination = CalculateInclination(binary.velocityDifference, binary.separation, [0.0,0.0,0.0] | units.m/units.s, [0.0,0.0,0.0] | units.m)
+
+            binaryDistances.append(CalculateVectorSize(binary.separation))
             '''
 
             inclination = CalculateInclination(newBinaryVelocityDifference,newBinarySeparation, [0.0,0.0,0.0] | units.m/units.s, [0.0,0.0,0.0] | units.m)
-            binaryDistances.append(CalculateVectorSize(binary.separation))
             semmimajors.append(semmimajor)
             eccentricities.append(eccentricity)
             inclinations.append(inclination)

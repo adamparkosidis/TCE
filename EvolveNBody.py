@@ -20,7 +20,7 @@ from amuse.community.huayno.interface import Huayno
 from amuse.ext.sink import new_sink_particles
 
 import StarModels
-import TCEPlotting
+#import TCEPlotting
 
 def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary):
 
@@ -149,10 +149,8 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     centerOfMassV = coupledSystem.particles.center_of_mass_velocity()
 
     if not relax:
-        sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[0]*2)
+        sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[0]*2) #sink radius is the particle radius * 2
 
-    #if step!= 0:
-    #    x, y, z = pickle.load(open(savedVersionPath+"xyz.p", 'rb'))
     currentSecond = time.time()
 
     potential_energies = hydroSystem.potential_energy.as_vector_with_length(1).as_quantity_in(units.J)
@@ -162,8 +160,8 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     print "starting SPH " + adding
     print "evolving from step ", step + 1
     if step ==-1:
-        StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_0.amuse", coupledSystem.gas_particles)
-        StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_0.amuse".format(step+1), coupledSystem.dm_particles)
+        StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse", coupledSystem.gas_particles)
+        StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse".format(step+1), coupledSystem.dm_particles)
         print "pre state saved - {0}".format(savedVersionPath) + "/" + adding
     
     while currentTime < endTime:
@@ -293,7 +291,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
         if relax:
             particles.position = particles.position + (centerOfMassRadius - particles.center_of_mass())
             relaxingVFactor = (step / timeSteps)
-            particles.velocity = relaxingVFactor * (particles.velocity - gas.center_of_mass_velocity()) + centerOfMassV
+            particles.velocity = relaxingVFactor * (particles.velocity - particles.center_of_mass_velocity()) + centerOfMassV
         else:
             sinks.accrete(coupledSystem.gas_particles)
 

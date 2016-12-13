@@ -22,9 +22,10 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
     #now setting up the giant (want it to be relaxed and spinning)
     outerBinary = StarModels.Binary(configurationFile, configurationSection="OuterBinary")
-    giant.position = outerBinary.semimajorAxis * (1 + outerBinary.eccentricity) * ([1, 0, 0] | units.none)
-    giant.velocity = StarModels.GetRelativeVelocityAtApastron(giant.mass + innerBinary.stars.total_mass(),
-        outerBinary.semimajorAxis, outerBinary.eccentricity) * ([0, 1, 0] | units.none)
+    #notice that the giant is the binary.stars[0], the companions are the next
+    #giant.position = outerBinary.semimajorAxis * (1 + outerBinary.eccentricity) * ([1, 0, 0] | units.none)
+    #giant.velocity = StarModels.GetRelativeVelocityAtApastron(giant.mass + innerBinary.stars.total_mass(),
+    #    outerBinary.semimajorAxis, outerBinary.eccentricity) * ([0, 1, 0] | units.none)
 
     triple = innerBinary.stars
     giantInSet = triple.add_particle(giant)
@@ -35,8 +36,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     sphStar = StarModels.SphStar(giantInSet,configurationFile,configurationSection="MainStar",
                                 savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
     print "Now having the sph star and the binaries, ready for relaxing"
-    starEnvelope, dmStars = EvolveNBody.Run(totalMass= giant.mass + innerBinary.stars[0].mass +
-                                                         innerBinary.stars[1].mass,
+    starEnvelope, dmStars = EvolveNBody.Run(totalMass= giantInSet.mass + innerBinary.stars.total_mass(),
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
                                              stars=innerBinary, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
@@ -46,7 +46,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     sphMetaData = StarModels.SphMetaData(sphStar)
 
     #saved state
-    StarModels.SaveState(savedPath, giant.mass, starEnvelope, dmStars, outerBinary.semimajorAxis, sphMetaData)
+    StarModels.SaveState(savedPath, starEnvelope.total_mass() + starCore.mass, starEnvelope, dmStars, outerBinary.semimajorAxis, sphMetaData)
 
     return giant.mass, starEnvelope, starCore, innerBinary, outerBinary.semimajorAxis, sphMetaData
 
@@ -82,7 +82,7 @@ def Start(savedVersionPath = "Glanz/savings", takeSavedState = "False", step = -
 
 
 
-    EvolveNBody.Run(totalMass= starMass + binary.stars[0].mass + binary.stars[1].mass,
+    EvolveNBody.Run(totalMass= starMass + binary.stars.total_mass(),
                     semmiMajor= tripleSemmimajor, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=binary,
                     endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
@@ -92,6 +92,3 @@ def Start(savedVersionPath = "Glanz/savings", takeSavedState = "False", step = -
 if __name__ == "__main__":
     Start(takeSavedState="Mesa")
 
-def MakeAMovieFromSavedState(savedVersionPath= "savings/TCE500000" , steps = []):
-    #TODO: do something
-    print "blabla"

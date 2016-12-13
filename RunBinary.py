@@ -51,7 +51,7 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     starEnvelope.velocity += binary.stars[0].velocity
     starCore.velocity += binary.stars[0].velocity
     '''
-    StarModels.SaveState(savedPath, giant.mass, starEnvelope, dmStars, binary.semimajorAxis, sphMetaData)
+    StarModels.SaveState(savedPath, starEnvelope.total_mass() + starCore.mass, starEnvelope, dmStars, binary.semimajorAxis, sphMetaData)
     return starEnvelope, starCore, binary, binary.semimajorAxis, sphMetaData
 
 def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, takeSavedMesa = False):

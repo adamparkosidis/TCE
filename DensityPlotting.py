@@ -289,7 +289,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         #check if the binary is breaking up
         if binary.specificEnergy > 0 | (units.m **2 / units.s **2):
             print "binary is breaking up", binary.specificEnergy
-            break
+            #break
 
 
         if isBinary:
@@ -317,11 +317,6 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
 
             binaryDistances.append(CalculateVectorSize(binary.separation))
             '''
-
-            inclination = CalculateInclination(newBinaryVelocityDifference,newBinarySeparation, [0.0,0.0,0.0] | units.m/units.s, [0.0,0.0,0.0] | units.m)
-            semmimajors.append(semmimajor)
-            eccentricities.append(eccentricity)
-            inclinations.append(inclination)
 
         PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i , outputDir, vmin, vmax)
         PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion, i, outputDir, vmin, vmax)

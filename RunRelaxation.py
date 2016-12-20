@@ -21,6 +21,7 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
     parser = ConfigParser.ConfigParser()
     parser.read(configurationFile)
     sphParticles = float(parser.get("Star", "sphParticles"))
+    MESA.new_particle_from_model()
     if withCoreParticle:
         sphStar = convert_stellar_model_to_SPH(None, sphParticles, pickle_file = mesaPath + "/" + MESA.__name__,
                                                with_core_particle = withCoreParticle, target_core_mass  = coreMass ,
@@ -114,4 +115,19 @@ def Relax(sphEnvelope, sphCore, endTime= 10000 | units.yr, timeSteps = 3 ,
     return gas, dm
 
 if __name__ == "__main__":
+    internal_structure = dict()
+
+    internal_structure['radius'] = 2
+    internal_structure['rho'] =0
+    internal_structure['temperature'] = 0
+    internal_structure['luminosity']=2
+    internal_structure['X_H']=3
+    internal_structure['X_He']=2
+    internal_structure['X_C']=2
+    internal_structure['X_N']=2
+    internal_structure['X_O']=2
+    internal_structure['X_Ne']=2
+    internal_structure['X_Mg']=2
+    internal_structure['X_Si']=2
+    internal_structure['X_Fe']=2
     Run("AGBConfiguration.ini", mesaPath = "../../../BIGDATA/yossef/WDRelaxation/AGB")

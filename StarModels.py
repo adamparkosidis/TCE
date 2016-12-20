@@ -121,12 +121,12 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 ):
     if step > -1:
         starEnvelope= LoadGas(savedVersionPath + "/gas_{0}.amuse".format(step))
         load= LoadDm(savedVersionPath + "/dm_{0}.amuse".format(step))
-        starCore=load[-1]
-        innerBinary = Binary(particles=Particles(2, particles=[load[0], load[1]]))
+        starCore=load[0]
+        innerBinary = Binary(particles=Particles(2, particles=[load[1], load[2]]))
     else:
         starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
         load = LoadDm(savedVersionPath + "/dm.amuse")
-        starCore=load[-1]
+        starCore=load[0]
         innerBinary = Binary(configurationFile, configurationSection="InnerBinary")
         outerBinary = Binary(configurationFile, configurationSection="OuterBinary")
         #fix the position
@@ -163,7 +163,8 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
     if step > -1:
         starEnvelope = LoadGas(savedVersionPath+"/gas_{0}.amuse".format(step))
         load = LoadDm(savedVersionPath + "/dm_{0}.amuse".format(step))
-        starCore=load[-1]
+        print load
+        starCore=load[0]
         starMass = starEnvelope.total_mass() + starCore.mass
         binary = Binary(particles=Particles(2, particles=[load[0], load[1]]))
         sphMetaData = pickle.load(open(savedVersionPath + "/../metaData.p", "rb"))
@@ -172,7 +173,7 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
         load = LoadDm(savedVersionPath + "/dm.amuse")
         binary = Binary(configurationFile, configurationSection="Binary")
         binary.stars.radius = binary.radius
-        starCore=load[-1]
+        starCore=load[0]
         starMass = starEnvelope.total_mass() + starCore.mass
         #changing the mass to the one after relaxation
         binary.stars[0].mass = starMass

@@ -186,6 +186,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
                 StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step), coupledSystem.gas_particles)
                 StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step), coupledSystem.dm_particles)
                 print "state saved - {0}".format(savedVersionPath) + "/" + adding
+                print coupledSystem.dm_particles
                 #TCEPlotting.PlotDensity(hydroSystem.gas_particles,hydroSystem.dm_particles, binarySystem.particles,
                 #                        step=step, plottingPath=savedVersionPath + '/pics/' + adding )
                 currentSecond = time.time()
@@ -255,8 +256,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
 
         #print "\nSetting up Bridge to simulate binary system"
         #coupledSystem = CoupledSystem(hydroSystem, binarySystem, endTime, timeSteps, currentTime, relax=relax)
-        if step == -1:
-            hydroSystem.dm_particles.add_particle(stars.stars[-1])
+        hydroSystem.dm_particles.add_particle(stars.stars[-1])
         coupledSystem = hydroSystem
     else:
         coupledSystem = hydroSystem
@@ -308,6 +308,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
             if savedVersionPath != "":
                 StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step+1), coupledSystem.gas_particles)
                 StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step+1), coupledSystem.dm_particles)
+                print coupledSystem.dm_particles
                 #pickle.dump(StarModels.SphMetaData(coupledSystem.gas_particles),open(savedVersionPath+"/metaData_{0}.p".format(step), 'wb'), pickle.HIGHEST_PROTOCOL)
                 print "state saved - {0}".format(savedVersionPath) + "/" + adding
                 currentSecond = time.time()

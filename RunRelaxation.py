@@ -1,6 +1,9 @@
 import os
 import time
+import ConfigParser
+from amuse.lab import *
 from amuse.units import units , nbody_system
+from amuse.datamodel import Particle
 from amuse.units.units import *
 from amuse.plot import native_plot, sph_particles_plot
 from amuse.ext.star_to_sph import pickle_stellar_model
@@ -10,16 +13,21 @@ from amuse.community.gadget2.interface import Gadget2
 import StarModels
 import EvolveNBody
 
-def Run(configurationFile, mesaPath = ""):
+def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|units.MSun):
     '''
     creating the binary
     :return:main star's mass, the envelope particles, the core particles, the binary stars and the binary semmimajor
     '''
-    giant = StarModels.CreatePointStar(configurationFile, configurationSection="Star")
-
-    sphStar = StarModels.SphStar(giant,configurationFile,configurationSection="Star",
-                                savedMesaStarPath = mesaPath, takeSavedMesa=True)
-
+    parser = ConfigParser.ConfigParser()
+    parser.read(configurationFile)
+    sphParticles = float(parser.get("Star", "sphParticles"))
+    if withCoreParticle:
+        sphStar = convert_stellar_model_to_SPH(None, sphParticles, pickle_file = mesaPath + "/" + MESA.__name__,
+                                               with_core_particle = withCoreParticle, target_core_mass  = coreMass ,
+                                                           do_store_composition = False,base_grid_options=dict(type="fcc"))
+    else:
+        sphStar = convert_stellar_model_to_SPH(None, sphParticles, pickle_file = mesaPath + "/" + MESA.__name__,
+                                                       do_store_composition = False,base_grid_options=dict(type="fcc"))
     print "Now having the sph star and the binaries, ready for relaxing"
     starEnvelope, dmStars = Relax(sphStar.gas_particles, sphStar.core_particle, endTime= sphStar.relaxationTime, timeSteps=sphStar.relaxationTimeSteps ,
         savedVersionPath = "mesaPath", saveAfterMinute = 1, step = -1, sphCode = Gadget2,
@@ -29,12 +37,11 @@ def Run(configurationFile, mesaPath = ""):
     sphMetaData = StarModels.SphMetaData(sphStar)
 
     #saved state
-    StarModels.SaveState(mesaPath, giant.mass, starEnvelope, dmStars,0, sphMetaData)
+    StarModels.SaveState(mesaPath, sphStar.total_mass(), starEnvelope, dmStars,0, sphMetaData)
 
 def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius, numberOfWorkers = 1):
     unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, t_end)
     system = Gadget2(unitConverter, redirection="file", redirect_file="sph_code_out.log", number_of_workers=numberOfWorkers)
-    print "hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"
     system.parameters.begin_time = beginTime
     #if sphCode.__name__ =="Gadget2":
         #system.parameters.number_of_workers = numberOfWorkers
@@ -107,4 +114,4 @@ def Relax(sphEnvelope, sphCore, endTime= 10000 | units.yr, timeSteps = 3 ,
     return gas, dm
 
 if __name__ == "__main__":
-    Run(configurationFile="configuration.ini", mesaPath = "../amuse-master/")
+    Run("AGBConfiguration.ini", mesaPath = "../../../BIGDATA/yossef/WDRelaxation/AGB")

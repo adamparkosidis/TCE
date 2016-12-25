@@ -112,38 +112,50 @@ def SaveDm(savingPath,dms):
     write_set_to_file(dms,savingPath, 'amuse')
 
 
-def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 ):
+def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposite=False):
     '''
     :param savedVersionPath: the path to where you have your saved state
-    :return: the saved system
+    :param opposite: if the main star is in the inner binry and not the outer
+    :return: the saved system- NOTICE that if opposite=True it returns the whole system! (different output)
     '''
     print "using saved state file - {0}".format(savedVersionPath)
     if step > -1:
         starEnvelope= LoadGas(savedVersionPath + "/gas_{0}.amuse".format(step))
         load= LoadDm(savedVersionPath + "/dm_{0}.amuse".format(step))
-        starCore=load[0]
-        innerBinary = Binary(particles=Particles(2, particles=[load[1], load[2]]))
+        starCore=load[-1]
+        innerBinary = Binary(particles=Particles(2, particles=[load[0], load[1]]))
     else:
         starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
         load = LoadDm(savedVersionPath + "/dm.amuse")
-        starCore=load[0]
+        starCore=load[-1]
         innerBinary = Binary(configurationFile, configurationSection="InnerBinary")
         outerBinary = Binary(configurationFile, configurationSection="OuterBinary")
-        #fix the position
-        giant = Particle()
-        giant.mass = starEnvelope.total_mass() + starCore.mass
-        giant.position = outerBinary.semimajorAxis * (1 + outerBinary.eccentricity) * ([1, 0, 0] | units.none)
-        giant.velocity = GetRelativeVelocityAtApastron(
-            giant.mass + innerBinary.stars.total_mass(),
-            outerBinary.semimajorAxis, outerBinary.eccentricity) * ([0, 1, 0] | units.none)
-        triple = innerBinary.stars
-        giantInSet = triple.add_particle(giant)
 
-        triple.move_to_center()
-        innerBinary.stars = triple - giantInSet
-        tripleSemmimajor = outerBinary.semimajorAxis
+        giant = CreatePointStar(configurationFile,configurationSection="MainStar")
+        starMass = starEnvelope.total_mass() + starCore.mass
+        giant.mass = starMass
 
-    starMass = starEnvelope.total_mass() + starCore.mass
+        giant.velocity = (starCore.v*starCore.mass + starEnvelope.center_of_mass_velocity()*starEnvelope.total_mass())/giant.mass
+
+        if opposite:
+            innerBinary.stars[0].mass = starMass
+            vx, vy, vz = starEnvelope.center_of_mass_velocity()
+            starEnvelopeV = (vx, vy, vz)
+            innerBinary.stars[0].velocity = (starEnvelopeV * starEnvelope.total_mass() +
+                              (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass
+
+            sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
+            return starMass, starEnvelope, starCore, innerBinary, outerBinary, sphMetaData
+
+        else:
+            triple = innerBinary.stars
+            giantInSet = triple.add_particle(giant)
+
+            triple.move_to_center()
+            innerBinary.stars = triple - giantInSet
+            tripleSemmimajor = outerBinary.semimajorAxis
+
+
     if step > -1:
         tripleVelocityDifference = BinaryCalculations.CalculateVelocityDifference(innerBinary, giant)
         tripleSeparation = BinaryCalculations.CalculateSeparation(innerBinary, giant)
@@ -177,7 +189,7 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
         starMass = starEnvelope.total_mass() + starCore.mass
         #changing the mass to the one after relaxation
         binary.stars[0].mass = starMass
-	vx, vy, vz = starEnvelope.center_of_mass_velocity()
+        vx, vy, vz = starEnvelope.center_of_mass_velocity()
         starEnvelopeV = (vx, vy, vz)
         print starEnvelopeV * starEnvelope.total_mass() / starMass + (starCore.vx,starCore.vy,starCore.vz)*starCore.mass / starMass
         binary.stars[0].velocity = (starEnvelopeV * starEnvelope.total_mass() +

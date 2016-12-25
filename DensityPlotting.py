@@ -290,6 +290,11 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
             #check if the companion is inside, take into account only the inner mass of the companion's orbit
             sphGiant.CalculateInnerSPH(companion)
             print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
+
+            #check if the binary is breaking up
+            if binary.specificEnergy > 0 | (units.m **2 / units.s **2):
+                print "binary is breaking up", binary.specificEnergy
+            
             newBinaryVelocityDifference = CalculateVelocityDifference(companion, sphGiant.innerGas)
             newBinarySeparation = CalculateSeparation(companion, sphGiant.innerGas)
             newBinaryMass = companion.mass + sphGiant.innerGas.mass

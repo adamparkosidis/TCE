@@ -82,7 +82,7 @@ def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = 
 
 def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | units.yr, timeSteps = 3 ,
         savedVersionPath = "", saveAfterMinute = 1, step = -1, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
-         numberOfWorkers = 1):
+         numberOfWorkers = 1, takeCompanionInRelaxation = True, system=None):
     '''
 
     Args:
@@ -134,13 +134,17 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
 
     if step!= -1:
         currentTime = step * timeStep
-    hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
 
-    print "\nSetting up {0} to simulate triple system".format(dynamicsCode.__name__)
-    binarySystem = DynamicsForBinarySystem(dynamicsCode, semmiMajor, stars.stars)
+    if system is None:
+        hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
+        if not relax or takeCompanionInRelaxation:
+            print "\nSetting up {0} to simulate triple system".format(dynamicsCode.__name__)
+            binarySystem = DynamicsForBinarySystem(dynamicsCode, semmiMajor, stars.stars)
 
-    print "\nSetting up Bridge to simulate triple system"
-    coupledSystem = CoupledSystem(hydroSystem, binarySystem, endTime, timeSteps, currentTime, relax=relax)
+            print "\nSetting up Bridge to simulate triple system"
+            coupledSystem = CoupledSystem(hydroSystem, binarySystem, endTime, timeSteps, currentTime, relax=relax)
+    else: # got it from the outside
+        coupledSystem = system
 
     dm = coupledSystem.dm_particles.copy()
     gas = coupledSystem.gas_particles.copy()
@@ -199,32 +203,32 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
 
 def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | units.yr, timeSteps = 3 ,
         savedVersionPath = "", saveAfterMinute = 0, step = -1, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
-         numberOfWorkers = 1, takeCompanionInRelaxation = True):
+         numberOfWorkers = 1, takeCompanionInRelaxation = True, system=None):
     '''
 
     Args:
-        totalMass:
-        semmiMajor:
-        sphEnvelope:
-        sphCore:
-        stars:the binary stars
-        endTime:
+        totalMass: total sph star mass
+        semmiMajor: semmimajor of the binary
+        sphEnvelope: gas
+        sphCore: core
+        stars: the binary
+        endTime: end of simulation
         timeSteps:
         savedVersionPath:
         saveAfterMinute:
         step:
         relax:
-        sphCode:
-        dynamicsCode:
-        numberOfWorkers:
+        sphCode: default gadget2
+        dynamicsCode: default Huayno
+        numberOfWorkers: not in use
+        takeCompanionInRelaxation: should take the companioin count during relaxation?
+        system: if want to prepare the evolving system from the outside and not use the default one
 
     Returns:
 
     '''
+    #Now check if there is a saved state
 
-    '''
-    Now check if there is a saved state
-    '''
     if relax:
         adding = "relaxation"
     else:
@@ -246,20 +250,16 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
 
     if step!= -1:
         currentTime = step * timeStep
-    #hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, 20.1731812713 | units.RSun, numberOfWorkers)
-    hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
-    if not relax or takeCompanionInRelaxation:
-        #print "\nSetting up {0} to simulate binary system".format(dynamicsCode.__name__)
-        #nbody = nbody_system.nbody_to_si(stars.stars.total_mass(), endTime)
-        #binarySystem = ph4(nbody)
-        #binarySystem.particles.add_particle(stars.stars[-1])
-
-        #print "\nSetting up Bridge to simulate binary system"
-        #coupledSystem = CoupledSystem(hydroSystem, binarySystem, endTime, timeSteps, currentTime, relax=relax)
-        hydroSystem.dm_particles.add_particle(stars.stars[-1])
-        coupledSystem = hydroSystem
+        
+    if system is  None:
+        hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
+        if not relax or takeCompanionInRelaxation:
+            hydroSystem.dm_particles.add_particle(stars.stars[-1])
+            coupledSystem = hydroSystem
+        else:
+            coupledSystem = hydroSystem
     else:
-        coupledSystem = hydroSystem
+        coupledSystem = system
 
     dm = coupledSystem.dm_particles.copy()
     gas = coupledSystem.gas_particles.copy()

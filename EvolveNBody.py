@@ -47,8 +47,7 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     system.parameters.time_limit_cpu = 7200000000 | units.s
     print "core radius before: ", core.radius
     if sphCode.__name__ == "Gadget2":
-        core.radius = core_radius * 2 
-        #core.radius = core_radius
+        core.radius = core_radius * 2
     else:
         core.radius = core_radius
     print "core radius:",core.radius.as_string_in(units.RSun)
@@ -139,7 +138,10 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
         currentTime = step * timeStep
 
     if system is None:
-        hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
+        if step == -1:# the radius of the core is now 10 times the real one becuase of epsilon = 10r_c
+            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
+        else:
+            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/10, numberOfWorkers)
         if not relax or takeCompanionInRelaxation:
             print "\nSetting up {0} to simulate triple system".format(dynamicsCode.__name__)
             binarySystem = DynamicsForBinarySystem(dynamicsCode, semmiMajor, stars.stars)

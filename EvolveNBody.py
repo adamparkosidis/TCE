@@ -153,10 +153,6 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
 
     currentSecond = time.time()
 
-    potential_energies = hydroSystem.potential_energy.as_vector_with_length(1).as_quantity_in(units.J)
-    kinetic_energies = hydroSystem.kinetic_energy.as_vector_with_length(1).as_quantity_in(units.J)
-    thermal_energies = coupledSystem.thermal_energy.as_vector_with_length(1).as_quantity_in(units.J)
-
     print "starting SPH " + adding
     print "evolving from step ", step + 1
     if step ==-1:
@@ -175,10 +171,6 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
             sinks.accrete(coupledSystem.gas_particles)
         coupledSystem.evolve_model(currentTime)
         print "   Evolved to:", currentTime.as_quantity_in(units.day)
-        potential_energies.append(coupledSystem.potential_energy)
-        kinetic_energies.append(coupledSystem.kinetic_energy)
-        thermal_energies.append(coupledSystem.thermal_energy)
-        print "   Energies calculated"
 
         currentTime += timeStep
         if (time.time() - currentSecond) > saveAfterMinute * 60:
@@ -187,14 +179,13 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
                 StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step), coupledSystem.dm_particles)
                 print "state saved - {0}".format(savedVersionPath) + "/" + adding
                 print coupledSystem.dm_particles
-                #TCEPlotting.PlotDensity(hydroSystem.gas_particles,hydroSystem.dm_particles, binarySystem.particles,
-                #                        step=step, plottingPath=savedVersionPath + '/pics/' + adding )
                 currentSecond = time.time()
         dm = coupledSystem.dm_particles.copy()
         gas = coupledSystem.gas_particles.copy()
         if not relax:
             print "masses: ", sinks.mass.as_quantity_in(units.MSun)
     coupledSystem.stop()
+
     return gas, dm
 
 def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | units.yr, timeSteps = 3 ,

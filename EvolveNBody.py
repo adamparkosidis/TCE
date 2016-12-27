@@ -37,10 +37,7 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
         unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*100*2)
     else:
         unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*100)
-    system = sphCode(unitConverter, redirection="file", redirect_file="sph_code_out.log",
-                     cpu_file="cpu_code_out_{0}.txt".format(time.ctime()),
-                     energy_file="energy_out_{0}.txt".format(time.ctime()),
-                     info_file="info_out_{0}.txt".format(time.ctime()))
+    system = sphCode(unitConverter, redirection="file", redirect_file="sph_code_out.log")
     if sphCode.__name__ == "Fi":
         system.parameters.timestep = t_end / n_steps
         system.parameters.eps_is_h_flag = True
@@ -49,6 +46,10 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     print "core radius:",core.radius.as_string_in(units.RSun)
     system.dm_particles.add_particle(core)
     system.gas_particles.add_particles(envelope)
+    system.parameters.timestep_accuracy_parameter = 0.05
+    system.parameters.cpu_file = "cpu_code_out_{0}.txt".format(time.ctime())
+    system.parameters.energy_file = "energy_out_{0}.txt".format(time.ctime())
+    system.parameters.info_file = "info_out_{0}.txt".format(time.ctime())
     print system.dm_particles
     print system.parameters.epsilon_squared
     print system.parameters.gas_epsilon

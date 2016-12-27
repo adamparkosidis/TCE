@@ -37,7 +37,10 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
         unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*100*2)
     else:
         unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*100)
-    system = sphCode(unitConverter, redirection="file", redirect_file="sph_code_out.log")
+    system = sphCode(unitConverter, redirection="file", redirect_file="sph_code_out{0}.log"
+                     .format(time.struct_time.tm_year+"-"+time.struct_time.tm_mon + "-" +
+                             time.struct_time.tm_mday + "-" + time.struct_time.tm_hour + ":" + time.struct_time.tm_min
+                             + ":" + time.struct_time.tm_sec))
     if sphCode.__name__ == "Fi":
         system.parameters.timestep = t_end / n_steps
         system.parameters.eps_is_h_flag = True
@@ -47,9 +50,15 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     system.dm_particles.add_particle(core)
     system.gas_particles.add_particles(envelope)
     system.parameters.timestep_accuracy_parameter = 0.05
-    system.parameters.cpu_file = "cpu_code_out_{0}.txt".format(time.ctime())
-    system.parameters.energy_file = "energy_out_{0}.txt".format(time.ctime())
-    system.parameters.info_file = "info_out_{0}.txt".format(time.ctime())
+    system.parameters.cpu_file = "cpu_code_out_{0}.txt".format(time.struct_time.tm_year+"-"+time.struct_time.tm_mon + "-" +
+                             time.struct_time.tm_mday + "-" + time.struct_time.tm_hour + ":" + time.struct_time.tm_min
+                             + ":" + time.struct_time.tm_sec)
+    system.parameters.energy_file = "energy_out_{0}.txt".format(time.struct_time.tm_year+"-"+time.struct_time.tm_mon + "-" +
+                             time.struct_time.tm_mday + "-" + time.struct_time.tm_hour + ":" + time.struct_time.tm_min
+                             + ":" + time.struct_time.tm_sec)
+    system.parameters.info_file = "info_out_{0}.txt".format(time.struct_time.tm_year+"-"+time.struct_time.tm_mon + "-" +
+                             time.struct_time.tm_mday + "-" + time.struct_time.tm_hour + ":" + time.struct_time.tm_min
+                             + ":" + time.struct_time.tm_sec)
     print system.dm_particles
     print system.parameters.epsilon_squared
     print system.parameters.gas_epsilon

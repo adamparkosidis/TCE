@@ -1,6 +1,8 @@
 import os
 import time
 import ConfigParser
+import sys
+import glob
 from amuse.lab import *
 from amuse.units import units , nbody_system
 from amuse.datamodel import Particle
@@ -21,13 +23,17 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
     parser = ConfigParser.ConfigParser()
     parser.read(configurationFile)
     sphParticles = float(parser.get("Star", "sphParticles"))
-    MESA.new_particle_from_model()
+
+    internal_structure= CreateMesaDictionaryFromFiles(mesaPath)
+    mesa=MESA()
+    mesa.new_particle_from_model(internal_structure)
+
     if withCoreParticle:
-        sphStar = convert_stellar_model_to_SPH(None, sphParticles, pickle_file = mesaPath + "/" + MESA.__name__,
+        sphStar = convert_stellar_model_to_SPH(mesa, sphParticles,
                                                with_core_particle = withCoreParticle, target_core_mass  = coreMass ,
                                                            do_store_composition = False,base_grid_options=dict(type="fcc"))
     else:
-        sphStar = convert_stellar_model_to_SPH(None, sphParticles, pickle_file = mesaPath + "/" + MESA.__name__,
+        sphStar = convert_stellar_model_to_SPH(mesa, sphParticles, 
                                                        do_store_composition = False,base_grid_options=dict(type="fcc"))
     print "Now having the sph star and the binaries, ready for relaxing"
     starEnvelope, dmStars = Relax(sphStar.gas_particles, sphStar.core_particle, endTime= sphStar.relaxationTime, timeSteps=sphStar.relaxationTimeSteps ,
@@ -56,6 +62,21 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     system.dm_particles.add_particle(core)
     system.gas_particles.add_particles(envelope)
     return system
+
+def CreateArrayFromFile(filePath):
+    file = open(filePath,"r")
+    array = file.readlines()
+
+    return array
+
+def CreateMesaDictionaryFromFiles(fileDirectory):
+    internal_structure = dict()
+    files = os.listdir(fileDirectory)
+    for file in files:
+        if os.path.isfile(fileDirectory+"/"+file):
+            internal_structure[str(file)]=CreateArrayFromFile(fileDirectory+"/"+file)
+
+    return internal_structure
 
 def Relax(sphEnvelope, sphCore, endTime= 10000 | units.yr, timeSteps = 3 ,
         savedVersionPath = "", saveAfterMinute = 1, step = -1, sphCode = Gadget2,
@@ -115,19 +136,4 @@ def Relax(sphEnvelope, sphCore, endTime= 10000 | units.yr, timeSteps = 3 ,
     return gas, dm
 
 if __name__ == "__main__":
-    internal_structure = dict()
-
-    internal_structure['radius'] = 2
-    internal_structure['rho'] =0
-    internal_structure['temperature'] = 0
-    internal_structure['luminosity']=2
-    internal_structure['X_H']=3
-    internal_structure['X_He']=2
-    internal_structure['X_C']=2
-    internal_structure['X_N']=2
-    internal_structure['X_O']=2
-    internal_structure['X_Ne']=2
-    internal_structure['X_Mg']=2
-    internal_structure['X_Si']=2
-    internal_structure['X_Fe']=2
     Run("AGBConfiguration.ini", mesaPath = "../../../BIGDATA/yossef/WDRelaxation/AGB")

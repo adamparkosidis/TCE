@@ -19,16 +19,9 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     '''
     binary = StarModels.Binary(configurationFile, configurationSection="Binary")
     binary.stars.radius = binary.radius
-    #nextGiant = binary.stars[0].copy()
-
-    '''#relaxation without velocities and companion
-    binary.stars[0].position=[0.0,0.0,0.0] | units.AU
-    binary.stars[0].velocity = [0.0,0.0,0.0] | units.km/units.s
-    binary.stars[0].y = 0.0 | units.AU
-    binary.stars[0].vx = 0.0 | units.km/units.s
-    binary.stars[0].vz = 0.0 | units.km/units.s'''
     giant = binary.stars[0]
     print "giant: ", giant
+    #create the sph giant
     sphStar = StarModels.SphStar(giant,configurationFile,configurationSection="MainStar",
                                 savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
     print "Now having the sph star and the binaries, ready for relaxing"
@@ -37,20 +30,10 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                              stars=binary, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
                                               numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=5, takeCompanionInRelaxation= False)
-    starCore = dmStars[-1]
+    starCore = dmStars[0]
     starCore.radius = sphStar.core_particle.radius
     sphMetaData = StarModels.SphMetaData(sphStar)
-
-    '''#restor the velocities and saved state
-    print "current: ", binary.stars[0] 
-    binary.stars[0].position =  nextGiant.position
-    binary.stars[0].velocity = nextGiant.velocity
-    print "next: ", binary.stars[0]
-    starEnvelope.position += binary.stars[0].position
-    starCore.position += binary.stars[0].position
-    starEnvelope.velocity += binary.stars[0].velocity
-    starCore.velocity += binary.stars[0].velocity
-    '''
+    #save state after relaxation
     StarModels.SaveState(savedPath, starEnvelope.total_mass() + starCore.mass, starEnvelope, dmStars, binary.semimajorAxis, sphMetaData)
     return starEnvelope, starCore, binary, binary.semimajorAxis, sphMetaData
 

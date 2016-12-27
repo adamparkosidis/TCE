@@ -183,6 +183,7 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
     else:
         starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
         load = LoadDm(savedVersionPath + "/dm.amuse")
+        print load
         binary = Binary(configurationFile, configurationSection="Binary")
         binary.stars.radius = binary.radius
         starCore=load[0]

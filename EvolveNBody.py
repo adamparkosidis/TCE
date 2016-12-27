@@ -34,7 +34,10 @@ def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary):
 
 def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius, numberOfWorkers = 1):
     unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*1000)
-    system = sphCode(unitConverter, redirection="file", redirect_file="sph_code_out.log",cpu_file="cpu_code_out_{0}.txt".format(time.ctime()), energy_file="energy_out_{0}.txt".format(time.ctime()),info_file="info_out_{0}.txt".format(time.ctime()))
+    system = sphCode(unitConverter, redirection="file", redirect_file="sph_code_out.log",
+                     cpu_file="cpu_code_out_{0}.txt".format(time.ctime()),
+                     energy_file="energy_out_{0}.txt".format(time.ctime()),
+                     info_file="info_out_{0}.txt".format(time.ctime()))
     if sphCode.__name__ == "Fi":
         system.parameters.timestep = t_end / n_steps
         system.parameters.eps_is_h_flag = True
@@ -252,7 +255,10 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
         currentTime = step * timeStep
         
     if system is  None:
-        hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
+        if step == -1:
+            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
+        else: # the radius of the core is now 10 times the real one becuase of epsilon = 10r_c
+            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/10, numberOfWorkers)
         if not relax or takeCompanionInRelaxation:
             hydroSystem.dm_particles.add_particle(stars.stars[-1])
             coupledSystem = hydroSystem

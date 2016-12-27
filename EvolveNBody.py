@@ -33,7 +33,10 @@ def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary):
     return system
 
 def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius, numberOfWorkers = 1):
-    unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*1000)
+    if sphCode.__name__ =="Gadget2":
+        unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*100*2)
+    else:
+        unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*100)
     system = sphCode(unitConverter, redirection="file", redirect_file="sph_code_out.log",
                      cpu_file="cpu_code_out_{0}.txt".format(time.ctime()),
                      energy_file="energy_out_{0}.txt".format(time.ctime()),
@@ -42,24 +45,11 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
         system.parameters.timestep = t_end / n_steps
         system.parameters.eps_is_h_flag = True
     system.parameters.begin_time = beginTime
-    #if sphCode.__name__ =="Gadget2":
-        #system.parameters.number_of_workers = numberOfWorkers
     system.parameters.time_limit_cpu = 7200000000 | units.s
-    print "core radius before: ", core.radius
-    if sphCode.__name__ == "Gadget2":
-        core.radius = core_radius * 2
-    else:
-        core.radius = core_radius
     print "core radius:",core.radius.as_string_in(units.RSun)
-    #print "core: ", core
     system.dm_particles.add_particle(core)
     system.gas_particles.add_particles(envelope)
-    #print system.parameters.gas_epsilon
-    #print system.parameters.radius
     print system.dm_particles
-    #print system.particles
-    #print system.parameters.epsilon_squared
-    #system.parameters.epsilon_squared = core_radius ** 2#TODO:check this!
     print system.parameters.epsilon_squared
     print system.parameters.gas_epsilon
     print system.parameters.timestep
@@ -69,7 +59,7 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
 def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = False):
     unitConverter = nbody_system.nbody_to_si(binarySystem.particles.total_mass(), t_end)
     kickerCode = MI6(unitConverter,number_of_workers= 8, redirection='file', redirect_file='kicker_code_mi6_out.log')
-    epsilonSquared = hydroSystem.parameters.epsilon_squared
+    epsilonSquared = (hydroSystem.dm_particles.radius[0]/ 2.8)**2
     kickerCode.parameters.epsilon_squared = epsilonSquared
     kickFromBinary = CalculateFieldForCodesUsingReinitialize(kickerCode, (binarySystem,))
     coupledSystem = Bridge(timestep=(t_end / (2 * n_steps)), verbose=False, use_threading= not relax)

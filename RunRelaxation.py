@@ -25,6 +25,7 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
     sphParticles = float(parser.get("Star", "sphParticles"))
 
     internal_structure= CreateMesaDictionaryFromFiles(mesaPath)
+    internal_structure = AddUnits(internal_structure)
     mesa=MESA()
     mesa.new_particle_from_model(internal_structure)
 
@@ -72,9 +73,27 @@ def CreateArrayFromFile(filePath):
 def CreateMesaDictionaryFromFiles(fileDirectory):
     internal_structure = dict()
     files = os.listdir(fileDirectory)
-    for file in files:
-        if os.path.isfile(fileDirectory+"/"+file):
-            internal_structure[str(file)]=CreateArrayFromFile(fileDirectory+"/"+file)
+    onlyFiles =  [file for file in files if os.path.isfile(fileDirectory+"/"+file)]
+    for file in onlyFiles:
+        internal_structure[str(file)]=CreateArrayFromFile(fileDirectory+"/"+file)
+
+    return internal_structure
+
+def AddUnits(internal_structure):
+    internal_structure['dmass'] = internal_structure['dmass'] | units.kg
+    internal_structure['radius'] = internal_structure['radius'] | units.RSun
+    internal_structure['rho'] = internal_structure['rho'] | units.g/(0.01*units.m)**3
+    internal_structure['temperature'] = internal_structure['temperature'] | units.k
+    internal_structure['luminosity'] = internal_structure['luminosity'] | units.LSun
+    internal_structure['X_H'] = internal_structure['X_H'] | units.mol
+    internal_structure['X_He'] = internal_structure['X_He'] | units.mol
+    internal_structure['X_C'] = internal_structure['X_C'] | units.mol
+    internal_structure['X_N'] = internal_structure['X_N'] | units.mol
+    internal_structure['X_O'] = internal_structure['X_O'] | units.mol
+    internal_structure['X_Ne'] = internal_structure['X_Ne'] | units.mol
+    internal_structure['X_Mg'] = internal_structure['X_Mg'] | units.mol
+    internal_structure['X_Si'] = internal_structure['X_Si'] | units.mol
+    internal_structure['X_Fe'] = internal_structure['X_Fe'] | units.mol
 
     return internal_structure
 

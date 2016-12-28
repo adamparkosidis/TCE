@@ -81,7 +81,7 @@ def CreateMesaDictionaryFromFiles(fileDirectory):
 
 def AddUnits(internal_structure):
     internal_structure['dmass'] = internal_structure['dmass'] | units.MSun
-    internal_structure['radius'] = internal_structure['radius']*(units.RSun/units.cm) | units.cm
+    internal_structure['radius'] = internal_structure['radius'] * 6.957 * 10**10 | units.cm
     internal_structure['rho'] = internal_structure['rho'] | units.g/units.cm **3
     internal_structure['temperature'] = internal_structure['temperature'] | units.K
     internal_structure['luminosity'] = internal_structure['luminosity'] | units.LSun

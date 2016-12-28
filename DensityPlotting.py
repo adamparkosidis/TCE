@@ -345,7 +345,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                        lastStep-int((lastStep-beginStep)/chunkSize)*chunkSize)
     threads = []
     for chunk in chunks[1:]:
-        threads.append(threading._start_new_thread(AnalyzeBinaryChunk,[savingDir,gasFiles,outputDir,chunk, vmin, vmax]))
+        threads.append(threading._start_new_thread(AnalyzeBinaryChunk,(savingDir,gasFiles,outputDir,chunk, vmin, vmax,)))
     AnalyzeBinary(savingDir,gasFiles,dmFiles,outputDir,chunks[0], vmin, vmax)
 
     for chunk in chunks: #combine them

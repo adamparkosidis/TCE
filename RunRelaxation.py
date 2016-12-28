@@ -33,7 +33,7 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
                                                with_core_particle = withCoreParticle, target_core_mass  = coreMass ,
                                                            do_store_composition = False,base_grid_options=dict(type="fcc"))
     else:
-        sphStar = convert_stellar_model_to_SPH(mesa, sphParticles, 
+        sphStar = convert_stellar_model_to_SPH(mesa, sphParticles,
                                                        do_store_composition = False,base_grid_options=dict(type="fcc"))
     print "Now having the sph star and the binaries, ready for relaxing"
     starEnvelope, dmStars = Relax(sphStar.gas_particles, sphStar.core_particle, endTime= sphStar.relaxationTime, timeSteps=sphStar.relaxationTimeSteps ,

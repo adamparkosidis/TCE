@@ -90,7 +90,7 @@ def Start(savedVersionPath = "Glanz/savings", takeSavedState = "False", step = -
     # creating the NBody system with the 3 and evolving
 
     hydroSystem = EvolveNBody.HydroSystem(Gadget2, starEnvelope, starCore, sphMetaData.evolutionTime,
-                                          sphMetaData.evolutionTimeSteps, 0.0 | units.Myr, sphMetaData.core_particle.radius,
+                                          sphMetaData.evolutionTimeSteps, 0.0 | units.Myr, starCore.radius,
                                           sphMetaData.numberOfWorkers)
     #adding the companions
     hydroSystem.dm_particles.add_particle(innerBinary.stars[-1])

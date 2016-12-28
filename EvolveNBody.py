@@ -25,7 +25,7 @@ import StarModels
 def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary):
 
     unitConverter = nbody_system.nbody_to_si(binary.total_mass(), semmiMajor)
-    system = dynamicsCode(unitConverter, redirection="file", redirect_file="dynamics_code_out.log")
+    system = dynamicsCode(unitConverter, redirection="file", redirect_file="dynamics_code_out.log",info_file="info2.txt")
     system.parameters.epsilon_squared = 0 | units.m**2
     system.parameters.inttype_parameter = system.inttypes.SHARED10
     system.parameters.timestep_parameter = 0.2
@@ -67,7 +67,7 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     print system.parameters.epsilon_squared
     print system.parameters.gas_epsilon
     print system.parameters.timestep
-    print "info file: ", system.parameters.info_file
+    print "info file: ", system.parameters.info_file, "output: ", system.parameters.gadget_output_directory
     return system
 
 def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = False):

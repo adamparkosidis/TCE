@@ -79,24 +79,24 @@ def CreateMesaDictionaryFromFiles(fileDirectory):
 
     return internal_structure
 
-def ConvertUnits(list, factor):
-    return [element*factor for element in list]
+def ConvertUnits(listOfElements, factor):
+    return [float(element) * factor for element in listOfElements]
 
 def AddUnits(internal_structure):
     internal_structure['dmass'] = internal_structure['dmass'] | units.MSun
     internal_structure['radius'] = ConvertUnits(internal_structure['radius'], 6.957 * 10**10) | units.cm
     internal_structure['rho'] = internal_structure['rho'] | units.g/units.cm **3
     internal_structure['temperature'] = internal_structure['temperature'] | units.K
-    internal_structure['luminosity'] = internal_structure['luminosity'] | units.LSun
-    internal_structure['X_H'] = internal_structure['X_H'] | units.mol
-    internal_structure['X_He'] = internal_structure['X_He'] | units.mol
-    internal_structure['X_C'] = internal_structure['X_C'] | units.mol
-    internal_structure['X_N'] = internal_structure['X_N'] | units.mol
-    internal_structure['X_O'] = internal_structure['X_O'] | units.mol
-    internal_structure['X_Ne'] = internal_structure['X_Ne'] | units.mol
-    internal_structure['X_Mg'] = internal_structure['X_Mg'] | units.mol
-    internal_structure['X_Si'] = internal_structure['X_Si'] | units.mol
-    internal_structure['X_Fe'] = [0.0 | units.mol for element in internal_structure['X_Si']]
+    internal_structure['luminosity'] = ConvertUnits(internal_structure['luminosity'], 3.826 * 10**33) | units.erg/ units.s
+    internal_structure['X_H'] = internal_structure['X_H'] 
+    internal_structure['X_He'] = internal_structure['X_He']
+    internal_structure['X_C'] = internal_structure['X_C']
+    internal_structure['X_N'] = internal_structure['X_N']
+    internal_structure['X_O'] = internal_structure['X_O']
+    internal_structure['X_Ne'] = internal_structure['X_Ne']
+    internal_structure['X_Mg'] = internal_structure['X_Mg']
+    internal_structure['X_Si'] = internal_structure['X_Si']
+    internal_structure['X_Fe'] = [0.0 for element in internal_structure['X_Si']]
 
     return internal_structure
 
@@ -158,4 +158,4 @@ def Relax(sphEnvelope, sphCore, endTime= 10000 | units.yr, timeSteps = 3 ,
     return gas, dm
 
 if __name__ == "__main__":
-    Run("AGBConfiguration.ini", mesaPath = "../../../BIGDATA/yossef/WDRelaxation/AGB")
+    Run("AGBConfiguration.ini", mesaPath = "../../../BIGDATA/yossef/WDRelaxation/CO")

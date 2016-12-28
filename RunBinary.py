@@ -80,7 +80,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = F
     return [star1Envelope, star2Envelope], [star1Core,star2Core] , binary, binary.semimajorAxis, sph1MetaData
 
 
-def Start(savedVersionPath = "Glanz/Passy/500000/", takeSavedState = "False", step = -1, configurationFile = "Glanz/PassyConfiguration.ini"):
+def Start(savedVersionPath = "Glanz/savings/RGPlanet", takeSavedState = "False", step = -1, configurationFile = "Glanz/savings/RGPlanet/Configuration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -99,10 +99,12 @@ def Start(savedVersionPath = "Glanz/Passy/500000/", takeSavedState = "False", st
             StarModels.TakeBinarySavedState(savedVersionPath, configurationFile, step= -1)
     elif takeSavedState == "Evolve":
         starEnvelope, starCore, binary, semmimajor,sphMetaData = \
-            StarModels.TakeBinarySavedState(savedVersionPath + "/evolution", configurationFile, step)
+            StarModels.TakeBinarySavedState(savedVersionPath + "/evolution", configurationFile, step) 
+        print starCore.radius
     else:
         if takeSavedState == "Mesa":
             starEnvelope, starCore, binary, semmimajor, sphMetaData = CreateBinarySystem(configurationFile, savedVersionPath, takeSavedMesa= True)
+            print starCore
         else:
             starEnvelope, starCore, binary, semmimajor, sphMetaData = CreateBinarySystem(configurationFile, savedVersionPath)
 
@@ -116,4 +118,4 @@ def Start(savedVersionPath = "Glanz/Passy/500000/", takeSavedState = "False", st
     print "****************** Simulation Completed ******************"
 
 if __name__ == "__main__":
-    Start(takeSavedState="Evolve", step=402)
+    Start(takeSavedState="True")

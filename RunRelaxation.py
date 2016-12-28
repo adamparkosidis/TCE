@@ -26,8 +26,9 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
 
     internal_structure= CreateMesaDictionaryFromFiles(mesaPath)
     internal_structure = AddUnits(internal_structure)
+    stellarModel = derive_stellar_structure(internal_structure)
     mesa=MESA()
-    mesa.new_particle_from_model(internal_structure)
+    mesa.new_particle_from_model(stellarModel)
 
     if withCoreParticle:
         sphStar = convert_stellar_model_to_SPH(mesa, sphParticles,
@@ -37,7 +38,7 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
         sphStar = convert_stellar_model_to_SPH(mesa, sphParticles,
                                                        do_store_composition = False,base_grid_options=dict(type="fcc"))
     print "Now having the sph star and the binaries, ready for relaxing"
-    starEnvelope, dmStars = Relax(sphStar.gas_particles, sphStar.core_particle, endTime= sphStar.relaxationTime, timeSteps=sphStar.relaxationTimeSteps ,
+    starEnvelope, dmStars = Relax(sphStar.gas_particles, sphStar.core_particle, endTime= sphStar.relaxationTime, timeSteps=sphStar.relaxationTimeSteps,
         savedVersionPath = "mesaPath", saveAfterMinute = 1, step = -1, sphCode = Gadget2,
           numberOfWorkers = sphStar.numberOfWorkers)
     starCore = dmStars[-1]
@@ -64,6 +65,25 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     system.gas_particles.add_particles(envelope)
     return system
 
+def derive_stellar_structure(internal_structure):
+        stellar_model = Grid()
+        stellar_model.dmass = internal_structure['dmass']
+        stellar_model.mass = stellar_model.dmass.accumulate()
+        stellar_model.rho = internal_structure['rho']
+        stellar_model.radius = internal_structure['radius']
+        stellar_model.temperature = internal_structure['temperature']
+        stellar_model.luminosity = internal_structure['luminosity']
+        setattr(stellar_model, 'X_H', internal_structure['X_H'])
+        setattr(stellar_model, 'X_He', internal_structure['X_He'])
+        setattr(stellar_model, 'X_C', internal_structure['X_C'])
+        setattr(stellar_model, 'X_N', internal_structure['X_N'])
+        setattr(stellar_model, 'X_O', internal_structure['X_O'])
+        setattr(stellar_model, 'X_Ne', internal_structure['X_Ne'])
+        setattr(stellar_model, 'X_Mg', internal_structure['X_Mg'])
+        setattr(stellar_model, 'X_Si', internal_structure['X_Si'])
+        setattr(stellar_model, 'X_Fe', numpy.zeros(len(stellar_model.dmass)))
+        return stellar_model
+
 def CreateArrayFromFile(filePath):
     file = open(filePath,"r")
     array = file.readlines()
@@ -81,6 +101,7 @@ def CreateMesaDictionaryFromFiles(fileDirectory):
 
 def ConvertUnits(listOfElements, factor):
     return [float(element) * factor for element in listOfElements]
+
 
 def AddUnits(internal_structure):
     internal_structure['dmass'] = internal_structure['dmass'] | units.MSun

@@ -7,6 +7,7 @@ from amuse.lab import *
 from amuse.units import units , nbody_system
 from amuse.datamodel import Particle
 from amuse.units.units import *
+from amuse.ext.sph_to_star import *
 from amuse.plot import native_plot, sph_particles_plot
 from amuse.ext.star_to_sph import pickle_stellar_model
 from amuse.datamodel import Particles
@@ -23,7 +24,6 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
     parser = ConfigParser.ConfigParser()
     parser.read(configurationFile)
     sphParticles = float(parser.get("Star", "sphParticles"))
-
     internal_structure= CreateMesaDictionaryFromFiles(mesaPath)
     internal_structure = AddUnits(internal_structure)
     stellarModel = derive_stellar_structure(internal_structure)
@@ -179,4 +179,4 @@ def Relax(sphEnvelope, sphCore, endTime= 10000 | units.yr, timeSteps = 3 ,
     return gas, dm
 
 if __name__ == "__main__":
-    Run("AGBConfiguration.ini", mesaPath = "../../../BIGDATA/yossef/WDRelaxation/CO")
+    Run("Configuration.ini", mesaPath = "WDCO")

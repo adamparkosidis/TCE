@@ -1,6 +1,7 @@
 import os
 import os.path
 import sys
+import threading
 import shutil
 import math
 import pickle
@@ -254,19 +255,15 @@ def PlotBinaryDistance(distances, outputDir, beginTime = 0):
     for d in distances:
         if d[0]:
             Plot1Axe(d[0], d[1], outputDir)
-def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax):
-    binaryDistances = AdaptingVectorQuantity()
-    semmimajors = AdaptingVectorQuantity()
-    eccentricities = []
-    inclinations = []
-    separationTime = 0
-    if lastStep == 0 : # no boundary on last step
-        lastStep = len(dmFiles)
-    print lastStep
-    for i in xrange(beginStep,lastStep,1):
+
+def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax):
+    for i in chunk:
         print "step #",i
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i])
         dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i])
+        binaryDistances = AdaptingVectorQuantity()
+        semmimajors = AdaptingVectorQuantity()
+        eccentricities = []
         sphGiant = SphGiant(gas_particles_file, dm_particles_file)
         try:
             binary = LoadBinaries(dm_particles_file)
@@ -277,7 +274,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         #print binary
         if len(binary) > 1:
             isBinary= True
-            binary = Star(companion, sphGiant)            
+            binary = Star(companion, sphGiant)
         else:
             isBinary=False
             binary = Star(sphGiant, sphGiant)
@@ -294,7 +291,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
             #check if the binary is breaking up
             if binary.specificEnergy > 0 | (units.m **2 / units.s **2):
                 print "binary is breaking up", binary.specificEnergy
-            
+
             newBinaryVelocityDifference = CalculateVelocityDifference(companion, sphGiant.innerGas)
             newBinarySeparation = CalculateSeparation(companion, sphGiant.innerGas)
             newBinaryMass = companion.mass + sphGiant.innerGas.mass
@@ -310,32 +307,66 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                 print "binary is breaking up", binary.specificEnergy
                 #break
 
-
             print "semmimajor: ",semmimajor," eccentricity: ",eccentricity, "separation: ",CalculateVectorSize(newBinarySeparation).as_quantity_in(units.RSun)
-            
+
             print newBinarySeparation
-            '''
-            semmimajor = CalculateSemiMajor(binary.velocityDifference, binary.separation, binary.mass).as_quantity_in(units.AU)
-            eccentricity = CalculateEccentricity(companion, sphGiant, semmimajor)
-            print eccentricity
-            inclination = CalculateInclination(binary.velocityDifference, binary.separation, [0.0,0.0,0.0] | units.m/units.s, [0.0,0.0,0.0] | units.m)
+            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i , outputDir, vmin, vmax)
+            PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion, i, outputDir, vmin, vmax)
 
-            binaryDistances.append(CalculateVectorSize(binary.separation))
-            '''
+            binaryDistancesFile = open(savingDir+"InnerBinaryDistances{0}".format(chunk[0]),"w")
+            binaryDistancesFile.writelines(binaryDistances)
+            binaryDistancesFile.close()
+            semmimajorsFile = open(savingDir+"aInners{0}".format(chunk[0]),"w")
+            semmimajorsFile.writelines(semmimajors)
+            semmimajorsFile.close()
+            eccentricitiesFile = open(savingDir+"eInners{0}".format(chunk[0]),"w")
+            eccentricitiesFile.writelines(eccentricities)
+            eccentricitiesFile.close()
 
-        PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i , outputDir, vmin, vmax)
-        PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion, i, outputDir, vmin, vmax)
+            #close opened handles
+            for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
+                try:
+                    f.close()
+                except:
+                    pass
 
-        #close opened handles
-        for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
-            try:
-                f.close()
-            except:
-                pass
+def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax):
+    binaryDistances = AdaptingVectorQuantity()
+    semmimajors = AdaptingVectorQuantity()
+    eccentricities = []
+    inclinations = []
+    separationTime = 0
+    if lastStep == 0 : # no boundary on last step
+        lastStep = len(dmFiles)
+    print lastStep
+    chunkSize= 5
+    chunks = [xrange(i,i+chunkSize) for i in xrange(beginStep,lastStep,chunkSize)]
+    chunks[-1]= xrange(int((lastStep-beginStep)/chunkSize)*chunkSize,int((lastStep-beginStep)/chunkSize)*chunkSize +
+                       lastStep-int((lastStep-beginStep)/chunkSize)*chunkSize)
+    threads = []
+    for chunk in chunks[1:]:
+        threads.append(threading._start_new_thread(AnalyzeBinaryChunk,[savingDir,gasFiles,outputDir,chunk, vmin, vmax]))
+    AnalyzeBinary(savingDir,gasFiles,dmFiles,outputDir,chunks[0], vmin, vmax)
+
+    for chunk in chunks: #combine them
+        binaryDistancesFile = open(savingDir + "/InnerBinaryDistances{0}".format(chunk[0]),"r")
+        binaryDistances.append(binaryDistancesFile.readlines())
+        binaryDistancesFile.close()
+        os.remove(binaryDistancesFile)
+        semmimajorsFile = open(savingDir + "/aInners{0}".format(chunk[0]),"r")
+        semmimajors.append(semmimajorsFile.readlines())
+        semmimajorsFile.close()
+        os.remove(semmimajorsFile)
+        eccentricitiesFile = open(savingDir + "/eInners{0}".format(chunk[0]),"r")
+        eccentricities.append(eccentricitiesFile.readlines())
+        eccentricitiesFile.close()
+        os.remove(eccentricitiesFile)
 
     PlotBinaryDistance([(binaryDistances, "InnerBinaryDistances")], outputDir + "/graphs")
     PlotSemiMajorAxis([(semmimajors,"aInners")], outputDir+"/graphs")
     PlotEccentricity([(eccentricities, "eInners")], outputDir + "/graphs")
+
+
 
 def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax ):
     particle2x = []

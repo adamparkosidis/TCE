@@ -80,7 +80,7 @@ def CreateMesaDictionaryFromFiles(fileDirectory):
     return internal_structure
 
 def AddUnits(internal_structure):
-    internal_structure['dmass'] = internal_structure['dmass'] | units.kg
+    internal_structure['dmass'] = internal_structure['dmass'] | units.Msun
     internal_structure['radius'] = internal_structure['radius'] | units.RSun
     internal_structure['rho'] = internal_structure['rho'] | units.g/units.cm **3
     internal_structure['temperature'] = internal_structure['temperature'] | units.K
@@ -93,8 +93,8 @@ def AddUnits(internal_structure):
     internal_structure['X_Ne'] = internal_structure['X_Ne'] | units.mol
     internal_structure['X_Mg'] = internal_structure['X_Mg'] | units.mol
     internal_structure['X_Si'] = internal_structure['X_Si'] | units.mol
-    internal_structure['X_Fe'] = internal_structure['X_Fe'] | units.mol
-
+    internal_structure['X_Fe'] = [0.0 | units.mol for element in internal_structure['X_Si']]
+    
     return internal_structure
 
 def Relax(sphEnvelope, sphCore, endTime= 10000 | units.yr, timeSteps = 3 ,

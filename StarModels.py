@@ -134,9 +134,10 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
         giant = CreatePointStar(configurationFile,configurationSection="MainStar")
         starMass = starEnvelope.total_mass() + starCore.mass
         giant.mass = starMass
-
-        giant.velocity = ((starCore.vx, starCore.vy, starCore.vz)*starCore.mass +
-                          starEnvelope.center_of_mass_velocity()*starEnvelope.total_mass()) / giant.mass
+        vx, vy, vz = starEnvelope.center_of_mass_velocity()
+        starEnvelopeV = (vx, vy, vz)
+        giant.velocity = (starEnvelopeV * starEnvelope.total_mass() +
+                          (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass
 
         if opposite:
             innerBinary.stars[0].mass = starMass

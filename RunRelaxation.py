@@ -10,6 +10,7 @@ from amuse.units.units import *
 from amuse.ext.sph_to_star import *
 from amuse.plot import native_plot, sph_particles_plot
 from amuse.ext.star_to_sph import pickle_stellar_model
+from amuse.ext.sph_to_star import *
 from amuse.datamodel import Particles
 from amuse.io import read_set_from_file
 from amuse.community.gadget2.interface import Gadget2
@@ -27,6 +28,10 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
     internal_structure= CreateMesaDictionaryFromFiles(mesaPath)
     internal_structure = AddUnits(internal_structure)
     stellarModel = derive_stellar_structure(internal_structure)
+    #gas = StarModels.LoadGas("/BIGDATA/code/amuse-10.0/Glanz/Passy/100000/envelope.amuse")
+    #gas.mu = [1.0 |units.g for part in gas.mass]
+    #print gas
+    #testModel = convert_SPH_to_stellar_model(StarModels.LoadGas("/BIGDATA/code/amuse-10.0/Glanz/Passy/100000/envelope.amuse"))
     mesa=MESA()
     mesa.new_particle_from_model(stellarModel)
 
@@ -68,7 +73,7 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
 def derive_stellar_structure(internal_structure):
         stellar_model = Grid()
         stellar_model.dmass = internal_structure['dmass']
-        stellar_model.mass = stellar_model.dmass.accumulate()
+        #stellar_model.mass = stellar_model.dmass.accumulate()
         stellar_model.rho = internal_structure['rho']
         stellar_model.radius = internal_structure['radius']
         stellar_model.temperature = internal_structure['temperature']

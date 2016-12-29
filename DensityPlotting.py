@@ -356,13 +356,16 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
             return
         else:
             chunkSize = 1
+
     chunks = [xrange(i,i+chunkSize) for i in xrange(beginStep,lastStep,chunkSize)]
     chunks[-1]= xrange(int((lastStep-beginStep)/chunkSize)*chunkSize,int((lastStep-beginStep)/chunkSize)*chunkSize +
                        lastStep-int((lastStep-beginStep)/chunkSize)*chunkSize)
+    pool = multiprocessing.Pool(multiprocessing.cpu_count())
     processes = []
     print chunks
     for chunk in chunks:
-        processes.append(multiprocessing.Process(target= AnalyzeBinaryChunk,args=(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax,binaryDistances, semmimajors, eccentricities,)))
+        #processes.append(multiprocessing.Process(target= AnalyzeBinaryChunk,args=(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax,binaryDistances, semmimajors, eccentricities,)))
+        pool.map()
     for p in processes:
         p.start()
     for p in processes:
@@ -383,7 +386,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         eccentricitiesFile.close()
         os.remove(eccentricitiesFile)
     '''
-    binaryDistances = [distance | units.RSun for distance in binaryDistances]
+    binaryDistances = AdaptingVectorQuantity([distance | units.RSun for distance in binaryDistances])
     semmimajors = [semmimajor | units.AU for semmimajor in semmimajors]
     PlotBinaryDistance([(binaryDistances, "InnerBinaryDistances")], outputDir + "/graphs")
     PlotSemiMajorAxis([(semmimajors ,"aInners")], outputDir+"/graphs")

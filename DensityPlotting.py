@@ -377,8 +377,10 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         eccentricitiesFile.close()
         os.remove(eccentricitiesFile)
     '''
-    PlotBinaryDistance([(binaryDistances | units.RSun, "InnerBinaryDistances")], outputDir + "/graphs")
-    PlotSemiMajorAxis([(semmimajors | units.AU,"aInners")], outputDir+"/graphs")
+    binaryDistances = [distance | units.RSun for distance in binaryDistances]
+    semmimajors = [semmimajor | units.AU for semmimajor in semmimajors]
+    PlotBinaryDistance([(binaryDistances, "InnerBinaryDistances")], outputDir + "/graphs")
+    PlotSemiMajorAxis([(semmimajors ,"aInners")], outputDir+"/graphs")
     PlotEccentricity([(eccentricities, "eInners")], outputDir + "/graphs")
 
 

@@ -238,6 +238,7 @@ def Plot1Axe(x, fileName, outputDir, beginTime = 0):
     timeStep = 1400.0/7000.0
     timeLine = [beginTime + time * timeStep for time in xrange(len(x))] | units.day
     native_plot.figure(figsize= (20, 20), dpi= 80)
+    print x
     plot(timeLine,x)
     xlabel('time[days]')
     native_plot.savefig(outputDir + '/' + fileName + '.jpg')
@@ -350,6 +351,11 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         eccentricities.append(0)
     '''
     chunkSize= (lastStep-beginStep)/multiprocessing.cpu_count()
+    if chunkSize == 0:
+        if lastStep - beginStep == 0:
+            return
+        else:
+            chunkSize = 1
     chunks = [xrange(i,i+chunkSize) for i in xrange(beginStep,lastStep,chunkSize)]
     chunks[-1]= xrange(int((lastStep-beginStep)/chunkSize)*chunkSize,int((lastStep-beginStep)/chunkSize)*chunkSize +
                        lastStep-int((lastStep-beginStep)/chunkSize)*chunkSize)

@@ -238,7 +238,6 @@ def Plot1Axe(x, fileName, outputDir, beginTime = 0):
     timeStep = 1400.0/7000.0
     timeLine = [beginTime + time * timeStep for time in xrange(len(x))] | units.day
     native_plot.figure(figsize= (20, 20), dpi= 80)
-    print x
     plot(timeLine,x)
     xlabel('time[days]')
     native_plot.savefig(outputDir + '/' + fileName + '.jpg')
@@ -358,14 +357,14 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
             chunkSize = 1
 
     chunks = [xrange(i,i+chunkSize) for i in xrange(beginStep,lastStep,chunkSize)]
-    chunks[-1]= xrange(int((lastStep-beginStep)/chunkSize)*chunkSize,int((lastStep-beginStep)/chunkSize)*chunkSize +
+    chunks[-1]= xrange(int((lastStep-beginStep)/chunkSize)*chunkSize-1,int((lastStep-beginStep)/chunkSize)*chunkSize +
                        lastStep-int((lastStep-beginStep)/chunkSize)*chunkSize)
-    pool = multiprocessing.Pool(multiprocessing.cpu_count())
+    #pool = multiprocessing.Pool(multiprocessing.cpu_count())
     processes = []
     print chunks
     for chunk in chunks:
-        #processes.append(multiprocessing.Process(target= AnalyzeBinaryChunk,args=(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax,binaryDistances, semmimajors, eccentricities,)))
-        pool.map()
+        processes.append(multiprocessing.Process(target= AnalyzeBinaryChunk,args=(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax,binaryDistances, semmimajors, eccentricities,)))
+        #pool.map()
     for p in processes:
         p.start()
     for p in processes:
@@ -386,10 +385,14 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         eccentricitiesFile.close()
         os.remove(eccentricitiesFile)
     '''
-    binaryDistances = AdaptingVectorQuantity([distance | units.RSun for distance in binaryDistances])
-    semmimajors = [semmimajor | units.AU for semmimajor in semmimajors]
-    PlotBinaryDistance([(binaryDistances, "InnerBinaryDistances")], outputDir + "/graphs")
-    PlotSemiMajorAxis([(semmimajors ,"aInners")], outputDir+"/graphs")
+    #binaryDistances = AdaptingVectorQuantity([float(distance) | units.RSun for distance in binaryDistances])
+    newBinaryDistances = AdaptingVectorQuantity()
+    newSemmimajors = AdaptingVectorQuantity()
+    for j in xrange(len(binaryDistances)):
+        newBinaryDistances.append(float(binaryDistances[j]) | units.RSun)
+        newSemmimajors.append(float(semmimajors[j]) | units.AU)
+    PlotBinaryDistance([(newBinaryDistances, "InnerBinaryDistances")], outputDir + "/graphs")
+    PlotSemiMajorAxis([(newSemmimajors ,"aInners")], outputDir+"/graphs")
     PlotEccentricity([(eccentricities, "eInners")], outputDir + "/graphs")
 
 

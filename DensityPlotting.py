@@ -503,7 +503,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
             chunkSize = 1
 
     chunks = [xrange(i,i+chunkSize) for i in xrange(beginStep,lastStep,chunkSize)]
-    chunks[-1]= xrange(int((lastStep-beginStep)/chunkSize)*chunkSize-1,int((lastStep-beginStep)/chunkSize)*chunkSize +
+    chunks[-1]= xrange(int((lastStep-beginStep)/chunkSize)*chunkSize + beginStep - 1, int((lastStep-beginStep)/chunkSize)*chunkSize +
                        lastStep-int((lastStep-beginStep)/chunkSize)*chunkSize)
     processes = []
     print chunks

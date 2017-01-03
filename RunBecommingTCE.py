@@ -26,13 +26,12 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     #now setting up the giant (want it to be relaxed and spinning)
     outerBinary = StarModels.Binary(configurationFile, configurationSection="OuterBinary")
 
-    triple = innerBinary.stars
-    giantInSet = triple.add_particle(giant)
+    outerBinary.stars[0].position = innerBinary.stars.center_of_mass()
+    giant.position = outerBinary.stars[0].position
+    outerBinary.stars[0].velocity = innerBinary.stars.center_of_mass_velocity()
+    outerBinary.stars[1].y = outerBinary.semimajorAxis + outerBinary.stars[0].position
 
-    triple.move_to_center()
-    innerBinary.stars = triple - giantInSet
-
-    sphStar = StarModels.SphStar(giantInSet,configurationFile,configurationSection="MainStar",
+    sphStar = StarModels.SphStar(giant,configurationFile,configurationSection="MainStar",
                                 savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
 
     print "Now having the sph star and the binaries, ready for relaxing"
@@ -44,9 +43,10 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     hydroSystem.dm_particles.add_particle(innerBinary.stars[-1])
     hydroSystem.dm_particles.add_particle(outerBinary.stars[-1])
 
-    starEnvelope, dmStars = EvolveNBody.Run(totalMass= giantInSet.mass + innerBinary.stars.total_mass(),
+    print hydroSystem.dm_particles
+    starEnvelope, dmStars = EvolveNBody.Run(totalMass= outerBinary.stars.total_mass(),
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
-                                             stars=innerBinary, endTime= sphStar.relaxationTime,
+                                             stars=None, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
                                               numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath,
                                             saveAfterMinute=10, system=hydroSystem)

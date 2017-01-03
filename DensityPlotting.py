@@ -308,7 +308,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax,bi
                 print "binary is breaking up", binary.specificEnergy
                 #break
 
-            #print "semmimajor: ",semmimajor," eccentricity: ",eccentricity, "separation: ",CalculateVectorSize(newBinarySeparation).as_quantity_in(units.RSun)
+            print "semmimajor: ",semmimajors[i], "eccentricity: ",eccentricities[i], "separation: ", binaryDistances[i]
 
             #print newBinarySeparation
             PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i , outputDir, vmin, vmax)

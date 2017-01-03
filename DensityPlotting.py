@@ -308,7 +308,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax,bi
                 print "binary is breaking up", binary.specificEnergy
                 #break
 
-            print "semmimajor: ",semmimajors[i], "eccentricity: ",eccentricities[i], "separation: ", binaryDistances[i]
+            #print "semmimajor: ",semmimajors[i], "eccentricity: ",eccentricities[i], "separation: ", binaryDistances[i]
 
             #print newBinarySeparation
             PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i , outputDir, vmin, vmax)
@@ -322,7 +322,8 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax,bi
 
 def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vmax,
                        binaryDistances, triple1Distances, triple2Distances,
-                       aInners, aOuters, aOuters1, aOuters2, eInners, eOuters, eOuters1, eOuters2, inclinations):
+                       aInners, aOuters, aOuters1, aOuters2,
+                       eInners, eOuters, eOuters1, eOuters2, inclinations, separationTime):
 
     for i in chunk:
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i])
@@ -438,9 +439,9 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     if lastStep == 0 : # no boundary on last step
         lastStep = len(dmFiles)
     print lastStep
-    binaryDistances = multiprocessing.Array('f',range(beginStep,lastStep))
-    semmimajors = multiprocessing.Array('f',range(beginStep,lastStep))
-    eccentricities = multiprocessing.Array('f',range(beginStep,lastStep))
+    binaryDistances = multiprocessing.Array('f', range(beginStep, lastStep))
+    semmimajors = multiprocessing.Array('f', range(beginStep, lastStep))
+    eccentricities = multiprocessing.Array('f', range(beginStep, lastStep))
 
     chunkSize= (lastStep-beginStep)/multiprocessing.cpu_count()
     if chunkSize == 0:
@@ -463,10 +464,9 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     for p in processes:
         p.join()
 
-    #binaryDistances = AdaptingVectorQuantity([float(distance) | units.RSun for distance in binaryDistances])
     newBinaryDistances = AdaptingVectorQuantity()
     newSemmimajors = AdaptingVectorQuantity()
-    for j in xrange(len(binaryDistances)):
+    for j in xrange(len(binaryDistances) -1):
         newBinaryDistances.append(float(binaryDistances[j]) | units.RSun)
         newSemmimajors.append(float(semmimajors[j]) | units.AU)
     PlotBinaryDistance([(newBinaryDistances, "InnerBinaryDistances")], outputDir + "/graphs")
@@ -476,23 +476,23 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
 
 
 def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax ):
-    separationTime = 0
+    separationTime = multiprocessing.Value('f')
     if lastStep == 0 : # no boundary on last step
         lastStep = len(dmFiles)
     print lastStep
 
-    binaryDistances = multiprocessing.Array('f',lastStep - beginStep)
-    triple1Distances = multiprocessing.Array('f',lastStep - beginStep)
-    triple2Distances = multiprocessing.Array('f',lastStep - beginStep)
-    aInners = multiprocessing.Array('f',lastStep - beginStep)
-    aOuters = multiprocessing.Array('f',lastStep - beginStep)
-    aOuters1 = multiprocessing.Array('f',lastStep - beginStep) # for the couple particle1 + giant
-    aOuters2 = multiprocessing.Array('f',lastStep - beginStep) # for the couple particle2 + giant
-    eInners = multiprocessing.Array('f',lastStep - beginStep)
-    eOuters = multiprocessing.Array('f',lastStep - beginStep)
-    eOuters1 = multiprocessing.Array('f',lastStep - beginStep) # for the couple particle1 + giant
-    eOuters2 = multiprocessing.Array('f',lastStep - beginStep) # for the couple particle2 + giant
-    inclinations = multiprocessing.Array('f',lastStep - beginStep)
+    binaryDistances = multiprocessing.Array('f', range(beginStep, lastStep))
+    triple1Distances = multiprocessing.Array('f', range(beginStep, lastStep))
+    triple2Distances = multiprocessing.Array('f', range(beginStep, lastStep))
+    aInners = multiprocessing.Array('f', range(beginStep, lastStep))
+    aOuters = multiprocessing.Array('f', range(beginStep, lastStep))
+    aOuters1 = multiprocessing.Array('f', range(beginStep, lastStep)) # for the couple particle1 + giant
+    aOuters2 = multiprocessing.Array('f', range(beginStep, lastStep)) # for the couple particle2 + giant
+    eInners = multiprocessing.Array('f', range(beginStep, lastStep))
+    eOuters = multiprocessing.Array('f', range(beginStep, lastStep))
+    eOuters1 = multiprocessing.Array('f', range(beginStep, lastStep)) # for the couple particle1 + giant
+    eOuters2 = multiprocessing.Array('f', range(beginStep, lastStep)) # for the couple particle2 + giant
+    inclinations = multiprocessing.Array('f', range(beginStep, lastStep))
 
     chunkSize= (lastStep-beginStep)/multiprocessing.cpu_count()
     if chunkSize == 0:
@@ -509,16 +509,33 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     for chunk in chunks:
         processes.append(multiprocessing.Process(target= AnalyzeTripleChunk,args=(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vmax,
                        binaryDistances, triple1Distances, triple2Distances,
-                       aInners, aOuters, aOuters1, aOuters2, eInners, eOuters, eOuters1, eOuters2, inclinations, )))
+                       aInners, aOuters, aOuters1, aOuters2,
+                       eInners, eOuters, eOuters1, eOuters2, inclinations, separationTime, )))
     for p in processes:
         p.start()
     for p in processes:
         p.join()
 
-    PlotBinaryDistance([(binaryDistances, "InnerBinaryDistances"), (triple1Distances, "triple1Distances"),
-                        (triple2Distances, "triple2Distances")], outputDir + "/graphs")
-    PlotSemiMajorAxis([(aInners,"aInners"),(aOuters, "aOuters")], outputDir+"/graphs")
-    PlotSemiMajorAxis([(aOuters1, "aOuters1"), (aOuters2, "aOuters2")], outputDir+ "/graphs", separationTime)
+    newBinaryDistances = AdaptingVectorQuantity()
+    newTriple1Distances = AdaptingVectorQuantity()
+    newTriple2Distances = AdaptingVectorQuantity()
+    newAInners = AdaptingVectorQuantity()
+    newAOuters = AdaptingVectorQuantity()
+    newAOuters1 = AdaptingVectorQuantity()
+    newAOuters2 = AdaptingVectorQuantity()
+    for j in xrange(len(binaryDistances)-1):
+        newBinaryDistances.append(float(binaryDistances[j]) | units.RSun)
+        newTriple1Distances.append(float(triple1Distances[j]) | units.RSun)
+        newTriple2Distances.append(float(triple2Distances[j]) | units.RSun)
+        newAInners.append(float(aInners[j]) | units.AU)
+        newAOuters.append(float(aOuters[j]) | units.AU)
+        newAOuters1.append(float(aOuters1[j]) | units.AU)
+        newAOuters2.append(float(aOuters2[j]) | units.AU)
+
+    PlotBinaryDistance([(newBinaryDistances, "InnerBinaryDistances"), (newTriple1Distances, "triple1Distances"),
+                        (newTriple2Distances, "triple2Distances")], outputDir + "/graphs")
+    PlotSemiMajorAxis([(newAInners,"aInners"),(newAOuters, "aOuters")], outputDir+"/graphs")
+    PlotSemiMajorAxis([(newAOuters1, "aOuters1"), (newAOuters2, "aOuters2")], outputDir+ "/graphs", separationTime)
     PlotEccentricity([(eInners, "eInners"), (eOuters, "eOuters")], outputDir + "/graphs")
     PlotEccentricity([(eOuters1, "eOuters1"), (eOuters2, "eOuters2")],outputDir + "/graphs", separationTime)
     Plot1Axe(inclinations,"inclinations", outputDir+"/graphs")

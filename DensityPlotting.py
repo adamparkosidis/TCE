@@ -257,8 +257,8 @@ def PlotBinaryDistance(distances, outputDir, beginTime = 0):
         if d[0]:
             Plot1Axe(d[0], d[1], outputDir)
 
-def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax,binaryDistances,semmimajors,eccentricities):
-    for i in chunk:
+def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, beginStep, binaryDistances,semmimajors,eccentricities):
+    for i in [j - beginStep for j in chunk]:
         #print "step #",i
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i])
         dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i])
@@ -320,12 +320,12 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax,bi
         except:
             pass
 
-def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vmax,
+def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vmax, beginStep,
                        binaryDistances, triple1Distances, triple2Distances,
                        aInners, aOuters, aOuters1, aOuters2,
                        eInners, eOuters, eOuters1, eOuters2, inclinations, separationTime):
 
-    for i in chunk:
+    for i in [j - beginStep for j in chunk]:
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i])
         dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i])
 
@@ -335,7 +335,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         binary = LoadBinaries(dm_particles_file)
         #print binary
 
-        particle1 , particle2 = binary[1] , binary[2]
+        particle1 , particle2 = binary[0] , binary[1]
 
         innerBinary = Star(particle1,particle2)
         triple1 = Star(particle1, sphGiant)
@@ -377,9 +377,9 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
 
                     aOuter1 = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass)
                     eOuter1 = CalculateEccentricity(particle2, sphGiant.innerGas, aOuter1)
-                    aOuters1.append(aOuter1)
-                    eOuters1.append(eOuter1)
-                    triple2Distances.append(CalculateVectorSize(newBinarySeparation))
+                    aOuters1[i] = aOuter1.value_in(units.AU)
+                    eOuters1[i] = eOuter1.value_in(units.AU)
+                    triple2Distances[i] = CalculateVectorSize(newBinarySeparation).value_in(units.ESun)
                     print newBinarySeparation
 
             #check if the couple particle2 + giant are breaking up
@@ -401,9 +401,9 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
 
                     aOuter2 = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass)
                     eOuter2 = CalculateEccentricity(particle1, sphGiant.innerGas, aOuter2)
-                    aOuters2.append(aOuter2)
-                    eOuters2.append(eOuter2)
-                    triple1Distances.append(CalculateVectorSize(newBinarySeparation))
+                    aOuters2[i] = aOuter2.value_in(units.AU)
+                    eOuters2[i] = eOuter2.value_in(units.AU)
+                    triple1Distances[i] = CalculateVectorSize(newBinarySeparation).value_in(units.RSun)
 
             else:#all the three are connected
                 tripleMass = innerBinary.mass + sphGiant.mass
@@ -416,7 +416,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                 inclination = CalculateInclination(tripleVelocityDifference, tripleSeparation, innerBinary.velocityDifference, innerBinary.separation)
                 tripleSpecificEnergy = CalculateSpecificEnergy(innerBinary.velocityDifference, innerBinary.separation, particle1, particle2)
 
-                binaryDistances.append(CalculateVectorSize(innerBinary.separation))
+                binaryDistances[i] = CalculateVectorSize(innerBinary.separation).value_in(units.RSun)
 
                 aInners[i] = aInner.value_in(units.AU)
                 aOuters[i] = aOuter.value_in(units.AU)
@@ -451,13 +451,13 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
             chunkSize = 1
 
     chunks = [xrange(i,i+chunkSize) for i in xrange(beginStep,lastStep,chunkSize)]
-    chunks[-1]= xrange(int((lastStep-beginStep)/chunkSize)*chunkSize-1,int((lastStep-beginStep)/chunkSize)*chunkSize +
+    chunks[-1]= xrange(int((lastStep-beginStep)/chunkSize)*chunkSize + beginStep - 1,int((lastStep-beginStep)/chunkSize)*chunkSize +
                        lastStep-int((lastStep-beginStep)/chunkSize)*chunkSize)
 
     processes = []
     print chunks
     for chunk in chunks:
-        processes.append(multiprocessing.Process(target= AnalyzeBinaryChunk,args=(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax,binaryDistances, semmimajors, eccentricities,)))
+        processes.append(multiprocessing.Process(target= AnalyzeBinaryChunk,args=(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, beginStep, binaryDistances, semmimajors, eccentricities,)))
         #pool.map()
     for p in processes:
         p.start()
@@ -466,9 +466,10 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
 
     newBinaryDistances = AdaptingVectorQuantity()
     newSemmimajors = AdaptingVectorQuantity()
-    for j in xrange(len(binaryDistances) -1):
+    for j in xrange(len(binaryDistances)):
         newBinaryDistances.append(float(binaryDistances[j]) | units.RSun)
         newSemmimajors.append(float(semmimajors[j]) | units.AU)
+    #print newBinaryDistances
     PlotBinaryDistance([(newBinaryDistances, "InnerBinaryDistances")], outputDir + "/graphs")
     PlotSemiMajorAxis([(newSemmimajors ,"aInners")], outputDir+"/graphs")
     PlotEccentricity([(eccentricities, "eInners")], outputDir + "/graphs")
@@ -507,7 +508,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     processes = []
     print chunks
     for chunk in chunks:
-        processes.append(multiprocessing.Process(target= AnalyzeTripleChunk,args=(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vmax,
+        processes.append(multiprocessing.Process(target= AnalyzeTripleChunk,args=(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vmax, beginStep,
                        binaryDistances, triple1Distances, triple2Distances,
                        aInners, aOuters, aOuters1, aOuters2,
                        eInners, eOuters, eOuters1, eOuters2, inclinations, separationTime, )))

@@ -52,7 +52,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
 
 
-def Start(savedVersionPath = "Glanz/savings/TCE/0511_0511/200000", takeSavedState = "False", step = -1, configurationFile = "Glanz/TCEConfiguration.ini"):
+def Start(savedVersionPath = "Glanz/savings/TCE/0511_0511/100000", takeSavedState = "False", step = -1, configurationFile = "Glanz/TCEConfiguration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state

@@ -122,12 +122,15 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
     if step > -1:
         starEnvelope= LoadGas(savedVersionPath + "/gas_{0}.amuse".format(step))
         load= LoadDm(savedVersionPath + "/dm_{0}.amuse".format(step))
-        starCore=load[-1]
+        if opposite:
+            starCore=load[0]
+        else:
+            starCore=load[-1]
         innerBinary = Binary(particles=Particles(2, particles=[load[0], load[1]]))
     else:
         starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
         load = LoadDm(savedVersionPath + "/dm.amuse")
-        starCore=load[-1]
+        starCore=load[0]
         innerBinary = Binary(configurationFile, configurationSection="InnerBinary")
         outerBinary = Binary(configurationFile, configurationSection="OuterBinary")
 
@@ -139,10 +142,12 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
         giant.velocity = (starEnvelopeV * starEnvelope.total_mass() +
                           (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass
 
-        if opposite:
+        if opposite: #0 star of the inner binary is the giant, not the core
             innerBinary.stars[0].mass = starMass
             innerBinary.stars[0].velocity = giant.velocity
-
+            outerBinary.stars[0].mass = starMass + innerBinary.stars[1].mass
+            outerBinary.stars[0].velocity = innerBinary.stars.center_of_mass_velocity()
+            outerBinary.stars[1].velocity += outerBinary.stars[0].velocity
             sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
             return starMass, starEnvelope, starCore, innerBinary, outerBinary, sphMetaData
 
@@ -339,6 +344,7 @@ class Binary:
                 stars.total_mass(), self.semimajorAxis, self.eccentricity)
             stars[1].vz = math.sin(self.inclination)*GetRelativeVelocityAtApastron(
                 stars.total_mass(), self.semimajorAxis, self.eccentricity)
+
             stars.move_to_center()
 
             self.stars = stars

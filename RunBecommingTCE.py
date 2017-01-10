@@ -30,7 +30,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     giant.position = outerBinary.stars[0].position
     outerBinary.stars[0].velocity = innerBinary.stars.center_of_mass_velocity()
     outerBinary.stars[1].y = outerBinary.semimajorAxis + outerBinary.stars[0].position
-
+    outerBinary.stars[1].velocity += outerBinary.stars[0].velocity
     sphStar = StarModels.SphStar(giant,configurationFile,configurationSection="MainStar",
                                 savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
 

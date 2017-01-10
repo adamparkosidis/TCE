@@ -26,11 +26,11 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     #now setting up the giant (want it to be relaxed and spinning)
     outerBinary = StarModels.Binary(configurationFile, configurationSection="OuterBinary")
 
-    outerBinary.stars[0].position = innerBinary.stars.center_of_mass()
-    giant.position = outerBinary.stars[0].position
-    outerBinary.stars[0].velocity = innerBinary.stars.center_of_mass_velocity()
-    outerBinary.stars[1].y = outerBinary.semimajorAxis + outerBinary.stars[0].position
-    outerBinary.stars[1].velocity += outerBinary.stars[0].velocity
+    outerBinary.stars.position += innerBinary.stars.center_of_mass()
+    outerBinary.stars.velocity += innerBinary.stars.center_of_mass_velocity()
+    giant.position = innerBinary.stars[0].position
+    giant.velocity = innerBinary.stars[0].velocity
+
     sphStar = StarModels.SphStar(giant,configurationFile,configurationSection="MainStar",
                                 savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
 

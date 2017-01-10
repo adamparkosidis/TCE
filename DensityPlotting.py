@@ -280,7 +280,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             isBinary=False
             binary = Star(sphGiant, sphGiant)
 
-        if CalculateVectorSize(CalculateSeparation(sphGiant.core,companion)) < sphGiant.core.radius * 2:
+        if CalculateVectorSize(CalculateSeparation(sphGiant.core,companion)) < sphGiant.core.radius:
             print "merger between companion and the giant! step: ",i 
             #break
 
@@ -348,11 +348,11 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         if CalculateVectorSize(innerBinary.separation) < 13.0*(10**8) | units.m: #if its closer than 2 solar radiuses
             print "merger between the inner binary!" , innerBinary.separation.as_quantity_in(units.RSun)
 
-        if CalculateVectorSize(CalculateSeparation(sphGiant.core,particle1)) < sphGiant.core.radius * 2:
+        if CalculateVectorSize(CalculateSeparation(sphGiant.core,particle1)) < sphGiant.core.radius:
             print "merger between particle1 and the giant!"
             #break
 
-        if CalculateVectorSize(CalculateSeparation(sphGiant.core, particle2)) < sphGiant.core.radius * 2:
+        if CalculateVectorSize(CalculateSeparation(sphGiant.core, particle2)) < sphGiant.core.radius:
             print "merger between particle 2 and the giant!"
             #break
 

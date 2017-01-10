@@ -23,9 +23,9 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     #now setting up the giant (want it to be relaxed and spinning)
     outerBinary = StarModels.Binary(configurationFile, configurationSection="OuterBinary")
     #notice that the giant is the binary.stars[0], the companions are the next
-    #giant.position = outerBinary.semimajorAxis * (1 + outerBinary.eccentricity) * ([1, 0, 0] | units.none)
-    #giant.velocity = StarModels.GetRelativeVelocityAtApastron(giant.mass + innerBinary.stars.total_mass(),
-    #    outerBinary.semimajorAxis, outerBinary.eccentricity) * ([0, 1, 0] | units.none)
+
+    innerBinary.stars.position += outerBinary.stars[1].position
+    innerBinary.stars.velocity += outerBinary.stars[1].velocity
 
     triple = innerBinary.stars
     giantInSet = triple.add_particle(giant)

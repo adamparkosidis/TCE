@@ -288,7 +288,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             binary = Star(sphGiant, sphGiant)
 
         if CalculateVectorSize(CalculateSeparation(sphGiant.core,companion)) < sphGiant.core.radius:
-            print "merger between companion and the giant! step: ",i 
+            print "merger between companion and the giant! step: ",i + beginStep
             #break
 
         if isBinary:
@@ -319,8 +319,8 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             #print "semmimajor: ",semmimajors[i], "eccentricity: ",eccentricities[i], "separation: ", binaryDistances[i]
 
             #print newBinarySeparation
-            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i , outputDir, vmin, vmax)
-            PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion, i, outputDir, vmin, vmax)
+            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep , outputDir, vmin, vmax)
+            PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep, outputDir, vmin, vmax)
 
     for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
         try:
@@ -434,8 +434,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                 eOuters[i] = eOuter
                 inclinations[i] = inclination
 
-        PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i, outputDir, vmin, vmax)
-        PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i, outputDir, vmin, vmax)
+        PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
+        PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
 
         #close opened handles
         for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:

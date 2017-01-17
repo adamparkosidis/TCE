@@ -267,8 +267,8 @@ def PlotBinaryDistance(distances, outputDir, beginTime = 0):
 def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, beginStep, binaryDistances,semmimajors,eccentricities, innerMass):
     for i in [j - beginStep for j in chunk]:
         #print "step #",i
-        gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i])
-        dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i])
+        gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i + beginStep])
+        dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i + beginStep])
         #binaryDistances = AdaptingVectorQuantity()
         
         #eccentricities = []
@@ -299,7 +299,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 
             #check if the binary is breaking up
             if binary.specificEnergy > 0 | (units.m **2 / units.s **2):
-                print "binary is breaking up", binary.specificEnergy, "step: ", i
+                print "binary is breaking up", binary.specificEnergy, "step: ", i + beginStep
 
             newBinaryVelocityDifference = CalculateVelocityDifference(companion, sphGiant.innerGas)
             newBinarySeparation = CalculateSeparation(companion, sphGiant.innerGas)
@@ -335,8 +335,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                        opposite= False):
 
     for i in [j - beginStep for j in chunk]:
-        gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i])
-        dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i])
+        gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i + beginStep])
+        dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i + beginStep])
 
         sphGiant = SphGiant(gas_particles_file, dm_particles_file, opposite= opposite)
 

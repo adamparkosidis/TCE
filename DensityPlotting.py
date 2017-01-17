@@ -52,7 +52,6 @@ class Star:
         self.specificEnergy = CalculateSpecificEnergy(self.velocityDifference,self.separation,particle1,particle2)
 
 class SphGiant:
-    def __init__(self, gas_particles_file, dm_particles_file, oppsite= False):
         self.gasParticles = read_set_from_file(gas_particles_file, format='amuse')
         dms = read_set_from_file(dm_particles_file, format='amuse')
         if oppsite: #core is the first particle
@@ -272,7 +271,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
         #binaryDistances = AdaptingVectorQuantity()
         
         #eccentricities = []
-        sphGiant = SphGiant(gas_particles_file, dm_particles_file, oppsite=True)
+        sphGiant = SphGiant(gas_particles_file, dm_particles_file, opposite=True)
         try:
             binary = LoadBinaries(dm_particles_file)
             companion = binary[1]
@@ -341,7 +340,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         sphGiant = SphGiant(gas_particles_file, dm_particles_file, opposite= opposite)
 
         #binary = Particles(2,pickle.load(open(os.path.join(os.getcwd(),savingDir,"binary.p"),"rb")))
-        binary = LoadBinaries(dm_particles_file, oppsite= opposite)
+        binary = LoadBinaries(dm_particles_file, opposite= opposite)
         #print binary
 
         particle1 , particle2 = binary[0] , binary[1]

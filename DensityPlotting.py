@@ -52,9 +52,13 @@ class Star:
         self.specificEnergy = CalculateSpecificEnergy(self.velocityDifference,self.separation,particle1,particle2)
 
 class SphGiant:
-    def __init__(self, gas_particles_file, dm_particles_file):
+    def __init__(self, gas_particles_file, dm_particles_file, oppsite= False):
         self.gasParticles = read_set_from_file(gas_particles_file, format='amuse')
-        self.core = read_set_from_file(dm_particles_file, format='amuse')[-1]
+        dms = read_set_from_file(dm_particles_file, format='amuse')
+        if oppsite: #core is the first particle
+            self.core = dms[0]
+        else:
+            self.core = dms[0]
         self.gas = Star(None, None)
         self.gas.mass = self.gasParticles.total_mass()
         self.gas.position = self.gasParticles.center_of_mass()
@@ -113,10 +117,13 @@ class SphGiant:
                 leavingParticles += 1
         return leavingParticles
 
-def LoadBinaries(file):
+def LoadBinaries(file, opposite= False):
     load = read_set_from_file(file, format='amuse')
     #print load
-    stars = Particles(2, particles= [load[0], load[1]])
+    if not opposite:
+        stars = Particles(2, particles= [load[0], load[1]])
+    else: #take the next
+        stars = Particles(2, particles= [load[1], load[2]])
     return stars
 
 def get_relative_velocity_at_apastron(total_mass, semimajor_axis, ecc):
@@ -265,7 +272,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
         #binaryDistances = AdaptingVectorQuantity()
         
         #eccentricities = []
-        sphGiant = SphGiant(gas_particles_file, dm_particles_file)
+        sphGiant = SphGiant(gas_particles_file, dm_particles_file, oppsite=True)
         try:
             binary = LoadBinaries(dm_particles_file)
             companion = binary[1]
@@ -324,16 +331,17 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vmax, beginStep,
                        binaryDistances, triple1Distances, triple2Distances,
                        aInners, aOuters, aOuters1, aOuters2,
-                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, separationTime):
+                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, separationTime,
+                       opposite= False):
 
     for i in [j - beginStep for j in chunk]:
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i])
         dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i])
 
-        sphGiant = SphGiant(gas_particles_file, dm_particles_file)
+        sphGiant = SphGiant(gas_particles_file, dm_particles_file, opposite= opposite)
 
         #binary = Particles(2,pickle.load(open(os.path.join(os.getcwd(),savingDir,"binary.p"),"rb")))
-        binary = LoadBinaries(dm_particles_file)
+        binary = LoadBinaries(dm_particles_file, oppsite= opposite)
         #print binary
 
         particle1 , particle2 = binary[0] , binary[1]
@@ -485,7 +493,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
 
 
 
-def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax ):
+def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, opposite= False):
     separationTime = multiprocessing.Value('f')
     if lastStep == 0 : # no boundary on last step
         lastStep = len(dmFiles)
@@ -521,7 +529,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         processes.append(multiprocessing.Process(target= AnalyzeTripleChunk,args=(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vmax, beginStep,
                        binaryDistances, triple1Distances, triple2Distances,
                        aInners, aOuters, aOuters1, aOuters2,
-                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, separationTime, )))
+                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, separationTime, opposite, )))
     for p in processes:
         p.start()
     for p in processes:
@@ -585,8 +593,12 @@ def GetArgs(args):
         vmax = float(args[6])
     else:
         vmax= 1e34
+    if len(args) >7:
+        opposite = True
+    else:
+        opposite = False
     outputDir = savingDir + "/pics"
-    return savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir
+    return savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, opposite
 
 def InitializeSnapshots(savingDir, toCompare=False):
     '''
@@ -623,7 +635,7 @@ def compare(st1, st2):
 
 
 def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0,1e16,1e34]):
-    savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir = GetArgs(args)
+    savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, opposite = GetArgs(args)
     print "plotting pics to " +  outputDir +  " from " +  savingDir +" begin step = " , beginStep , " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare
     try:
         os.makedirs(outputDir)
@@ -643,7 +655,7 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
         print "analyzing binary"
         AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax)
     elif numberOfCompanion ==3: #triple
-        AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax)
+        AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, opposite)
 
 if __name__ == "__main__":
     main(sys.argv)

@@ -32,6 +32,16 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                               numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=5, takeCompanionInRelaxation= False)
     starCore = dmStars[0]
     starCore.radius = sphStar.core_particle.radius
+
+    #moving the main star back to the center
+    diffPosition = starCore.position - giant.position
+    diffVelocity = (starCore.velocity*starCore.mass + starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass())/ giant.mass
+    starEnvelope.position -= diffPosition
+    starCore.position -= diffPosition
+    starEnvelope.velocity -= diffVelocity
+    starCore.velocity -= diffVelocity
+    dmStars[0]= starCore
+
     sphMetaData = StarModels.SphMetaData(sphStar)
     #save state after relaxation
     StarModels.SaveState(savedPath, starEnvelope.total_mass() + starCore.mass, starEnvelope, dmStars, binary.semimajorAxis, sphMetaData)

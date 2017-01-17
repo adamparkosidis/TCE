@@ -27,6 +27,9 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     innerBinary.stars.position += outerBinary.stars[1].position
     innerBinary.stars.velocity += outerBinary.stars[1].velocity
 
+    giant.position = innerBinary[0].position
+    giant.velocity = innerBinary[0].velocity
+
     triple = innerBinary.stars
     giantInSet = triple.add_particle(giant)
 
@@ -43,6 +46,12 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                               numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=10)
     starCore = dmStars[-1]
     starCore.radius = sphStar.core_particle.radius
+
+    #miving the main star back to the center
+    diffPosition = starCore.position - giantInSet.position
+    starEnvelope.position -= diffPosition
+    starCore.position -= diffPosition
+    dmStars[-1]= starCore
     sphMetaData = StarModels.SphMetaData(sphStar)
 
     #saved state

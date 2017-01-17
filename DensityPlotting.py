@@ -54,7 +54,7 @@ class Star:
 class SphGiant:
     def __init__(self, gas_particles_file, dm_particles_file):
         self.gasParticles = read_set_from_file(gas_particles_file, format='amuse')
-        self.core = read_set_from_file(dm_particles_file, format='amuse')[0]
+        self.core = read_set_from_file(dm_particles_file, format='amuse')[-1]
         self.gas = Star(None, None)
         self.gas.mass = self.gasParticles.total_mass()
         self.gas.position = self.gasParticles.center_of_mass()

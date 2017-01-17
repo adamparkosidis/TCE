@@ -52,9 +52,10 @@ class Star:
         self.specificEnergy = CalculateSpecificEnergy(self.velocityDifference,self.separation,particle1,particle2)
 
 class SphGiant:
+    def __init__(self, gas_particles_file, dm_particles_file, opposite= False):
         self.gasParticles = read_set_from_file(gas_particles_file, format='amuse')
         dms = read_set_from_file(dm_particles_file, format='amuse')
-        if oppsite: #core is the first particle
+        if opposite: #core is the first particle
             self.core = dms[0]
         else:
             self.core = dms[0]

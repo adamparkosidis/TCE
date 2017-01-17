@@ -36,6 +36,8 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     triple.move_to_center()
     innerBinary.stars = triple - giantInSet
 
+    print triple
+
     sphStar = StarModels.SphStar(giantInSet,configurationFile,configurationSection="MainStar",
                                 savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
     print "Now having the sph star and the binaries, ready for relaxing"

@@ -136,6 +136,15 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
 
         giant = CreatePointStar(configurationFile,configurationSection="MainStar")
         starMass = starEnvelope.total_mass() + starCore.mass
+
+        #changing according to before relaxation
+        diffPosition = starCore.position - giant.position
+        diffVelocity = (starCore.velocity*starCore.mass + starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass())/ starMass
+        starEnvelope.position -= diffPosition
+        starCore.position -= diffPosition
+        starEnvelope.velocity -= diffVelocity
+        starCore.velocity -= diffVelocity
+
         giant.mass = starMass
         vx, vy, vz = starEnvelope.center_of_mass_velocity()
         starEnvelopeV = (vx, vy, vz)
@@ -192,6 +201,15 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
         binary.stars.radius = binary.radius
         starCore=load[0]
         starMass = starEnvelope.total_mass() + starCore.mass
+
+        #changing according to before relaxation
+        diffPosition = starCore.position - binary.stars[0].position
+        diffVelocity = (starCore.velocity*starCore.mass + starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass())/ starMass
+        starEnvelope.position -= diffPosition
+        starCore.position -= diffPosition
+        starEnvelope.velocity -= diffVelocity
+        starCore.velocity -= diffVelocity
+
         #changing the mass to the one after relaxation
         binary.stars[0].mass = starMass
         vx, vy, vz = starEnvelope.center_of_mass_velocity()
@@ -199,6 +217,8 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
         print starEnvelopeV * starEnvelope.total_mass() / starMass + (starCore.vx,starCore.vy,starCore.vz)*starCore.mass / starMass
         binary.stars[0].velocity = (starEnvelopeV * starEnvelope.total_mass() +
                           (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass
+
+
         print "(giant, star): ", binary.stars    
         sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
     return starEnvelope, starCore, binary, binary.semimajorAxis, sphMetaData

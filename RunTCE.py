@@ -49,6 +49,11 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     starCore = dmStars[-1]
     starCore.radius = sphStar.core_particle.radius
 
+    sphMetaData = StarModels.SphMetaData(sphStar)
+
+    #saved state
+    StarModels.SaveState(savedPath, starEnvelope.total_mass() + starCore.mass, starEnvelope, dmStars, outerBinary.semimajorAxis, sphMetaData)
+
     #moving the main star back to the center
     diffPosition = starCore.position - giantInSet.position
     diffVelocity = (starCore.velocity*starCore.mass + starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass())/ giant.mass
@@ -57,11 +62,6 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     starEnvelope.velocity -= diffVelocity
     starCore.velocity -= diffVelocity
     dmStars[-1]= starCore
-
-    sphMetaData = StarModels.SphMetaData(sphStar)
-
-    #saved state
-    StarModels.SaveState(savedPath, starEnvelope.total_mass() + starCore.mass, starEnvelope, dmStars, outerBinary.semimajorAxis, sphMetaData)
 
     return giant.mass, starEnvelope, starCore, innerBinary, outerBinary.semimajorAxis, sphMetaData
 

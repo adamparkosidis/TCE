@@ -192,6 +192,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
                 StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step), coupledSystem.dm_particles)
                 print "state saved - {0}".format(savedVersionPath) + "/" + adding
                 print coupledSystem.dm_particles
+                print len(coupledSystem.gas_particles)
                 currentSecond = time.time()
         dm = coupledSystem.dm_particles.copy()
         gas = coupledSystem.gas_particles.copy()

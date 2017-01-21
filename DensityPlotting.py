@@ -286,7 +286,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
         else:
             isBinary=False
             binary = Star(sphGiant, sphGiant)
-
+        #print binary.position, binary.vx,binary.vy,binary.vz
         if CalculateVectorSize(CalculateSeparation(sphGiant.core,companion)) < sphGiant.core.radius:
             print "merger between companion and the giant! step: ",i + beginStep
             #break

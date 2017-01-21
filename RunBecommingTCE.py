@@ -107,7 +107,9 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/300000", takeSavedState
     #adding the companions
     hydroSystem.dm_particles.add_particle(innerBinary.stars[-1])
     hydroSystem.dm_particles.add_particle(outerBinary.stars[-1])
-
+    print innerBinary.stars
+    print outerBinary.stars
+    print hydroSystem.dm_particles
     EvolveNBody.Run(totalMass= starMass + innerBinary.stars.mass[-1] + outerBinary.stars.mass[-1],
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=innerBinary,
@@ -116,5 +118,5 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/300000", takeSavedState
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":
-    Start(takeSavedState="True")
+    Start(takeSavedState="Mesa")
 

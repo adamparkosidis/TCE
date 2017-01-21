@@ -23,12 +23,12 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     #now setting up the giant (want it to be relaxed and spinning)
     outerBinary = StarModels.Binary(configurationFile, configurationSection="OuterBinary")
     #notice that the giant is the binary.stars[0], the companions are the next
-
+    
     innerBinary.stars.position += outerBinary.stars[1].position
     innerBinary.stars.velocity += outerBinary.stars[1].velocity
 
-    giant.position = innerBinary.stars[0].position
-    giant.velocity = innerBinary.stars[0].velocity
+    giant.position = outerBinary.stars[0].position
+    giant.velocity = outerBinary.stars[0].velocity
 
     triple = innerBinary.stars
     giantInSet = triple.add_particle(giant)
@@ -67,7 +67,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
 
 
-def Start(savedVersionPath = "Glanz/savings/TCE/0511_0511/100000", takeSavedState = "False", step = -1, configurationFile = "Glanz/TCEConfiguration.ini"):
+def Start(savedVersionPath = "Glanz/savings/TCE/0511_0511/100000", takeSavedState = "False", step = -1, configurationFile = "Glanz/savings/TCE/0511_0511/100000/TCEConfiguration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state

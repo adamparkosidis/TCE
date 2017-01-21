@@ -110,7 +110,7 @@ def Start(savedVersionPath = "Glanz/savings/RGPlanet", takeSavedState = "False",
     elif takeSavedState == "Evolve":
         starEnvelope, starCore, binary, semmimajor,sphMetaData = \
             StarModels.TakeBinarySavedState(savedVersionPath + "/evolution", configurationFile, step) 
-        print starCore.radius
+        print starCore.radius, starEnvelope.velocity, binary.velocity
     else:
         if takeSavedState == "Mesa":
             starEnvelope, starCore, binary, semmimajor, sphMetaData = CreateBinarySystem(configurationFile, savedVersionPath, takeSavedMesa= True)

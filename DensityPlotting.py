@@ -388,7 +388,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                     eOuter1 = CalculateEccentricity(particle2, sphGiant.innerGas, aOuter1)
                     aOuters1[i] = aOuter1.value_in(units.AU)
                     eOuters1[i] = eOuter1
-                    triple2Distances[i] = CalculateVectorSize(newBinarySeparation).value_in(units.ESun)
+                    triple2Distances[i] = CalculateVectorSize(newBinarySeparation).value_in(units.RSun)
                     print newBinarySeparation
 
             #check if the couple particle2 + giant are breaking up

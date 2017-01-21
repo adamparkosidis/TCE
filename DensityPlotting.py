@@ -74,7 +74,6 @@ class SphGiant:
         #self.vx, self.vy, self.vz =  self.core.vx, self.core.vy, self.core.vz
         self.v = (self.vx, self.vy, self.vz)
 
-
     def CalculateInnerSPH(self, relativeParticle):
         self.innerGas = Star(None, None)
         radius = CalculateVectorSize(CalculateSeparation(relativeParticle, self.core))
@@ -388,7 +387,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                     aOuter1 = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass)
                     eOuter1 = CalculateEccentricity(particle2, sphGiant.innerGas, aOuter1)
                     aOuters1[i] = aOuter1.value_in(units.AU)
-                    eOuters1[i] = eOuter1.value_in(units.AU)
+                    eOuters1[i] = eOuter1
                     triple2Distances[i] = CalculateVectorSize(newBinarySeparation).value_in(units.ESun)
                     print newBinarySeparation
 
@@ -412,7 +411,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                     aOuter2 = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass)
                     eOuter2 = CalculateEccentricity(particle1, sphGiant.innerGas, aOuter2)
                     aOuters2[i] = aOuter2.value_in(units.AU)
-                    eOuters2[i] = eOuter2.value_in(units.AU)
+                    eOuters2[i] = eOuter2
                     triple1Distances[i] = CalculateVectorSize(newBinarySeparation).value_in(units.RSun)
 
             else:#all the three are connected
@@ -429,7 +428,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                 binaryDistances[i] = CalculateVectorSize(innerBinary.separation).value_in(units.RSun)
 
                 aInners[i] = aInner.value_in(units.AU)
-                aOuters[i] = aOuter.value_in(units.AU)
+                aOuters[i] = aOuter
                 eInners[i] = eInner
                 eOuters[i] = eOuter
                 inclinations[i] = inclination
@@ -452,7 +451,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     binaryDistances = multiprocessing.Array('f', range(beginStep, lastStep))
     semmimajors = multiprocessing.Array('f', range(beginStep, lastStep))
     eccentricities = multiprocessing.Array('f', range(beginStep, lastStep))
-    innerMass = multiprocessing.Array('f', range(beginStep, lastStep))
+    innerMass = multiprocessing.Array('f', range(beginStep,in lastStep))
 
     chunkSize= (lastStep-beginStep)/multiprocessing.cpu_count()
     if chunkSize == 0:

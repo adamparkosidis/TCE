@@ -428,7 +428,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                 binaryDistances[i] = CalculateVectorSize(innerBinary.separation).value_in(units.RSun)
 
                 aInners[i] = aInner.value_in(units.AU)
-                aOuters[i] = aOuter
+                aOuters[i] = aOuter.value_in(units.AU)
                 eInners[i] = eInner
                 eOuters[i] = eOuter
                 inclinations[i] = inclination

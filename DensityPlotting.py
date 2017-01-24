@@ -58,7 +58,7 @@ class SphGiant:
         if opposite: #core is the first particle
             self.core = dms[0]
         else:
-            self.core = dms[0]
+            self.core = dms[-1]
         self.gas = Star(None, None)
         self.gas.mass = self.gasParticles.total_mass()
         self.gas.position = self.gasParticles.center_of_mass()

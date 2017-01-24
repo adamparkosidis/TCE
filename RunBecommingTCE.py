@@ -113,7 +113,7 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/300000", takeSavedState
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=innerBinary,
                     endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
-                    savedVersionPath=savedVersionPath, saveAfterMinute= 0)
+                    savedVersionPath=savedVersionPath, saveAfterMinute= 0, system=hydroSystem)
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":

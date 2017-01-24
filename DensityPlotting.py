@@ -363,6 +363,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             print "merger between particle 2 and the giant!"
             #break
 
+
         #check if the binry is breaking up
         if innerBinary.specificEnergy > 0 | (units.m **2 / units.s **2):
             print "binary is breaking up", innerBinary.specificEnergy
@@ -415,6 +416,10 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                     triple1Distances[i] = CalculateVectorSize(newBinarySeparation).value_in(units.RSun)
 
             else:#all the three are connected
+                sphGiant.CalculateInnerSPH(innerBinary)
+                innerMass[i] = sphGiant.innerGas.mass.value_in(units.MSun)
+                print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
+
                 tripleMass = innerBinary.mass + sphGiant.mass
                 tripleVelocityDifference = CalculateVelocityDifference(innerBinary,sphGiant.gas)
                 tripleSeparation = CalculateSeparation(innerBinary,sphGiant.gas)

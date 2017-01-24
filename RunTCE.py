@@ -61,7 +61,6 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     starCore.position -= diffPosition
     starEnvelope.velocity -= diffVelocity
     starCore.velocity -= diffVelocity
-    dmStars[-1]= starCore
 
     return giant.mass, starEnvelope, starCore, innerBinary, outerBinary.semimajorAxis, sphMetaData
 

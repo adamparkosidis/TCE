@@ -92,8 +92,10 @@ def derive_stellar_structure(internal_structure):
 def CreateArrayFromFile(filePath):
     file = open(filePath,"r")
     array = file.readlines()
-
-    return array
+    newArray = []
+    for element in array:
+        newArray.append((float)(element[:-2]))
+    return newArray
 
 def CreateMesaDictionaryFromFiles(fileDirectory):
     internal_structure = dict()

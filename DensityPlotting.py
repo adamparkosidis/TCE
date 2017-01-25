@@ -201,7 +201,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax):
     if not HAS_PYNBODY:
         print "problem plotting"
         return
-    pynbody_column_density_plot(sphGiant ,resolution=1000, width=2.0|units.AU,vmin= vmin, vmax= vmax,cmap= "hot")
+    pynbody_column_density_plot(sphGiant ,resolution=4000, width=4.5|units.AU,vmin= vmin, vmax= vmax,cmap= "magma")
     scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
     pyplot.savefig(outputDir + "/plotting_{0}.jpg".format(i))
@@ -247,6 +247,8 @@ def Plot1Axe(x, fileName, outputDir, beginTime = 0):
     plot(timeLine,x)
     xlabel('time[days]')
     native_plot.savefig(outputDir + '/' + fileName + '.jpg')
+    textFile = open(outputDir + '/' + fileName + '.txt', 'w')
+    textFile.write()
 
 def PlotSemiMajorAxis(semimajors, outputDir, beginTime = 0):
     for a in semimajors:

@@ -249,7 +249,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
     timeStep = endTime / timeSteps
     currentTime = 0.0 | units.Myr
 
-    if step!= -1:
+    if step != -1:
         currentTime = step * timeStep
         
     if system is  None:

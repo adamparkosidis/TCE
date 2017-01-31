@@ -32,9 +32,34 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
     #gas.mu = [1.0 |units.g for part in gas.mass]
     #print gas
     #testModel = convert_SPH_to_stellar_model(StarModels.LoadGas("/BIGDATA/code/amuse-10.0/Glanz/Passy/100000/envelope.amuse"))
-    mesa = MESA()
-    mesa.new_particle_from_model(derive_stellar_structure(internal_structure))
+    mesa=MESA()
+    mesa.new_particle_from_model(internal_structure)
+    mesaParticle = Particle()
 
+    mesa.initialize_code()
+    mesa.parameters.stabilize_new_stellar_model_flag = False
+        instance.commit_parameters()
+        instance.particles.add_particles(star)
+        instance.commit_particles()
+        instance.evolve_model()
+
+        number_of_zones = instance.particles[0].get_number_of_zones()
+        composition     = instance.particles[0].get_chemical_abundance_profiles(number_of_zones = number_of_zones)
+        instance.new_particle_from_model(dict(
+            mass = instance.particles[0].get_cumulative_mass_profile(number_of_zones = number_of_zones) * instance.particles[0].mass,
+            radius = instance.particles[0].get_radius_profile(number_of_zones = number_of_zones),
+            rho    = instance.particles[0].get_density_profile(number_of_zones = number_of_zones),
+            temperature = instance.particles[0].get_temperature_profile(number_of_zones = number_of_zones),
+            luminosity  = instance.particles[0].get_luminosity_profile(number_of_zones = number_of_zones),
+            X_H  = composition[0],
+            X_He = composition[1] + composition[2],
+            X_C  = composition[3],
+            X_N  = composition[4],
+            X_O  = composition[5],
+            X_Ne = composition[6],
+            X_Mg = composition[7],
+            X_Si = composition[7]*0.0,
+            X_Fe = composition[7]*0.0), 10.0 | units.Myr)
     if withCoreParticle:
         sphStar = convert_stellar_model_to_SPH(mesa, sphParticles,
                                                with_core_particle = withCoreParticle, target_core_mass  = coreMass ,
@@ -65,19 +90,19 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
         #core.radius = core_radius
     else:
         core.radius = core_radius
-    print "core radius:", core.radius.as_string_in(units.RSun)
+    print "core radius:",core.radius.as_string_in(units.RSun)
     system.dm_particles.add_particle(core)
     system.gas_particles.add_particles(envelope)
     return system
 
 def derive_stellar_structure(internal_structure):
-        temperatures = internal_structure['temperature']
-        stellar_model = Grid(len(temperatures))
+        stellar_model = Grid()
+        stellar_model.dmass = internal_structure['dmass']
+        stellar_model.mass = stellar_model.dmass.accumulate()
         stellar_model.rho = internal_structure['rho']
         stellar_model.radius = internal_structure['radius']
         stellar_model.temperature = internal_structure['temperature']
         stellar_model.luminosity = internal_structure['luminosity']
-        stellar_model.dmass = internal_structure['dmass']
         setattr(stellar_model, 'X_H', internal_structure['X_H'])
         setattr(stellar_model, 'X_He', internal_structure['X_He'])
         setattr(stellar_model, 'X_C', internal_structure['X_C'])
@@ -87,7 +112,6 @@ def derive_stellar_structure(internal_structure):
         setattr(stellar_model, 'X_Mg', internal_structure['X_Mg'])
         setattr(stellar_model, 'X_Si', internal_structure['X_Si'])
         setattr(stellar_model, 'X_Fe', numpy.zeros(len(stellar_model.dmass)))
-        print stellar_model
         return stellar_model
 
 def CreateArrayFromFile(filePath):
@@ -100,6 +124,8 @@ def CreateArrayFromFile(filePath):
         print element
         newArray.append(float(element))
     return newArray
+
+    return array
 
 def CreateMesaDictionaryFromFiles(fileDirectory):
     internal_structure = dict()
@@ -120,7 +146,7 @@ def AddUnits(internal_structure):
     internal_structure['rho'] = internal_structure['rho'] | units.g/units.cm **3
     internal_structure['temperature'] = internal_structure['temperature'] | units.K
     internal_structure['luminosity'] = ConvertUnits(internal_structure['luminosity'], 3.826 * 10**33) | units.erg/ units.s
-    internal_structure['X_H'] = internal_structure['X_H'] 
+    internal_structure['X_H'] = internal_structure['X_H']
     internal_structure['X_He'] = internal_structure['X_He']
     internal_structure['X_C'] = internal_structure['X_C']
     internal_structure['X_N'] = internal_structure['X_N']

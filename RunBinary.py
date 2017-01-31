@@ -128,4 +128,4 @@ def Start(savedVersionPath = "Glanz/savings/RGPlanet", takeSavedState = "False",
     print "****************** Simulation Completed ******************"
 
 if __name__ == "__main__":
-    Start(takeSavedState="True")
+    Start()

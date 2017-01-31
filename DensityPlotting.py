@@ -201,7 +201,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax):
     if not HAS_PYNBODY:
         print "problem plotting"
         return
-    pynbody_column_density_plot(sphGiant ,resolution=4000, width=4.5|units.AU,vmin= vmin, vmax= vmax,cmap= "magma")
+    pynbody_column_density_plot(sphGiant ,resolution=2000, width=3|units.AU,vmin= vmin, vmax= vmax,cmap= "hot")
     scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
     pyplot.savefig(outputDir + "/plotting_{0}.jpg".format(i))
@@ -248,7 +248,8 @@ def Plot1Axe(x, fileName, outputDir, beginTime = 0):
     xlabel('time[days]')
     native_plot.savefig(outputDir + '/' + fileName + '.jpg')
     textFile = open(outputDir + '/' + fileName + '.txt', 'w')
-    textFile.write()
+    textFile.write(', '.join([str(y) for y in x]))
+    textFile.close()
 
 def PlotSemiMajorAxis(semimajors, outputDir, beginTime = 0):
     for a in semimajors:
@@ -455,11 +456,11 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     if lastStep == 0 : # no boundary on last step
         lastStep = len(dmFiles)
     print lastStep
-    binaryDistances = multiprocessing.Array('f', range(beginStep, lastStep))
-    semmimajors = multiprocessing.Array('f', range(beginStep, lastStep))
-    eccentricities = multiprocessing.Array('f', range(beginStep, lastStep))
-    innerMass = multiprocessing.Array('f', range(beginStep, lastStep))
-
+    binaryDistances = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    semmimajors = multiprocessing.Array('f', [0.0 for i in range(beginStep, lastStep)])
+    eccentricities = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    innerMass = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+   
     chunkSize= (lastStep-beginStep)/multiprocessing.cpu_count()
     if chunkSize == 0:
         if lastStep - beginStep == 0:
@@ -505,19 +506,19 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         lastStep = len(dmFiles)
     print lastStep
 
-    binaryDistances = multiprocessing.Array('f', range(beginStep, lastStep))
-    triple1Distances = multiprocessing.Array('f', range(beginStep, lastStep))
-    triple2Distances = multiprocessing.Array('f', range(beginStep, lastStep))
-    aInners = multiprocessing.Array('f', range(beginStep, lastStep))
-    aOuters = multiprocessing.Array('f', range(beginStep, lastStep))
-    aOuters1 = multiprocessing.Array('f', range(beginStep, lastStep)) # for the couple particle1 + giant
-    aOuters2 = multiprocessing.Array('f', range(beginStep, lastStep)) # for the couple particle2 + giant
-    eInners = multiprocessing.Array('f', range(beginStep, lastStep))
-    eOuters = multiprocessing.Array('f', range(beginStep, lastStep))
-    eOuters1 = multiprocessing.Array('f', range(beginStep, lastStep)) # for the couple particle1 + giant
-    eOuters2 = multiprocessing.Array('f', range(beginStep, lastStep)) # for the couple particle2 + giant
+    binaryDistances = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    triple1Distances = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    triple2Distances = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    aInners = multiprocessing.Array('f', [0.0 for i in range(beginStep, lastStep)])
+    aOuters = multiprocessing.Array('f', [0.0 for i in range(beginStep, lastStep)])
+    aOuters1 = multiprocessing.Array('f', [0.0 for i in range(beginStep, lastStep)]) # for the couple particle1 + giant
+    aOuters2 = multiprocessing.Array('f', [0.0 for i in range(beginStep, lastStep)]) # for the couple particle2 + giant
+    eInners = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    eOuters = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    eOuters1 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)]) # for the couple particle1 + giant
+    eOuters2 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)]) # for the couple particle2 + giant
     inclinations = multiprocessing.Array('f', range(beginStep, lastStep))
-    innerMass = multiprocessing.Array('f', range(beginStep, lastStep))
+    innerMass = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
 
     chunkSize= (lastStep-beginStep)/multiprocessing.cpu_count()
     if chunkSize == 0:

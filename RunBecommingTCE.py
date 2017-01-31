@@ -63,7 +63,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     diffVelocity = (starCore.velocity*starCore.mass + starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass())/ giant.mass
     starEnvelope.position -= diffPosition
     starCore.position -= diffPosition
-    starEnvelope.velovity -= diffVelocity
+    starEnvelope.velocity -= diffVelocity
     starCore.velocity -= diffVelocity
 
 
@@ -117,5 +117,5 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/300000", takeSavedState
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":
-    Start(takeSavedState="Mesa")
+    Start(takeSavedState="True")
 

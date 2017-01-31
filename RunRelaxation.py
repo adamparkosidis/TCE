@@ -94,7 +94,10 @@ def CreateArrayFromFile(filePath):
     array = file.readlines()
     newArray = []
     for element in array:
-        newArray.append((float)(element[:-2]))
+        print element
+        element=element[:-1]
+        print element
+        newArray.append(float(element))
     return newArray
 
 def CreateMesaDictionaryFromFiles(fileDirectory):

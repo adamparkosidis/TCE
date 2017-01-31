@@ -33,33 +33,10 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
     #print gas
     #testModel = convert_SPH_to_stellar_model(StarModels.LoadGas("/BIGDATA/code/amuse-10.0/Glanz/Passy/100000/envelope.amuse"))
     mesa=MESA()
-    mesa.new_particle_from_model(internal_structure)
-    mesaParticle = Particle()
-
     mesa.initialize_code()
     mesa.parameters.stabilize_new_stellar_model_flag = False
-        instance.commit_parameters()
-        instance.particles.add_particles(star)
-        instance.commit_particles()
-        instance.evolve_model()
-
-        number_of_zones = instance.particles[0].get_number_of_zones()
-        composition     = instance.particles[0].get_chemical_abundance_profiles(number_of_zones = number_of_zones)
-        instance.new_particle_from_model(dict(
-            mass = instance.particles[0].get_cumulative_mass_profile(number_of_zones = number_of_zones) * instance.particles[0].mass,
-            radius = instance.particles[0].get_radius_profile(number_of_zones = number_of_zones),
-            rho    = instance.particles[0].get_density_profile(number_of_zones = number_of_zones),
-            temperature = instance.particles[0].get_temperature_profile(number_of_zones = number_of_zones),
-            luminosity  = instance.particles[0].get_luminosity_profile(number_of_zones = number_of_zones),
-            X_H  = composition[0],
-            X_He = composition[1] + composition[2],
-            X_C  = composition[3],
-            X_N  = composition[4],
-            X_O  = composition[5],
-            X_Ne = composition[6],
-            X_Mg = composition[7],
-            X_Si = composition[7]*0.0,
-            X_Fe = composition[7]*0.0), 10.0 | units.Myr)
+    
+    mesa.new_particle_from_model(internal_structure)
     if withCoreParticle:
         sphStar = convert_stellar_model_to_SPH(mesa, sphParticles,
                                                with_core_particle = withCoreParticle, target_core_mass  = coreMass ,

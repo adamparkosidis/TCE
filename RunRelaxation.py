@@ -25,19 +25,14 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
     parser = ConfigParser.ConfigParser()
     parser.read(configurationFile)
     sphParticles = float(parser.get("Star", "sphParticles"))
-    internal_structure= CreateMesaDictionaryFromFiles(mesaPath)
+    internal_structure = CreateMesaDictionaryFromFiles(mesaPath)
     internal_structure = AddUnits(internal_structure)
-    print internal_structure['temperature']
     #stellarModel = derive_stellar_structure(internal_structure)
-    #gas = StarModels.LoadGas("/BIGDATA/code/amuse-10.0/Glanz/Passy/100000/envelope.amuse")
-    #gas.mu = [1.0 |units.g for part in gas.mass]
-    #print gas
-    #testModel = convert_SPH_to_stellar_model(StarModels.LoadGas("/BIGDATA/code/amuse-10.0/Glanz/Passy/100000/envelope.amuse"))
     mesa=MESA()
     mesa.initialize_code()
     mesa.parameters.stabilize_new_stellar_model_flag = False
     
-    print mesa.new_particle_from_model(derive_stellar_model(internal_structure))
+    print mesa.new_particle_from_model(derive_stellar_structure(internal_structure))
     if withCoreParticle:
         sphStar = convert_stellar_model_to_SPH(mesa, sphParticles,
                                                with_core_particle = withCoreParticle, target_core_mass  = coreMass ,
@@ -68,7 +63,7 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
         #core.radius = core_radius
     else:
         core.radius = core_radius
-    print "core radius:",core.radius.as_string_in(units.RSun)
+    print "core radius:", core.radius.as_string_in(units.RSun)
     system.dm_particles.add_particle(core)
     system.gas_particles.add_particles(envelope)
     return system
@@ -90,6 +85,8 @@ def derive_stellar_structure(internal_structure):
         setattr(stellar_model, 'X_Mg', internal_structure['X_Mg'])
         setattr(stellar_model, 'X_Si', internal_structure['X_Si'])
         setattr(stellar_model, 'X_Fe', numpy.zeros(len(stellar_model.dmass)))
+        print stellar_model
+        print stellar_model.mass
         return stellar_model
 
 def CreateArrayFromFile(filePath):
@@ -98,8 +95,7 @@ def CreateArrayFromFile(filePath):
     newArray = []
     for element in array:
         print element
-        element=element[:-1]
-        print element
+        element = element[:-1]
         newArray.append(float(element))
     return newArray
 
@@ -110,7 +106,7 @@ def CreateMesaDictionaryFromFiles(fileDirectory):
     files = os.listdir(fileDirectory)
     onlyFiles =  [file for file in files if os.path.isfile(fileDirectory+"/"+file)]
     for file in onlyFiles:
-        internal_structure[str(file)]=CreateArrayFromFile(fileDirectory+"/"+file)
+        internal_structure[str(file)] = CreateArrayFromFile(fileDirectory+"/"+file)
 
     return internal_structure
 

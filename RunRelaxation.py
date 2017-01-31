@@ -77,6 +77,7 @@ def derive_stellar_structure(internal_structure):
         stellar_model.radius = internal_structure['radius']
         stellar_model.temperature = internal_structure['temperature']
         stellar_model.luminosity = internal_structure['luminosity']
+        stellar_model.dmass = internal_structure['dmass']
         setattr(stellar_model, 'X_H', internal_structure['X_H'])
         setattr(stellar_model, 'X_He', internal_structure['X_He'])
         setattr(stellar_model, 'X_C', internal_structure['X_C'])

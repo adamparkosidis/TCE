@@ -371,75 +371,75 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         if innerBinary.specificEnergy > 0 | (units.m **2 / units.s **2):
             print "binary is breaking up", innerBinary.specificEnergy
 
-            #check if the couple particle1 + giant are breaking up
-            if triple1.specificEnergy > 0 | (units.m **2 / units.s **2):
-                print "triple1 is breaking up", triple1.specificEnergy
-                if separationTime == 0:
-                    separationTime = i * 1400/7000
-                #check if the couple particle2 + giant are also breaking up
-                if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
-                    print "triple2 is also breaking up", triple2.specificEnergy
-                    break
-                else:
-                    sphGiant.CalculateInnerSPH(particle2)
-                    print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
-                    innerMass[i] = sphGiant.innerGas.mass.value_in(units.MSun)
-                    newBinaryVelocityDifference = CalculateVelocityDifference(particle2, sphGiant.innerGas)
-                    newBinarySeparation = CalculateSeparation(particle2, sphGiant.innerGas)
-                    newBinaryMass = particle2.mass + sphGiant.innerGas.mass
-
-                    aOuter1 = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass)
-                    eOuter1 = CalculateEccentricity(particle2, sphGiant.innerGas, aOuter1)
-                    aOuters1[i] = aOuter1.value_in(units.AU)
-                    eOuters1[i] = eOuter1
-                    triple2Distances[i] = CalculateVectorSize(newBinarySeparation).value_in(units.RSun)
-                    print newBinarySeparation
-
-            #check if the couple particle2 + giant are breaking up
+        #check if the couple particle1 + giant are breaking up
+        if triple1.specificEnergy > 0 | (units.m **2 / units.s **2):
+            print "triple1 is breaking up", triple1.specificEnergy
+            if separationTime == 0:
+                separationTime = i * 1400/7000
+            #check if the couple particle2 + giant are also breaking up
             if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
-                print "triple2 is breaking up", triple2.specificEnergy
-                if separationTime == 0:
-                    separationTime = i * 1400/7000
-                #check if the couple particle1 + giant are also breaking up
-                if triple1.specificEnergy > 0 | (units.m **2 / units.s **2):
-                    print "triple1 is also breaking up", triple1.specificEnergy
-                    break
-
-                else:
-                    sphGiant.CalculateInnerSPH(particle1)
-                    print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
-                    newBinaryVelocityDifference = CalculateVelocityDifference(particle1, sphGiant.innerGas)
-                    newBinarySeparation = CalculateSeparation(particle1, sphGiant.innerGas)
-                    newBinaryMass = particle1.mass + sphGiant.innerGas.mass
-
-                    aOuter2 = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass)
-                    eOuter2 = CalculateEccentricity(particle1, sphGiant.innerGas, aOuter2)
-                    aOuters2[i] = aOuter2.value_in(units.AU)
-                    eOuters2[i] = eOuter2
-                    triple1Distances[i] = CalculateVectorSize(newBinarySeparation).value_in(units.RSun)
-
-            else:#all the three are connected
-                sphGiant.CalculateInnerSPH(innerBinary)
-                innerMass[i] = sphGiant.innerGas.mass.value_in(units.MSun)
+                print "triple2 is also breaking up", triple2.specificEnergy
+                break
+            else:
+                sphGiant.CalculateInnerSPH(particle2)
                 print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
+                innerMass[i] = sphGiant.innerGas.mass.value_in(units.MSun)
+                newBinaryVelocityDifference = CalculateVelocityDifference(particle2, sphGiant.innerGas)
+                newBinarySeparation = CalculateSeparation(particle2, sphGiant.innerGas)
+                newBinaryMass = particle2.mass + sphGiant.innerGas.mass
 
-                tripleMass = innerBinary.mass + sphGiant.mass
-                tripleVelocityDifference = CalculateVelocityDifference(innerBinary,sphGiant.gas)
-                tripleSeparation = CalculateSeparation(innerBinary,sphGiant.gas)
+                aOuter1 = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass)
+                eOuter1 = CalculateEccentricity(particle2, sphGiant.innerGas, aOuter1)
+                aOuters1[i] = aOuter1.value_in(units.AU)
+                eOuters1[i] = eOuter1
+                triple2Distances[i] = CalculateVectorSize(newBinarySeparation).value_in(units.RSun)
+                print newBinarySeparation
 
-                aOuter = CalculateSemiMajor(tripleVelocityDifference, tripleSeparation, tripleMass)
-                eOuter = CalculateEccentricity(innerBinary,sphGiant.gas, aOuter)
+        #check if the couple particle2 + giant are breaking up
+        if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
+            print "triple2 is breaking up", triple2.specificEnergy
+            if separationTime == 0:
+                separationTime = i * 1400/7000
+            #check if the couple particle1 + giant are also breaking up
+            if triple1.specificEnergy > 0 | (units.m **2 / units.s **2):
+                print "triple1 is also breaking up", triple1.specificEnergy
+                break
 
-                inclination = CalculateInclination(tripleVelocityDifference, tripleSeparation, innerBinary.velocityDifference, innerBinary.separation)
-                tripleSpecificEnergy = CalculateSpecificEnergy(innerBinary.velocityDifference, innerBinary.separation, particle1, particle2)
+            else:
+                sphGiant.CalculateInnerSPH(particle1)
+                print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
+                newBinaryVelocityDifference = CalculateVelocityDifference(particle1, sphGiant.innerGas)
+                newBinarySeparation = CalculateSeparation(particle1, sphGiant.innerGas)
+                newBinaryMass = particle1.mass + sphGiant.innerGas.mass
 
-                binaryDistances[i] = CalculateVectorSize(innerBinary.separation).value_in(units.RSun)
+                aOuter2 = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass)
+                eOuter2 = CalculateEccentricity(particle1, sphGiant.innerGas, aOuter2)
+                aOuters2[i] = aOuter2.value_in(units.AU)
+                eOuters2[i] = eOuter2
+                triple1Distances[i] = CalculateVectorSize(newBinarySeparation).value_in(units.RSun)
 
-                aInners[i] = aInner.value_in(units.AU)
-                aOuters[i] = aOuter.value_in(units.AU)
-                eInners[i] = eInner
-                eOuters[i] = eOuter
-                inclinations[i] = inclination
+        else:#all the three are connected
+            sphGiant.CalculateInnerSPH(innerBinary)
+            innerMass[i] = sphGiant.innerGas.mass.value_in(units.MSun)
+            print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
+
+            tripleMass = innerBinary.mass + sphGiant.mass
+            tripleVelocityDifference = CalculateVelocityDifference(innerBinary,sphGiant.gas)
+            tripleSeparation = CalculateSeparation(innerBinary,sphGiant.gas)
+
+            aOuter = CalculateSemiMajor(tripleVelocityDifference, tripleSeparation, tripleMass)
+            eOuter = CalculateEccentricity(innerBinary,sphGiant.gas, aOuter)
+
+            inclination = CalculateInclination(tripleVelocityDifference, tripleSeparation, innerBinary.velocityDifference, innerBinary.separation)
+            tripleSpecificEnergy = CalculateSpecificEnergy(innerBinary.velocityDifference, innerBinary.separation, particle1, particle2)
+
+            binaryDistances[i] = CalculateVectorSize(innerBinary.separation).value_in(units.RSun)
+
+            aInners[i] = aInner.value_in(units.AU)
+            aOuters[i] = aOuter.value_in(units.AU)
+            eInners[i] = eInner
+            eOuters[i] = eOuter
+            inclinations[i] = inclination
 
         PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
         PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
@@ -460,7 +460,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     semmimajors = multiprocessing.Array('f', [0.0 for i in range(beginStep, lastStep)])
     eccentricities = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     innerMass = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
-   
+
     chunkSize= (lastStep-beginStep)/multiprocessing.cpu_count()
     if chunkSize == 0:
         if lastStep - beginStep == 0:

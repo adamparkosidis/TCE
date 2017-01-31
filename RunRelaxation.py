@@ -28,7 +28,7 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
     internal_structure = CreateMesaDictionaryFromFiles(mesaPath)
     internal_structure = AddUnits(internal_structure)
     #stellarModel = derive_stellar_structure(internal_structure)
-    mesa=MESA()
+    mesa= MESA()
     mesa.initialize_code()
     mesa.parameters.stabilize_new_stellar_model_flag = False
     
@@ -85,8 +85,6 @@ def derive_stellar_structure(internal_structure):
         setattr(stellar_model, 'X_Mg', internal_structure['X_Mg'])
         setattr(stellar_model, 'X_Si', internal_structure['X_Si'])
         setattr(stellar_model, 'X_Fe', numpy.zeros(len(stellar_model.dmass)))
-        print stellar_model
-        print stellar_model.mass
         return stellar_model
 
 def CreateArrayFromFile(filePath):

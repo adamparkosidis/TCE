@@ -27,6 +27,7 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
     sphParticles = float(parser.get("Star", "sphParticles"))
     internal_structure= CreateMesaDictionaryFromFiles(mesaPath)
     internal_structure = AddUnits(internal_structure)
+    print internal_structure['temperature']
     #stellarModel = derive_stellar_structure(internal_structure)
     #gas = StarModels.LoadGas("/BIGDATA/code/amuse-10.0/Glanz/Passy/100000/envelope.amuse")
     #gas.mu = [1.0 |units.g for part in gas.mass]
@@ -36,7 +37,7 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
     mesa.initialize_code()
     mesa.parameters.stabilize_new_stellar_model_flag = False
     
-    mesa.new_particle_from_model(internal_structure)
+    print mesa.new_particle_from_model(derive_stellar_model(internal_structure))
     if withCoreParticle:
         sphStar = convert_stellar_model_to_SPH(mesa, sphParticles,
                                                with_core_particle = withCoreParticle, target_core_mass  = coreMass ,

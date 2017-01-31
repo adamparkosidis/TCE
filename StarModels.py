@@ -57,7 +57,6 @@ class SphStar:
                                                        do_store_composition = False,base_grid_options=dict(type="fcc"))
             else:
                 mesaStar = self.EvolveStarWithStellarCode(MESA, savedMesaStarPath)
-
                 self.sphStar = convert_stellar_model_to_SPH(mesaStar, self.sphParticles, do_relax = False, with_core_particle=True,
                                                     target_core_mass = self.coreMass, base_grid_options=dict(type="fcc"))
             self.gas_particles = self.sphStar.gas_particles
@@ -84,6 +83,8 @@ class SphStar:
             os.makedirs(savingPath)
         except(OSError):
             pass
+        print evolutionType
+        print mainStar
         pickle_stellar_model(mainStar, savingPath + "/" + code.__name__)
         print "star saved to: ", savingPath + "/" + code.__name__ , "mass: ",mainStar.mass, "stellar type:", mainStar.stellar_type
         return mainStar

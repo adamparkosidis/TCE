@@ -32,8 +32,8 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
     #gas.mu = [1.0 |units.g for part in gas.mass]
     #print gas
     #testModel = convert_SPH_to_stellar_model(StarModels.LoadGas("/BIGDATA/code/amuse-10.0/Glanz/Passy/100000/envelope.amuse"))
-    mesa=MESA()
-    mesa.new_particle_from_model(internal_structure)
+    mesa = MESA()
+    mesa.new_particle_from_model(derive_stellar_structure(internal_structure))
 
     if withCoreParticle:
         sphStar = convert_stellar_model_to_SPH(mesa, sphParticles,
@@ -65,15 +65,14 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
         #core.radius = core_radius
     else:
         core.radius = core_radius
-    print "core radius:",core.radius.as_string_in(units.RSun)
+    print "core radius:", core.radius.as_string_in(units.RSun)
     system.dm_particles.add_particle(core)
     system.gas_particles.add_particles(envelope)
     return system
 
 def derive_stellar_structure(internal_structure):
-        stellar_model = Grid()
-        stellar_model.dmass = internal_structure['dmass']
-        #stellar_model.mass = stellar_model.dmass.accumulate()
+        temperatures = internal_structure['temperature']
+        stellar_model = Grid(len(temperatures))
         stellar_model.rho = internal_structure['rho']
         stellar_model.radius = internal_structure['radius']
         stellar_model.temperature = internal_structure['temperature']
@@ -87,6 +86,7 @@ def derive_stellar_structure(internal_structure):
         setattr(stellar_model, 'X_Mg', internal_structure['X_Mg'])
         setattr(stellar_model, 'X_Si', internal_structure['X_Si'])
         setattr(stellar_model, 'X_Fe', numpy.zeros(len(stellar_model.dmass)))
+        print stellar_model
         return stellar_model
 
 def CreateArrayFromFile(filePath):

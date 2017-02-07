@@ -17,6 +17,7 @@ from amuse.units import *
 from amuse.lab import *
 from amuse.units.quantities import AdaptingVectorQuantity
 from amuse.datamodel import Particles, Particle
+from amuse.ext import sph_to_star
 from amuse.io import write_set_to_file, read_set_from_file
 
 from amuse.plot import scatter, xlabel, ylabel, plot, pynbody_column_density_plot, HAS_PYNBODY, _smart_length_units_for_pynbody_data, convert_particles_to_pynbody_data, UnitlessArgs, semilogx, semilogy, loglog, xlabel, ylabel
@@ -202,6 +203,37 @@ def CalculateVelocityDifference(particle1, particle2):
 def GetPositionSize(particle):
     return CalculateVectorSize((particle.x ,particle.y,  particle.z))
 
+def mu(X = None, Y = 0.25, Z = 0.02, x_ion = 0.1):
+    """
+    Compute the mean molecular weight in kg (the average weight of particles in a gas)
+    X, Y, and Z are the mass fractions of Hydrogen, of Helium, and of metals, respectively.
+    x_ion is the ionisation fraction (0 < x_ion < 1), 1 means fully ionised
+    """
+    if X is None:
+        X = 1.0 - Y - Z
+    elif abs(X + Y + Z - 1.0) > 1e-6:
+        print "Error in calculating mu: mass fractions do not sum to 1.0"
+    return constants.proton_mass / (X*(1.0+x_ion) + Y*(1.0+2.0*x_ion)/4.0 + Z*x_ion/2.0)
+
+def structure_from_star(star):
+    radius_profile = star.radius
+    density_profile = star.rho
+    if hasattr(star, "get_mass_profile"):
+        mass_profile = star.dmass * star.mass
+    else:
+        radii_cubed = radius_profile**3
+        radii_cubed.prepend(0|units.m**3)
+        mass_profile = (4.0/3.0 * constants.pi) * density_profile * (radii_cubed[1:] - radii_cubed[:-1])
+        print("Derived mass profile from density and radius.")
+
+    return dict(
+        radius = radius_profile.as_quantity_in(units.RSun),
+        density = density_profile,
+        mass = mass_profile,
+        temperature = star.temperature,
+        pressure = star.pressure
+    )
+
 def temperature_density_plot(sphGiant, step, outputDir):
     if not HAS_PYNBODY:
         print "problem plotting"
@@ -209,12 +241,16 @@ def temperature_density_plot(sphGiant, step, outputDir):
     width = 5.0 | units.AU
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
     
-    sphGiant.gasParticles.temperature = sphGiant.gasParticles.u / (1.5 * constants.Boltzmann_constant_in_Hz_div_K )
-    data = convert_particles_to_pynbody_data(sphGiant.gasParticles, length_unit, pynbody_unit)
+    sphGiant.gasParticles.temperature = 2.0/3.0 * sphGiant.gasParticles.u * mu() / constants.kB
+    sphGiant.gasParticles.mu = mu()
+    star = sph_to_star.convert_SPH_to_stellar_model(sphGiant.gasParticles, core_particle=sphGiant.core)
+    data = structure_from_star(star)
+    #sphGiant.gasParticles.radius = CalculateVectorSize((sphGiant.gasParticles.x,sphGiant.gasParticles.y,sphGiant.gasParticles.z))
+    #data = convert_particles_to_pynbody_data(sphGiant.gasParticles, length_unit, pynbody_unit)
     figure = pyplot.figure(figsize = (8, 10))
     pyplot.subplot(1, 1, 1)
     ax = pyplot.gca()
-    plotT = semilogy(data["radius"], data["temp"], 'r-', label = r'$T(r)$')
+    plotT = semilogy(data["radius"], data["temperature"], 'r-', label = r'$T(r)$')
     xlabel('Radius')
     ylabel('Temperature')
     ax.twinx()
@@ -224,7 +260,7 @@ def temperature_density_plot(sphGiant, step, outputDir):
     ax.legend(plots, labels, loc=3)
     ylabel('Density')
     pyplot.legend()
-    pyplot.suptitle('Structure of a {0} star at {1}'.format(sphGiant.mass, step * 0.2))
+    pyplot.suptitle('Structure of a {0} star'.format(sphGiant.mass))
     pyplot.savefig(outputDir + "/radial_profile/temperature_radial_proile_{0}".format(step))
     pyplot.close()
 
@@ -232,7 +268,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax):
     if not HAS_PYNBODY:
         print "problem plotting"
         return
-    pynbody_column_density_plot(sphGiant ,resolution=2000, width=3|units.AU,vmin= vmin, vmax= vmax,cmap= "hot")
+    pynbody_column_density_plot(sphGiant ,resolution=2000, width=5|units.AU,vmin= vmin, vmax= vmax,cmap= "magma")
     scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
     pyplot.savefig(outputDir + "/plotting_{0}.jpg".format(i))
@@ -411,7 +447,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
                 print "triple2 is also breaking up", triple2.specificEnergy
                 break
-
+        '''
         sphGiant.CalculateInnerSPH(particle2)
         innerMass[i] = sphGiant.innerGas.mass.value_in(units.MSun)
         newBinaryVelocityDifference = CalculateVelocityDifference(particle2, sphGiant.innerGas)
@@ -469,7 +505,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         eInners[i] = eInner
         eOuters[i] = eOuter
         inclinations[i] = inclination
-
+        '''
         temperature_density_plot(sphGiant, i + beginStep , outputDir)
         PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
         PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)

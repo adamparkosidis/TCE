@@ -95,18 +95,17 @@ class SphGiant:
 
     def CalculateSphVelocityInsideRadius(self,radius):
         self.innerGas.vxTot , self.innerGas.vyTot , self.innerGas.vzTot = ( 0.0 , 0.0, 0.0 )| units.m * units.s**-1
+        velocityAndMass = (self.core.vx, self.core.vy, self.core.vz) * self.core.mass
         particles = 0
         for particle in self.gasParticles:
             separation = CalculateVectorSize(CalculateSeparation(particle, self.core))
             if separation < radius:
-                self.innerGas.vxTot += particle.vx
-                self.innerGas.vyTot += particle.vy
-                self.innerGas.vzTot += particle.vz
+                velocityAndMass += (particle.vx, particle.vy, particle.vz) * particle.mass
                 particles += 1
         if particles > 0:
-            self.innerGas.vxTot /= particles
-            self.innerGas.vyTot /= particles
-            self.innerGas.vzTot /= particles
+            self.innerGas.vxTot = velocityAndMass[0] / self.innerGas.mass
+            self.innerGas.vyTot = velocityAndMass[1] / self.innerGas.mass
+            self.innerGas.vzTot = velocityAndMass[2] / self.innerGas.mass
         self.innerGas.v = (self.innerGas.vxTot, self.innerGas.vyTot, self.innerGas.vzTot)
 
     def CountLeavingParticlesInsideRadius(self):
@@ -203,7 +202,7 @@ def temperature_density_plot(sphGiant, mass, age):
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
     particles= Particles(sphGiant.gas)
     particles.add_particle(sphGiant.core)
-    data = convert_particles_to_pynbody_data(particles, length_unit, pynbody_unit)
+    data = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     figure = pyplot.figure(figsize = (8, 10))
     pyplot.subplot(1, 1, 1)
     ax = pyplot.gca()

@@ -199,7 +199,7 @@ def GetPositionSize(particle):
     return CalculateVectorSize((particle.x ,particle.y,  particle.z))
 
 def temperature_density_plot(sphGiant, mass, age):
-    width = 2.0 * sphGiant.position.lengths_squared().amax().sqrt()
+    width = 5.0 | units.AU
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
     data = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     figure = pyplot.figure(figsize = (8, 10))

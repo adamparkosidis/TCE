@@ -19,7 +19,7 @@ from amuse.units.quantities import AdaptingVectorQuantity
 from amuse.datamodel import Particles, Particle
 from amuse.io import write_set_to_file, read_set_from_file
 
-from amuse.plot import scatter, xlabel, ylabel, plot, pynbody_column_density_plot, HAS_PYNBODY, _smart_length_units_for_pynbody_data, convert_particles_to_pynbody_data, UnitlessArgs
+from amuse.plot import scatter, xlabel, ylabel, plot, pynbody_column_density_plot, HAS_PYNBODY, _smart_length_units_for_pynbody_data, convert_particles_to_pynbody_data, UnitlessArgs, semilogx, semilogy, loglog, xlabel, ylabel
 
 from matplotlib import pyplot
 import pynbody
@@ -197,6 +197,26 @@ def CalculateVelocityDifference(particle1, particle2):
 def GetPositionSize(particle):
     return CalculateVectorSize((particle.x ,particle.y,  particle.z))
 
+def temperature_density_plot(sphGiant, mass, age):
+    width = 2.0 * sphGiant.position.lengths_squared().amax().sqrt()
+    length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
+    data = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
+    figure = pyplot.figure(figsize = (8, 10))
+    pyplot.subplot(1, 1, 1)
+    ax = pyplot.gca()
+    plotT = semilogy(data["radius"], data["temperature"], 'r-', label = r'$T(r)$')
+    xlabel('Radius')
+    ylabel('Temperature')
+    ax.twinx()
+    plotrho = semilogy(data["radius"], data["density"], 'g-', label = r'$\rho(r)$')
+    plots = plotT + plotrho
+    labels = [one_plot.get_label() for one_plot in plots]
+    ax.legend(plots, labels, loc=3)
+    ylabel('Density')
+    pyplot.legend()
+    pyplot.suptitle('Structure of a {0} star at {1}'.format(mass, age))
+    pyplot.show()
+
 def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax):
     if not HAS_PYNBODY:
         print "problem plotting"
@@ -321,6 +341,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             #print "semmimajor: ",semmimajors[i], "eccentricity: ",eccentricities[i], "separation: ", binaryDistances[i]
 
             #print newBinarySeparation
+            temperature_density_plot(sphGiant, i + beginStep , outputDir)
             PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep , outputDir, vmin, vmax)
             PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep, outputDir, vmin, vmax)
 

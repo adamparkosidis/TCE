@@ -73,6 +73,7 @@ class SphGiant:
         self.vx, self.vy, self.vz = (self.gas.v * self.gas.mass + (self.core.vx, self.core.vy, self.core.vz) * self.core.mass) / self.mass
         #self.vx, self.vy, self.vz =  self.core.vx, self.core.vy, self.core.vz
         self.v = (self.vx, self.vy, self.vz)
+        self.position = (self.x,self.y,self.z)
 
     def CalculateInnerSPH(self, relativeParticle):
         self.innerGas = Star(None, None)

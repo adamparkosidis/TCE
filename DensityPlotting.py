@@ -201,7 +201,9 @@ def GetPositionSize(particle):
 def temperature_density_plot(sphGiant, mass, age):
     width = 5.0 | units.AU
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
-    data = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
+    particles= Particles(sphGiant.gas)
+    particles.add_particle(sphGiant.core)
+    data = convert_particles_to_pynbody_data(particles, length_unit, pynbody_unit)
     figure = pyplot.figure(figsize = (8, 10))
     pyplot.subplot(1, 1, 1)
     ax = pyplot.gca()

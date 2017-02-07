@@ -22,7 +22,7 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     giant = binary.stars[0]
     print "giant: ", giant
     #create the sph giant
-    sphStar = StarModels.SphStar(giant,configurationFile,configurationSection="MainStar",
+    sphStar = StarModels.SphStar(giant, configurationFile,configurationSection="MainStar",
                                 savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
     print "Now having the sph star and the binaries, ready for relaxing"
     starEnvelope, dmStars = EvolveNBody.EvolveBinary(totalMass= binary.stars.total_mass(),
@@ -128,4 +128,4 @@ def Start(savedVersionPath = "Glanz/savings/RGPlanet", takeSavedState = "False",
     print "****************** Simulation Completed ******************"
 
 if __name__ == "__main__":
-    Start()
+    Start(takeSavedState="True")

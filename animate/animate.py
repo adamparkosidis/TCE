@@ -11,7 +11,7 @@ def animate_files(files, output_path, begin, end, duration=0.1):
     " Convert the list of files to an animated GIF "
     # Create a list of PIL images
     images = []
-    for f in [files[i] for i in xrange(int(begin),int(end))]:
+    for f in [files[i] for i in range(int(begin),int(end),10)]:
         img = Image.open(f)
         draw = ImageDraw.Draw(img)
         draw.text((0, 0),f,(0,0,0),font=font)

@@ -30,16 +30,17 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
     #stellarModel = derive_stellar_structure(internal_structure)
     mesa= MESA()
     mesa.initialize_code()
-    mesa.parameters.stabilize_new_stellar_model_flag = False
+    #mesa.parameters.stabilize_new_stellar_model_flag = False
     
-    print mesa.new_particle_from_model(derive_stellar_structure(internal_structure))
+    mesaParticle =  mesa.new_particle_from_model(internal_structure, 0.0 | units.Myr)
+    print mesaParticle
     if withCoreParticle:
         sphStar = convert_stellar_model_to_SPH(mesa, sphParticles,
                                                with_core_particle = withCoreParticle, target_core_mass  = coreMass ,
-                                                           do_store_composition = False,base_grid_options=dict(type="fcc"))
+                                                           do_store_composition = True,base_grid_options=dict(type="fcc"))
     else:
         sphStar = convert_stellar_model_to_SPH(mesa, sphParticles,
-                                                       do_store_composition = False,base_grid_options=dict(type="fcc"))
+                                                       do_store_composition = True,base_grid_options=dict(type="fcc"))
     print "Now having the sph star and the binaries, ready for relaxing"
     starEnvelope, dmStars = Relax(sphStar.gas_particles, sphStar.core_particle, endTime= sphStar.relaxationTime, timeSteps=sphStar.relaxationTimeSteps,
         savedVersionPath = "mesaPath", saveAfterMinute = 1, step = -1, sphCode = Gadget2,
@@ -86,13 +87,13 @@ def derive_stellar_structure(internal_structure):
         setattr(stellar_model, 'X_Si', internal_structure['X_Si'])
         setattr(stellar_model, 'X_Fe', numpy.zeros(len(stellar_model.dmass)))
         return stellar_model
+        return stellar_model
 
 def CreateArrayFromFile(filePath):
     file = open(filePath,"r")
     array = file.readlines()
     newArray = []
     for element in array:
-        print element
         element = element[:-1]
         newArray.append(float(element))
     return newArray
@@ -114,11 +115,13 @@ def ConvertUnits(listOfElements, factor):
 
 def AddUnits(internal_structure):
     internal_structure['dmass'] = internal_structure['dmass'] | units.MSun
+    #internal_structure['radius'] = internal_structure['radius'] | units.m
     internal_structure['radius'] = ConvertUnits(internal_structure['radius'], 6.957 * 10**10) | units.cm
     internal_structure['rho'] = internal_structure['rho'] | units.g/units.cm **3
     internal_structure['temperature'] = internal_structure['temperature'] | units.K
-    internal_structure['luminosity'] = ConvertUnits(internal_structure['luminosity'], 3.826 * 10**33) | units.erg/ units.s
     internal_structure['X_H'] = internal_structure['X_H']
+    internal_structure['luminosity'] = ConvertUnits(internal_structure['luminosity'], 3.826 * 10**33) | units.erg/ units.s
+    #internal_structure['luminosity'] = internal_structure['luminosity'] | units.LSun
     internal_structure['X_He'] = internal_structure['X_He']
     internal_structure['X_C'] = internal_structure['X_C']
     internal_structure['X_N'] = internal_structure['X_N']

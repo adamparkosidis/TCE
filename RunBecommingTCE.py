@@ -72,7 +72,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
 
 
-def Start(savedVersionPath = "Glanz/savings/TCEBecomming/300000", takeSavedState = "False", step = -1, configurationFile = "Glanz/savings/TCEBecomming/300000/Configuration.ini"):
+def Start(savedVersionPath = "Glanz/savings/TCEBecomming/300000/3AU", takeSavedState = "False", step = -1, configurationFile = "Glanz/savings/TCEBecomming/300000/3AU/Configuration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -117,5 +117,5 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/300000", takeSavedState
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":
-    Start(takeSavedState="True")
+    Start(takeSavedState="Mesa")
 

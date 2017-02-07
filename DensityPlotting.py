@@ -95,17 +95,21 @@ class SphGiant:
 
     def CalculateSphVelocityInsideRadius(self,radius):
         self.innerGas.vxTot , self.innerGas.vyTot , self.innerGas.vzTot = ( 0.0 , 0.0, 0.0 )| units.m * units.s**-1
-        velocityAndMass = (self.core.vx, self.core.vy, self.core.vz) * self.core.mass
+        cmass = self.core.mass.value_in(units.MSun)
+        velocityAndMass = (self.core.vx * cmass, self.core.vy * cmass,self.core.vz * cmass)
+        
         particles = 0
         for particle in self.gasParticles:
             separation = CalculateVectorSize(CalculateSeparation(particle, self.core))
             if separation < radius:
-                velocityAndMass += (particle.vx, particle.vy, particle.vz) * particle.mass
+                pmass = particle.mass.value_in(units.MSun)
+                velocityAndMass += (particle.vx * pmass, particle.vy * pmass, particle.vz * pmass)
                 particles += 1
         if particles > 0:
-            self.innerGas.vxTot = velocityAndMass[0] / self.innerGas.mass
-            self.innerGas.vyTot = velocityAndMass[1] / self.innerGas.mass
-            self.innerGas.vzTot = velocityAndMass[2] / self.innerGas.mass
+            totalMass=  self.innerGas.mass.value_in(units.MSun)
+            self.innerGas.vxTot = velocityAndMass[0] / totalMass
+            self.innerGas.vyTot = velocityAndMass[1] / totalMass
+            self.innerGas.vzTot = velocityAndMass[2] / totalMass
         self.innerGas.v = (self.innerGas.vxTot, self.innerGas.vyTot, self.innerGas.vzTot)
 
     def CountLeavingParticlesInsideRadius(self):
@@ -162,6 +166,7 @@ def CalculateEccentricity(particle1,particle2,a):
     element1 = element10/element11
     eAttitude1 = CalculateVectorSize(element1 - element2)
     eAttitude2 = (1 + (2 * CalculateSpecificEnergy(V,R,particle1,particle2)*(hSize**2))/(constants.G*(particle1.mass+particle2.mass))**2)**0.5
+    #print eAttitude1, eAttitude2
     return eAttitude1
 
 def CalculateInclination(V12,R12,V23,R23):
@@ -197,16 +202,19 @@ def CalculateVelocityDifference(particle1, particle2):
 def GetPositionSize(particle):
     return CalculateVectorSize((particle.x ,particle.y,  particle.z))
 
-def temperature_density_plot(sphGiant, mass, age):
+def temperature_density_plot(sphGiant, step, outputDir):
+    if not HAS_PYNBODY:
+        print "problem plotting"
+        return
     width = 5.0 | units.AU
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
-    particles= Particles(sphGiant.gas)
-    particles.add_particle(sphGiant.core)
-    data = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
+    
+    sphGiant.gasParticles.temperature = sphGiant.gasParticles.u / (1.5 * constants.Boltzmann_constant_in_Hz_div_K )
+    data = convert_particles_to_pynbody_data(sphGiant.gasParticles, length_unit, pynbody_unit)
     figure = pyplot.figure(figsize = (8, 10))
     pyplot.subplot(1, 1, 1)
     ax = pyplot.gca()
-    plotT = semilogy(data["radius"], data["temperature"], 'r-', label = r'$T(r)$')
+    plotT = semilogy(data["radius"], data["temp"], 'r-', label = r'$T(r)$')
     xlabel('Radius')
     ylabel('Temperature')
     ax.twinx()
@@ -216,8 +224,9 @@ def temperature_density_plot(sphGiant, mass, age):
     ax.legend(plots, labels, loc=3)
     ylabel('Density')
     pyplot.legend()
-    pyplot.suptitle('Structure of a {0} star at {1}'.format(mass, age))
-    pyplot.show()
+    pyplot.suptitle('Structure of a {0} star at {1}'.format(sphGiant.mass, step * 0.2))
+    pyplot.savefig(outputDir + "/radial_profile/temperature_radial_proile_{0}".format(step))
+    pyplot.close()
 
 def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax):
     if not HAS_PYNBODY:
@@ -316,6 +325,8 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             #break
 
         if isBinary:
+            semmimajor = CalculateSemiMajor(CalculateVelocityDifference(companion, sphGiant.core), CalculateSeparation(companion, sphGiant.core),companion.mass + sphGiant.core.mass).as_quantity_in(units.AU)
+            CalculateEccentricity(companion, sphGiant.core, semmimajor)
             #check if the companion is inside, take into account only the inner mass of the companion's orbit
             sphGiant.CalculateInnerSPH(companion)
             #print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
@@ -324,7 +335,6 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             #check if the binary is breaking up
             if binary.specificEnergy > 0 | (units.m **2 / units.s **2):
                 print "binary is breaking up", binary.specificEnergy, "step: ", i + beginStep
-
             newBinaryVelocityDifference = CalculateVelocityDifference(companion, sphGiant.innerGas)
             newBinarySeparation = CalculateSeparation(companion, sphGiant.innerGas)
             newBinaryMass = companion.mass + sphGiant.innerGas.mass
@@ -388,8 +398,6 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         if CalculateVectorSize(CalculateSeparation(sphGiant.core, particle2)) < sphGiant.core.radius:
             print "merger between particle 2 and the giant!"
             #break
-
-
         #check if the binry is breaking up
         if innerBinary.specificEnergy > 0 | (units.m **2 / units.s **2):
             print "binary is breaking up", innerBinary.specificEnergy
@@ -679,6 +687,10 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
     try:
         os.makedirs(outputDir + "/graphs")
     except (OSError):
+        pass
+    try:
+        os.makedirs(outputDir + "/radial_profile")
+    except(OSError):
         pass
     gasFiles, dmFiles, numberOfCompanion = InitializeSnapshots(savingDir, toCompare)
 

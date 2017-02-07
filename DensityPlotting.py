@@ -462,6 +462,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             eOuters[i] = eOuter
             inclinations[i] = inclination
 
+        temperature_density_plot(sphGiant, i + beginStep , outputDir)
         PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
         PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
 

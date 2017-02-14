@@ -262,10 +262,13 @@ def temperature_density_plot(sphGiant, step, outputDir):
 
     #plot to file
     textFile = open(outputDir + '/radial_profile/temperature_{0}'.format(step) + '.txt', 'w')
-    textFile.writelines(plotT)
+    textFile.write(', '.join([str(y) for y in data["temperature"]]))
     textFile.close()
     textFile = open(outputDir + '/radial_profile/density_{0}'.format(step) + '.txt', 'w')
-    textFile.writelines(plotrho)
+    textFile.write(', '.join([str(y) for y in data["density"]]))
+    textFile.close()
+    textFile = open(outputDir + '/radial_profile/radius_{0}'.format(step) + '.txt', 'w')
+    textFile.write(', '.join([str(y) for y in data["radius"]]))
     textFile.close()
 
     pyplot.legend()
@@ -515,7 +518,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         eInners[i] = eInner
         eOuters[i] = eOuter
         inclinations[i] = inclination
-        
+
         temperature_density_plot(sphGiant, i + beginStep , outputDir)
         PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
         PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)

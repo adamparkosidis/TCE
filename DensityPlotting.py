@@ -366,8 +366,8 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             isBinary=False
             binary = Star(sphGiant, sphGiant)
         #print binary.position, binary.vx,binary.vy,binary.vz
-        if CalculateVectorSize(CalculateSeparation(sphGiant.core,companion)) < sphGiant.core.radius:
-            print "merger between companion and the giant! step: ",i + beginStep
+        if CalculateVectorSize(CalculateSeparation(sphGiant.core,companion)) < min(sphGiant.core.radius,companion.radius):
+            print "merger between companion and the giant! step: ", i + beginStep
             #break
 
         if isBinary:
@@ -434,14 +434,14 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         aInner = CalculateSemiMajor(innerBinary.velocityDifference,innerBinary.separation, innerBinary.mass)
         eInner = CalculateEccentricity(particle1,particle2, aInner)
 
-        if CalculateVectorSize(innerBinary.separation) < 13.0*(10**8) | units.m: #if its closer than 2 solar radiuses
+        if CalculateVectorSize(innerBinary.separation) < min(particle1.radius, particle2.radius):
             print "merger between the inner binary!" , innerBinary.separation.as_quantity_in(units.RSun)
 
         if CalculateVectorSize(CalculateSeparation(sphGiant.core,particle1)) < sphGiant.core.radius:
             print "merger between particle1 and the giant!"
             #break
 
-        if CalculateVectorSize(CalculateSeparation(sphGiant.core, particle2)) < sphGiant.core.radius:
+        if CalculateVectorSize(CalculateSeparation(sphGiant.core, particle2)) < min(sphGiant.core.radius, particle2.radius):
             print "merger between particle 2 and the giant!"
             #break
         #check if the binry is breaking up
@@ -457,7 +457,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
                 print "triple2 is also breaking up", triple2.specificEnergy
                 break
-        '''
+
         sphGiant.CalculateInnerSPH(particle2)
         innerMass[i] = sphGiant.innerGas.mass.value_in(units.MSun)
         newBinaryVelocityDifference = CalculateVelocityDifference(particle2, sphGiant.innerGas)
@@ -515,7 +515,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         eInners[i] = eInner
         eOuters[i] = eOuter
         inclinations[i] = inclination
-        '''
+        
         temperature_density_plot(sphGiant, i + beginStep , outputDir)
         PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
         PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)

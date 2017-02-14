@@ -259,6 +259,15 @@ def temperature_density_plot(sphGiant, step, outputDir):
     labels = [one_plot.get_label() for one_plot in plots]
     ax.legend(plots, labels, loc=3)
     ylabel('Density')
+
+    #plot to file
+    textFile = open(outputDir + '/radial_profile/temperature_{0}'.format(step) + '.txt', 'w')
+    textFile.writelines(plotT)
+    textFile.close()
+    textFile = open(outputDir + '/radial_profile/density_{0}'.format(step) + '.txt', 'w')
+    textFile.writelines(plotrho)
+    textFile.close()
+
     pyplot.legend()
     pyplot.suptitle('Structure of a {0} star'.format(sphGiant.mass))
     pyplot.savefig(outputDir + "/radial_profile/temperature_radial_proile_{0}".format(step))
@@ -268,7 +277,8 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax):
     if not HAS_PYNBODY:
         print "problem plotting"
         return
-    pynbody_column_density_plot(sphGiant ,resolution=2000, width=5|units.AU,vmin= vmin, vmax= vmax,cmap= "magma")
+
+    pynbody_column_density_plot(sphGiant ,resolution=2000, width=8|units.AU,vmin= vmin, vmax= vmax,cmap= "magma")
     scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
     pyplot.savefig(outputDir + "/plotting_{0}.jpg".format(i))

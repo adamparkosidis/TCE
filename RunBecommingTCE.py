@@ -3,6 +3,11 @@ import os
 
 from amuse.units import units
 from amuse.community.gadget2.interface import Gadget2
+from amuse.community.huayno.interface import Huayno
+from amuse.community.mi6.interface import MI6
+from amuse.couple.bridge import Bridge, CalculateFieldForParticles, CalculateFieldForCodesUsingReinitialize
+from amuse.units import units , nbody_system
+from amuse.ext import bridge
 from amuse.units.units import *
 from amuse.plot import native_plot, sph_particles_plot
 from amuse.ext.star_to_sph import pickle_stellar_model
@@ -103,17 +108,28 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/300000/3AU", takeSavedS
     hydroSystem = EvolveNBody.HydroSystem(Gadget2, starEnvelope, starCore, sphMetaData.evolutionTime,
                                           sphMetaData.evolutionTimeSteps, 0.0 | units.Myr, starCore.radius,
                                           sphMetaData.numberOfWorkers)
-    #adding the companions
+    NBodySystem = EvolveNBody.DynamicsForBinarySystem(Huayno, innerBinary.semimajorAxis, innerBinary)
+    NBodySystem.add_particle(outerBinary[-1])
+
+    unitConverter = nbody_system.nbody_to_si(outerBinary.particles.total_mass(), sphMetaData.evolutionTime)
+    #kickerCode = MI6(unitConverter,number_of_workers= 8, redirection='file', redirect_file='kicker_code_mi6_out.log')
+    #kickFromCompanions = CalculateFieldForCodesUsingReinitialize(kickerCode, (innerBinary.stars[-1], outerBinary.stars[-1]))
+    #kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.gas_particles, gravity_constant=constants.G)
     hydroSystem.dm_particles.add_particle(innerBinary.stars[-1])
     hydroSystem.dm_particles.add_particle(outerBinary.stars[-1])
+    coupledSystem = Bridge()
+    coupledSystem.add_system(NBodySystem)
+    coupledSystem.add_system(hydroSystem)
+    coupledSystem.channels.add_channel(hydroSystem.dm_particles.new_channel_to(NBodySystem.particles))
+
     print innerBinary.stars
     print outerBinary.stars
-    print hydroSystem.dm_particles
+    print coupledSystem.particles
     EvolveNBody.Run(totalMass= starMass + innerBinary.stars.mass[-1] + outerBinary.stars.mass[-1],
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=innerBinary,
                     endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
-                    savedVersionPath=savedVersionPath, saveAfterMinute= 0, system=hydroSystem)
+                    savedVersionPath=savedVersionPath, saveAfterMinute= 0, system=coupledSystem)
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":

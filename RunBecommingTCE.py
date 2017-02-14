@@ -45,8 +45,15 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                           sphStar.evolutionTimeSteps, 0.0 | units.Myr, sphStar.core_particle.radius,
                                           sphStar.numberOfWorkers)
     #adding the companions
-    hydroSystem.dm_particles.add_particle(innerBinary.stars[-1])
+    NBodySystem = EvolveNBody.DynamicsForBinarySystem(Huayno, innerBinary.semimajorAxis, innerBinary)
+    NBodySystem.add_particle(outerBinary[-1])
+
+    unitConverter = nbody_system.nbody_to_si(outerBinary.particles.total_mass(), sphStar.evolutionTime)
     hydroSystem.dm_particles.add_particle(outerBinary.stars[-1])
+    coupledSystem = Bridge()
+    coupledSystem.add_system(NBodySystem)
+    coupledSystem.add_system(hydroSystem)
+    coupledSystem.channels.add_channel(hydroSystem.dm_particles.new_channel_to(NBodySystem.particles))
 
     print hydroSystem.dm_particles
     starEnvelope, dmStars = EvolveNBody.Run(totalMass= outerBinary.stars.total_mass(),
@@ -54,7 +61,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                              stars=None, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
                                               numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath,
-                                            saveAfterMinute=10, system=hydroSystem)
+                                            saveAfterMinute=10, system=coupledSystem)
     starCore = dmStars[0]
     starCore.radius = sphStar.core_particle.radius
 

@@ -388,7 +388,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             newBinarySeparation = CalculateSeparation(companion, sphGiant.innerGas)
             newBinaryMass = companion.mass + sphGiant.innerGas.mass
             newBinarySpecificEnergy = CalculateSpecificEnergy(newBinaryVelocityDifference,newBinarySeparation,sphGiant.innerGas,companion)
-            semmimajor = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass).as_quantity_in(units.AU)
+            #semmimajor = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass).as_quantity_in(units.AU)
             eccentricity = CalculateEccentricity(companion, sphGiant.innerGas, semmimajor)
             eccentricities[i] = eccentricity
             binaryDistances[i] = CalculateVectorSize(newBinarySeparation).value_in(units.RSun)

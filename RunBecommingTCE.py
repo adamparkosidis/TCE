@@ -45,11 +45,11 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                           sphStar.evolutionTimeSteps, 0.0 | units.Myr, sphStar.core_particle.radius,
                                           sphStar.numberOfWorkers)
     #adding the companions
-    NBodySystem = EvolveNBody.DynamicsForBinarySystem(Huayno, innerBinary.semimajorAxis, innerBinary)
-    NBodySystem.add_particle(outerBinary[-1])
+    NBodySystem = EvolveNBody.DynamicsForBinarySystem(Huayno, innerBinary.semimajorAxis, innerBinary.stars)
+    NBodySystem.particles.add_particles(outerBinary.stars[-1])
 
     unitConverter = nbody_system.nbody_to_si(outerBinary.particles.total_mass(), sphStar.evolutionTime)
-    hydroSystem.dm_particles.add_particle(outerBinary.stars[-1])
+    hydroSystem.dm_particles.add_particles(outerBinary.stars[-1])
     coupledSystem = Bridge()
     coupledSystem.add_system(NBodySystem)
     coupledSystem.add_system(hydroSystem)
@@ -115,15 +115,15 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/300000/3AU", takeSavedS
     hydroSystem = EvolveNBody.HydroSystem(Gadget2, starEnvelope, starCore, sphMetaData.evolutionTime,
                                           sphMetaData.evolutionTimeSteps, 0.0 | units.Myr, starCore.radius,
                                           sphMetaData.numberOfWorkers)
-    NBodySystem = EvolveNBody.DynamicsForBinarySystem(Huayno, innerBinary.semimajorAxis, innerBinary)
-    NBodySystem.add_particle(outerBinary[-1])
+    NBodySystem = EvolveNBody.DynamicsForBinarySystem(Huayno, innerBinary.semimajorAxis, innerBinary.stars)
+    NBodySystem.particles.add_particles(outerBinary.stars[-1])
 
     unitConverter = nbody_system.nbody_to_si(outerBinary.particles.total_mass(), sphMetaData.evolutionTime)
     #kickerCode = MI6(unitConverter,number_of_workers= 8, redirection='file', redirect_file='kicker_code_mi6_out.log')
     #kickFromCompanions = CalculateFieldForCodesUsingReinitialize(kickerCode, (innerBinary.stars[-1], outerBinary.stars[-1]))
     #kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.gas_particles, gravity_constant=constants.G)
-    hydroSystem.dm_particles.add_particle(innerBinary.stars[-1])
-    hydroSystem.dm_particles.add_particle(outerBinary.stars[-1])
+    hydroSystem.dm_particles.add_particles(innerBinary.stars[-1])
+    hydroSystem.dm_particles.add_particles(outerBinary.stars[-1])
     coupledSystem = Bridge()
     coupledSystem.add_system(NBodySystem)
     coupledSystem.add_system(hydroSystem)

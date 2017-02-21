@@ -80,9 +80,8 @@ class SphGiant:
         self.innerGas = Star(None, None)
         radius = CalculateVectorSize(CalculateSeparation(relativeParticle, self.core))
         self.innerGas.mass = self.CalculateTotalGasMassInsideRadius(radius)
-        self.innerGas.position = self.core.position
+        self.CalculateSphVelocityAndPositionInsideRadius(radius)
         self.innerGas.x , self.innerGas.y, self.innerGas.z = self.innerGas.position
-        self.CalculateSphVelocityInsideRadius(radius)
 
     def CalculateTotalGasMassInsideRadius(self, radius):
         innerMass = self.core.mass
@@ -93,25 +92,32 @@ class SphGiant:
                 innerMass += particle.mass
         return innerMass
 
-
-    def CalculateSphVelocityInsideRadius(self,radius):
+    def CalculateSphVelocityAndPositionInsideRadius(self,radius):
         self.innerGas.vxTot , self.innerGas.vyTot , self.innerGas.vzTot = ( 0.0 , 0.0, 0.0 )| units.m * units.s**-1
+        self.innerGas.xTot , self.innerGas.yTot , self.innerGas.zTot = ( 0.0 , 0.0, 0.0 )| units.m
         cmass = self.core.mass.value_in(units.MSun)
         velocityAndMass = (self.core.vx * cmass, self.core.vy * cmass,self.core.vz * cmass)
-        
+        positionAndMass = (self.core.x * cmass, self.core.y * cmass,self.core.z * cmass)
+
         particles = 0
         for particle in self.gasParticles:
             separation = CalculateVectorSize(CalculateSeparation(particle, self.core))
             if separation < radius:
                 pmass = particle.mass.value_in(units.MSun)
                 velocityAndMass += (particle.vx * pmass, particle.vy * pmass, particle.vz * pmass)
+                positionAndMass += (particle.x * pmass, particle.y * pmass, particle.z * pmass)
                 particles += 1
         if particles > 0:
             totalMass=  self.innerGas.mass.value_in(units.MSun)
             self.innerGas.vxTot = velocityAndMass[0] / totalMass
             self.innerGas.vyTot = velocityAndMass[1] / totalMass
             self.innerGas.vzTot = velocityAndMass[2] / totalMass
+
+            self.innerGas.xTot = positionAndMass[0] / totalMass
+            self.innerGas.yTot = positionAndMass[1] / totalMass
+            self.innerGas.zTot = positionAndMass[2] / totalMass
         self.innerGas.v = (self.innerGas.vxTot, self.innerGas.vyTot, self.innerGas.vzTot)
+        self.innerGas.position = (self.innerGas.xTot, self.innerGas.yTot, self.innerGas.zTot)
 
     def CountLeavingParticlesInsideRadius(self):
         leavingParticles = 0

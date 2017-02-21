@@ -142,9 +142,9 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
         currentTime = step * timeStep
 
     if system is None:
-        if step == -1:# the radius of the core is now 10 times the real one becuase of epsilon = 10r_c
+        if step == -1 and relax:# the radius of the core is now 10 times the real one becuase of epsilon = 10r_c
             hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
-        else:
+        else:# if its not the relaxation we shouldn't multiply by 2 again...
             hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(10*2), numberOfWorkers)
         if not relax or takeCompanionInRelaxation:
             print "\nSetting up {0} to simulate triple system".format(dynamicsCode.__name__)

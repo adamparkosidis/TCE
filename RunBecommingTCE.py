@@ -44,18 +44,23 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     hydroSystem = EvolveNBody.HydroSystem(Gadget2, sphStar.gas_particles, sphStar.core_particle, sphStar.evolutionTime,
                                           sphStar.evolutionTimeSteps, 0.0 | units.Myr, sphStar.core_particle.radius,
                                           sphStar.numberOfWorkers)
-    #adding the companions
-    NBodySystem = EvolveNBody.DynamicsForBinarySystem(Huayno, innerBinary.semimajorAxis, innerBinary.stars)
-    NBodySystem.particles.add_particles(outerBinary.stars[-1])
 
-    kickerCodeOuter = CalculateFieldForParticles(particles=outerBinary.stars[1], gravity_constant=constants.G)
-    kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.gas_particles, gravity_constant=constants.G)
 
-    hydroSystem.dm_particles.add_particles(innerBinary.stars[-1])
-    #hydroSystem.dm_particles.add_particles(outerBinary.stars[-1])
-    coupledSystem = Bridge()
-    coupledSystem.add_system(hydroSystem, (kickerCodeOuter,), False)
-    coupledSystem.add_system(kickerCodeOuter, (kick_from_hydro, ), False)
+    #hydroSystem.dm_particles.add_particles(innerBinary.stars[1])
+
+    unitConverter = nbody_system.nbody_to_si(outerBinary.stars.total_mass(), sphStar.relaxationTime)
+    kickerCode = MI6(unitConverter,number_of_workers= 8, redirection='file', redirect_file='kicker_code_mi6_out.log')
+    binarySystem = Huayno(unitConverter)
+    binarySystem.particles.add_particles(outerBinary.stars)
+
+    epsilonSquared = (hydroSystem.dm_particles.radius[0]/ 2.8)**2
+    kickerCode.parameters.epsilon_squared = 0
+    coupledSystem = Bridge(timestep=(sphStar.relaxationTime / (2 * sphStar.relaxationTimeSteps)), verbose=False, use_threading= False)
+    kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.particles, gravity_constant=constants.G)
+    kick_from_hydro.smoothing_length_squared = epsilonSquared
+    coupledSystem.add_system(binarySystem, (kick_from_hydro,), False)
+    coupledSystem.add_system(hydroSystem, (kickerCode,), False)
+    coupledSystem.channels.add_channel(binarySystem.particles[0].new_channel_to(hydroSystem.particles))
 
     print hydroSystem.dm_particles
     print coupledSystem.particles

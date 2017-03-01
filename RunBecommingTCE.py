@@ -47,7 +47,9 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
 
     hydroSystem.dm_particles.add_particles(innerBinary.stars[1])
-
+    hydroSystem.dm_particles.add_particles(outerBinary.stars[1])
+    coupledSystem= hydroSystem
+    '''
     unitConverter = nbody_system.nbody_to_si(outerBinary.stars.total_mass(), sphStar.relaxationTime)
     kickerCode = MI6(unitConverter,number_of_workers=8, redirection='file', redirect_file='kicker_code_mi6_out.log')
     binarySystem = Huayno(unitConverter)
@@ -63,6 +65,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     coupledSystem.channels.add_channel(hydroSystem.particles.new_channel_to(binarySystem.particles[0]))
 
     print coupledSystem.particles
+    '''
     starEnvelope, dmStars = EvolveNBody.Run(totalMass= outerBinary.stars.total_mass(),
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
                                              stars=None, endTime= sphStar.relaxationTime,
@@ -122,8 +125,10 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/300000/3AU", takeSavedS
     hydroSystem = EvolveNBody.HydroSystem(Gadget2, starEnvelope, starCore, sphMetaData.evolutionTime,
                                           sphMetaData.evolutionTimeSteps, 0.0 | units.Myr, starCore.radius,
                                           sphMetaData.numberOfWorkers)
-    hydroSystem.dm_particles.add_particles(innerBinary.stars[1])
-
+    hydroSystem.dm_particles.add_particle(innerBinary.stars[1])
+    hydroSystem.dm_particles.add_particle(outerBinary.stars[1])
+    coupledSystem- hydroSystem
+    '''
     unitConverter = nbody_system.nbody_to_si(outerBinary.stars.total_mass(), sphStar.relaxationTime)
     kickerCode = MI6(unitConverter,number_of_workers=8, redirection='file', redirect_file='kicker_code_mi6_out.log')
     binarySystem = Huayno(unitConverter)
@@ -137,7 +142,7 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/300000/3AU", takeSavedS
     coupledSystem.add_system(binarySystem, (kick_from_hydro,), False)
     coupledSystem.add_system(hydroSystem, (kickerCode,), False)
     coupledSystem.channels.add_channel(hydroSystem.particles.new_channel_to(binarySystem.particles[0]))
-
+    '''
     EvolveNBody.Run(totalMass= starMass + innerBinary.stars.mass[-1] + outerBinary.stars.mass[-1],
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=innerBinary,

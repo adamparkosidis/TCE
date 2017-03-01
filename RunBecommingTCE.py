@@ -122,12 +122,17 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/300000/3AU", takeSavedS
     #kickerCode = MI6(unitConverter,number_of_workers= 8, redirection='file', redirect_file='kicker_code_mi6_out.log')
     #kickFromCompanions = CalculateFieldForCodesUsingReinitialize(kickerCode, (innerBinary.stars[-1], outerBinary.stars[-1]))
     #kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.gas_particles, gravity_constant=constants.G)
+
+    kickerCodeInner = CalculateFieldForParticles(particles=innerBinary.stars[1], gravity_constant=constants.G)
+    kickerCodeOuter = CalculateFieldForParticles(particles=outerBinary.stars[1], gravity_constant=constants.G)
+    #kickFromCompanions = CalculateFieldForCodesUsingReinitialize(kickerCode, (innerBinary.stars[-1], outerBinary.stars[-1]))
+    kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.gas_particles, gravity_constant=constants.G)
+
     hydroSystem.dm_particles.add_particles(innerBinary.stars[-1])
-    hydroSystem.dm_particles.add_particles(outerBinary.stars[-1])
+    #hydroSystem.dm_particles.add_particles(outerBinary.stars[-1])
     coupledSystem = Bridge()
-    coupledSystem.add_system(NBodySystem)
-    coupledSystem.add_system(hydroSystem)
-    coupledSystem.channels.add_channel(hydroSystem.dm_particles.new_channel_to(NBodySystem.particles))
+    coupledSystem.add_system(hydroSystem, (kickerCodeOuter,), False)
+    coupledSystem.add_system(kickerCodeOuter, (kick_from_hydro, ), False)
 
     print innerBinary.stars
     print outerBinary.stars

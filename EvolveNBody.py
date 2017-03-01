@@ -145,7 +145,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
         if step == -1 and relax:# the radius of the core is now 10 times the real one becuase of epsilon = 10r_c
             hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
         else:# if its not the relaxation we shouldn't multiply by 2 again...
-            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(10*2), numberOfWorkers)
+            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(100*2), numberOfWorkers)
         if not relax or takeCompanionInRelaxation:
             print "\nSetting up {0} to simulate triple system".format(dynamicsCode.__name__)
             binarySystem = DynamicsForBinarySystem(dynamicsCode, semmiMajor, stars.stars)
@@ -253,10 +253,10 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
         currentTime = step * timeStep
         
     if system is  None:
-        if step == -1:
+        if step == -1 and relax:
             hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
         else: # the radius of the core is now 10 times the real one becuase of epsilon = 10r_c
-            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(10*2), numberOfWorkers)
+            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(100*2), numberOfWorkers)
         if not relax or takeCompanionInRelaxation:
             hydroSystem.dm_particles.add_particle(stars.stars[-1])
             coupledSystem = hydroSystem

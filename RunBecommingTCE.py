@@ -48,14 +48,17 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     NBodySystem = EvolveNBody.DynamicsForBinarySystem(Huayno, innerBinary.semimajorAxis, innerBinary.stars)
     NBodySystem.particles.add_particles(outerBinary.stars[-1])
 
-    unitConverter = nbody_system.nbody_to_si(outerBinary.particles.total_mass(), sphStar.evolutionTime)
-    hydroSystem.dm_particles.add_particles(outerBinary.stars[-1])
+    kickerCodeOuter = CalculateFieldForParticles(particles=outerBinary.stars[1], gravity_constant=constants.G)
+    kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.gas_particles, gravity_constant=constants.G)
+
+    hydroSystem.dm_particles.add_particles(innerBinary.stars[-1])
+    #hydroSystem.dm_particles.add_particles(outerBinary.stars[-1])
     coupledSystem = Bridge()
-    coupledSystem.add_system(NBodySystem)
-    coupledSystem.add_system(hydroSystem)
-    coupledSystem.channels.add_channel(hydroSystem.dm_particles.new_channel_to(NBodySystem.particles))
+    coupledSystem.add_system(hydroSystem, (kickerCodeOuter,), False)
+    coupledSystem.add_system(kickerCodeOuter, (kick_from_hydro, ), False)
 
     print hydroSystem.dm_particles
+    print coupledSystem.particles
     starEnvelope, dmStars = EvolveNBody.Run(totalMass= outerBinary.stars.total_mass(),
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
                                              stars=None, endTime= sphStar.relaxationTime,
@@ -123,9 +126,7 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/300000/3AU", takeSavedS
     #kickFromCompanions = CalculateFieldForCodesUsingReinitialize(kickerCode, (innerBinary.stars[-1], outerBinary.stars[-1]))
     #kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.gas_particles, gravity_constant=constants.G)
 
-    kickerCodeInner = CalculateFieldForParticles(particles=innerBinary.stars[1], gravity_constant=constants.G)
     kickerCodeOuter = CalculateFieldForParticles(particles=outerBinary.stars[1], gravity_constant=constants.G)
-    #kickFromCompanions = CalculateFieldForCodesUsingReinitialize(kickerCode, (innerBinary.stars[-1], outerBinary.stars[-1]))
     kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.gas_particles, gravity_constant=constants.G)
 
     hydroSystem.dm_particles.add_particles(innerBinary.stars[-1])

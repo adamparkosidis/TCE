@@ -127,7 +127,8 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/300000/3AU", takeSavedS
                                           sphMetaData.numberOfWorkers)
     hydroSystem.dm_particles.add_particle(innerBinary.stars[1])
     hydroSystem.dm_particles.add_particle(outerBinary.stars[1])
-    coupledSystem- hydroSystem
+    coupledSystem = hydroSystem
+
     '''
     unitConverter = nbody_system.nbody_to_si(outerBinary.stars.total_mass(), sphStar.relaxationTime)
     kickerCode = MI6(unitConverter,number_of_workers=8, redirection='file', redirect_file='kicker_code_mi6_out.log')

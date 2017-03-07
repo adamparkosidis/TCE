@@ -30,6 +30,7 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
     #stellarModel = derive_stellar_structure(internal_structure)
     mesa= MESA()
     mesa.initialize_code()
+
     #mesa.parameters.stabilize_new_stellar_model_flag = False
     
     mesaParticle =  mesa.new_particle_from_model(internal_structure, 0.0 | units.Myr)

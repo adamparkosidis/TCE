@@ -46,9 +46,9 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                           sphStar.numberOfWorkers)
 
     coupledSystem = Bridge(timestep=(sphStar.relaxationTime / (2 * sphStar.relaxationTimeSteps)), verbose=False, use_threading= False)
-    kickFromBinary = CalculateFieldForParticles([innerBinary.stars[1],outerBinary.stars[1]], gravity_constant=constants.G)
+    kickFromBinary = CalculateFieldForParticles(particles=Particles(particles=[innerBinary.stars[1],outerBinary.stars[1]]), gravity_constant=constants.G)
     coupledSystem.add_system(hydroSystem, (kickFromBinary,), False)
-    print coupledSystem.particles
+    
     starEnvelope, dmStars = EvolveNBody.Run(totalMass= outerBinary.stars.total_mass(),
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
                                              stars=None, endTime= sphStar.relaxationTime,

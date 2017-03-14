@@ -47,7 +47,7 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
         system.parameters.eps_is_h_flag = True
     system.parameters.begin_time = beginTime
     system.parameters.time_limit_cpu = 7200000000 | units.s
-    print "core radius:",core.radius.as_string_in(units.RSun)
+    print "core radius:",core.radius.as_string_in(units.RSun), core.radius
     system.dm_particles.add_particle(core)
     system.gas_particles.add_particles(envelope)
     system.parameters.timestep_accuracy_parameter = 0.05
@@ -156,7 +156,6 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
             coupledSystem = hydroSystem
     else: # got it from the outside
         coupledSystem = system
-
     dm = coupledSystem.dm_particles.copy()
     gas = coupledSystem.gas_particles.copy()
 

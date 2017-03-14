@@ -14,6 +14,7 @@ from amuse.plot import native_plot, sph_particles_plot
 from amuse.ext.star_to_sph import pickle_stellar_model
 from amuse.datamodel import Particles
 from amuse.io import read_set_from_file
+from amuse.units.nbody_system import nbody_to_si
 import StarModels
 import EvolveNBody
 
@@ -43,19 +44,22 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     print "Now having the sph star and the binaries, ready for relaxing"
 
     hydroSystem = EvolveNBody.HydroSystem(Gadget2, sphStar.gas_particles, sphStar.core_particle, sphStar.relaxationTime,
-                                          sphStar.relaxationTimeSteps, 0.0 | units.Myr, sphStar.core_particle.radius,
+                                          sphStar.relaxationTimeSteps, 0.0 | units.Myr, sphStar.core_particle.radius/10,
                                           sphStar.numberOfWorkers)
-
+    '''
     coupledSystem = Bridge(timestep=(sphStar.relaxationTime / (2 * sphStar.relaxationTimeSteps)), verbose=False, use_threading= False)
-    companion1 = Hermite()
+    #kickFromBinary = CalculateFieldForParticles(particles=Particles(particles=[innerBinary.stars[1],outerBinary.stars[1]]), gravity_constant=constants.G)
+    nbodyConverter = nbody_to_si(innerBinary.stars[1].mass, sphStar.relaxationTime)
+    companion1 = Hermite(nbodyConverter)
     companion1.particles.add_particle(innerBinary.stars[1])
-    companion2 = Hermite()
+    nbodyConverter = nbody_to_si(outerBinary.stars[1].mass, sphStar.relaxationTime)
+    companion2 = Hermite(nbodyConverter)
     companion2.particles.add_particle(outerBinary.stars[1])
-
-    kickFromBinary = CalculateFieldForParticles(particles=Particles(particles=[innerBinary.stars[1],outerBinary.stars[1]]), gravity_constant=constants.G)
-    epsilonSquared = (hydroSystem.dm_particles.radius[0]/ 2.8)**2
-    kickFromBinary.smoothing_length_squared = epsilonSquared
+    epsilonSquared = (hydroSystem.dm_particles.radius[0] / 2.8)**2
+    #kickFromBinary.smoothing_length_squared = epsilonSquared
     coupledSystem.add_system(hydroSystem, (companion1, companion2,), False)
+    '''
+    coupledSystem= hydroSystem
     starEnvelope, dmStars = EvolveNBody.Run(totalMass= outerBinary.stars.total_mass(),
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
                                              stars=None, endTime= sphStar.relaxationTime,

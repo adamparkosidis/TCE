@@ -243,7 +243,7 @@ def structure_from_star(star):
         radii_cubed = radius_profile**3
         radii_cubed.prepend(0|units.m**3)
         mass_profile = (4.0/3.0 * constants.pi) * density_profile * (radii_cubed[1:] - radii_cubed[:-1])
-        print("Derived mass profile from density and radius.")
+        #print("Derived mass profile from density and radius.")
 
     return dict(
         radius = radius_profile.as_quantity_in(units.RSun),
@@ -289,7 +289,7 @@ def temperature_density_plot(sphGiant, step, outputDir):
     textFile = open(outputDir + '/radial_profile/radius_{0}'.format(step) + '.txt', 'w')
     textFile.write(', '.join([str(y) for y in data["radius"]]))
     textFile.close()
-
+    #print "saved"
     pyplot.legend()
     pyplot.suptitle('Structure of a {0} star'.format(sphGiant.mass))
     pyplot.savefig(outputDir + "/radial_profile/temperature_radial_proile_{0}".format(step))
@@ -299,8 +299,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax):
     if not HAS_PYNBODY:
         print "problem plotting"
         return
-
-    pynbody_column_density_plot(sphGiant ,resolution=2000, width=8|units.AU,vmin= vmin, vmax= vmax,cmap= "magma")
+    pynbody_column_density_plot(sphGiant ,resolution=2000, width=4|units.AU,vmin= vmin, vmax= vmax,cmap= "hot")
     scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
     pyplot.savefig(outputDir + "/plotting_{0}.jpg".format(i))
@@ -390,7 +389,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             newBinarySeparation = CalculateSeparation(companion, sphGiant.innerGas)
             newBinaryMass = companion.mass + sphGiant.innerGas.mass
             newBinarySpecificEnergy = CalculateSpecificEnergy(newBinaryVelocityDifference,newBinarySeparation,sphGiant.innerGas,companion)
-            #semmimajor = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass).as_quantity_in(units.AU)
+            semmimajor = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass).as_quantity_in(units.AU)
             eccentricity = CalculateEccentricity(companion, sphGiant.innerGas)
             eccentricities[i] = eccentricity
             binaryDistances[i] = CalculateVectorSize(newBinarySeparation).value_in(units.RSun)

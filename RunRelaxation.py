@@ -3,6 +3,7 @@ import time
 import ConfigParser
 import sys
 import glob
+import math
 from amuse.lab import *
 from amuse.units import units , nbody_system
 from amuse.datamodel import Particle
@@ -29,7 +30,10 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
     internal_structure = AddUnits(internal_structure)
     #stellarModel = derive_stellar_structure(internal_structure)
     mesa= MESA()
-    mesa.initialize_code()
+    print "initializing mesa code"
+    #mesa.parameters.metallicity = 0.3
+    #mesa.new_stellar_model()
+    #mesa.initialize_code()
 
     #mesa.parameters.stabilize_new_stellar_model_flag = False
     savedPath= "/BIGDATA/code/amuse-10.0/Glanz/savings/TCEBecomming/500000/evolution/"
@@ -39,11 +43,11 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
     #mesaParticle =  mesa.new_particle_from_model(internal_structure, 0.0 | units.Myr)
     print mesaParticle
     if withCoreParticle:
-        sphStar = convert_stellar_model_to_SPH(mesa, sphParticles,
+        sphStar = convert_stellar_model_to_SPH(mesaParticle, sphParticles,
                                                with_core_particle = withCoreParticle, target_core_mass  = coreMass ,
                                                            do_store_composition = True,base_grid_options=dict(type="fcc"))
     else:
-        sphStar = convert_stellar_model_to_SPH(mesa, sphParticles,
+        sphStar = convert_stellar_model_to_SPH(mesaParticle, sphParticles,
                                                        do_store_composition = True,base_grid_options=dict(type="fcc"))
     print "Now having the sph star and the binaries, ready for relaxing"
     starEnvelope, dmStars = Relax(sphStar.gas_particles, sphStar.core_particle, endTime= sphStar.relaxationTime, timeSteps=sphStar.relaxationTimeSteps,

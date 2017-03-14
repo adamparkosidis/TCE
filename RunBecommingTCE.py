@@ -45,19 +45,12 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                           sphStar.evolutionTimeSteps, 0.0 | units.Myr, sphStar.core_particle.radius,
                                           sphStar.numberOfWorkers)
 
-
-    hydroSystem.dm_particles.add_particles(innerBinary.stars[1])
-    hydroSystem.dm_particles.add_particles(outerBinary.stars[1])
-
-    unitConverter = nbody_system.nbody_to_si(outerBinary.stars.total_mass(), sphStar.relaxationTimeSteps)
-    binarySystem = Huayno(unitConverter)
-    binarySystem.particles.add_particles(innerBinary.stars[1])
-    binarySystem.particles.add_particles(sphStar.core_particle)
+    unitConverter = nbody_system.nbody_to_si(outerBinary.stars[1].mass + innerBinary.stars[1].mass, sphStar.relaxationTime)
     coupledSystem = Bridge(timestep=(sphStar.relaxationTime / (2 * sphStar.relaxationTimeSteps)), verbose=False, use_threading= False)
     kickerCode = MI6(unitConverter,number_of_workers=8, redirection='file', redirect_file='kicker_code_mi6_out.log')
     coupledSystem.add_system(hydroSystem, (kickerCode,), False)
     print "bridging between ", hydroSystem.dm_particles[:-2]
-    coupledSystem.channels.add_channel(binarySystem.particles.new_channel_to(hydroSystem.dm_particles[:-2]))
+
     starEnvelope, dmStars = EvolveNBody.Run(totalMass= outerBinary.stars.total_mass(),
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
                                              stars=None, endTime= sphStar.relaxationTime,
@@ -120,11 +113,11 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSave
     hydroSystem.dm_particles.add_particle(innerBinary.stars[1])
     hydroSystem.dm_particles.add_particle(outerBinary.stars[1])
 
-    unitConverter = nbody_system.nbody_to_si(outerBinary.stars.total_mass(), sphMetaData.relaxationTimeSteps)
+    unitConverter = nbody_system.nbody_to_si(outerBinary.stars[1].mass + innerBinary.stars[1].mass, sphMetaData.evolutionTime)
     binarySystem = Huayno(unitConverter)
-    binarySystem.particles.add_particles(innerBinary.stars[1])
-    binarySystem.particles.add_particles(starCore)
-    coupledSystem = Bridge(timestep=(sphMetaData.relaxationTime / (2 * sphMetaData.relaxationTimeSteps)), verbose=False, use_threading= False)
+    binarySystem.particles.add_particle(innerBinary.stars[1])
+    binarySystem.particles.add_particle(starCore)
+    coupledSystem = Bridge(timestep=(sphMetaData.evolutionTime / (2 * sphMetaData.evolutionTimeSteps)), verbose=False, use_threading= False)
     kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.gas_particles, gravity_constant=constants.G)
     epsilonSquared = (hydroSystem.dm_particles.radius[0]/ 2.8)**2
     kick_from_hydro.smoothing_length_squared = epsilonSquared

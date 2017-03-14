@@ -51,7 +51,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
     unitConverter = nbody_system.nbody_to_si(outerBinary.stars.total_mass(), sphStar.relaxationTimeSteps)
     binarySystem = Huayno(unitConverter)
-    binarySystem.particles.add_particles(innerBinary[1])
+    binarySystem.particles.add_particles(innerBinary.stars[1])
     binarySystem.particles.add_particles(sphStar.core_particle)
     coupledSystem = Bridge(timestep=(sphStar.relaxationTime / (2 * sphStar.relaxationTimeSteps)), verbose=False, use_threading= False)
     kickerCode = MI6(unitConverter,number_of_workers=8, redirection='file', redirect_file='kicker_code_mi6_out.log')
@@ -86,7 +86,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
 
 
-def Start(savedVersionPath = "Glanz/savings/TCEBecomming/300000/3AU", takeSavedState = "False", step = -1, configurationFile = "Glanz/savings/TCEBecomming/300000/3AU/Configuration.ini"):
+def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSavedState = "False", step = -1, configurationFile = "Glanz/savings/TCEBecomming/500000/Configuration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -122,7 +122,7 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/300000/3AU", takeSavedS
 
     unitConverter = nbody_system.nbody_to_si(outerBinary.stars.total_mass(), sphMetaData.relaxationTimeSteps)
     binarySystem = Huayno(unitConverter)
-    binarySystem.particles.add_particles(innerBinary[1])
+    binarySystem.particles.add_particles(innerBinary.stars[1])
     binarySystem.particles.add_particles(starCore)
     coupledSystem = Bridge(timestep=(sphMetaData.relaxationTime / (2 * sphMetaData.relaxationTimeSteps)), verbose=False, use_threading= False)
     kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.gas_particles, gravity_constant=constants.G)

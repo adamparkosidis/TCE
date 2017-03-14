@@ -4,6 +4,7 @@ import os
 from amuse.units import units
 from amuse.community.gadget2.interface import Gadget2
 from amuse.community.huayno.interface import Huayno
+from amuse.community.hermite0.interface import Hermite
 from amuse.community.mi6.interface import MI6
 from amuse.couple.bridge import Bridge, CalculateFieldForParticles, CalculateFieldForCodesUsingReinitialize
 from amuse.units import units , nbody_system
@@ -46,9 +47,15 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                           sphStar.numberOfWorkers)
 
     coupledSystem = Bridge(timestep=(sphStar.relaxationTime / (2 * sphStar.relaxationTimeSteps)), verbose=False, use_threading= False)
+    companion1 = Hermite()
+    companion1.particles.add_particle(innerBinary.stars[1])
+    companion2 = Hermite()
+    companion2.particles.add_particle(outerBinary.stars[1])
+
     kickFromBinary = CalculateFieldForParticles(particles=Particles(particles=[innerBinary.stars[1],outerBinary.stars[1]]), gravity_constant=constants.G)
-    coupledSystem.add_system(hydroSystem, (kickFromBinary,), False)
-    
+    epsilonSquared = (hydroSystem.dm_particles.radius[0]/ 2.8)**2
+    kickFromBinary.smoothing_length_squared = epsilonSquared
+    coupledSystem.add_system(hydroSystem, (companion1, companion2,), False)
     starEnvelope, dmStars = EvolveNBody.Run(totalMass= outerBinary.stars.total_mass(),
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
                                              stars=None, endTime= sphStar.relaxationTime,

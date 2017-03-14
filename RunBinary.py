@@ -45,6 +45,7 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     starEnvelope.velocity -= diffVelocity
     starCore.velocity -= diffVelocity
 
+
     return starEnvelope, starCore, binary, binary.semimajorAxis, sphMetaData
 
 def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, takeSavedMesa = False):

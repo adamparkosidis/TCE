@@ -47,9 +47,8 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
     unitConverter = nbody_system.nbody_to_si(outerBinary.stars[1].mass + innerBinary.stars[1].mass, sphStar.relaxationTime)
     coupledSystem = Bridge(timestep=(sphStar.relaxationTime / (2 * sphStar.relaxationTimeSteps)), verbose=False, use_threading= False)
-    kickerCode = MI6(unitConverter,number_of_workers=8, redirection='file', redirect_file='kicker_code_mi6_out.log')
-    coupledSystem.add_system(hydroSystem, (kickerCode,), False)
-    print "bridging between ", hydroSystem.dm_particles[:-2]
+    kickFromBinary = CalculateFieldForParticles([innerBinary.stars[1],outerBinary.stars[1]], gravity_constant=constants.G)
+    coupledSystem.add_system(hydroSystem, (kickFromBinary,), False)
 
     starEnvelope, dmStars = EvolveNBody.Run(totalMass= outerBinary.stars.total_mass(),
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
@@ -118,12 +117,8 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSave
     binarySystem.particles.add_particle(innerBinary.stars[1])
     binarySystem.particles.add_particle(starCore)
     coupledSystem = Bridge(timestep=(sphMetaData.evolutionTime / (2 * sphMetaData.evolutionTimeSteps)), verbose=False, use_threading= False)
-    kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.gas_particles, gravity_constant=constants.G)
-    epsilonSquared = (hydroSystem.dm_particles.radius[0]/ 2.8)**2
-    kick_from_hydro.smoothing_length_squared = epsilonSquared
-    kickerCode = MI6(unitConverter,number_of_workers=8, redirection='file', redirect_file='kicker_code_mi6_out.log')
-    coupledSystem.add_system(binarySystem, (kick_from_hydro,), False)
-    coupledSystem.add_system(hydroSystem, (kickerCode,), False)
+    coupledSystem.add_system(binarySystem)
+    coupledSystem.add_system(hydroSystem)
     print "bridging between ", hydroSystem.dm_particles[:-2]
     coupledSystem.channels.add_channel(binarySystem.particles.new_channel_to(hydroSystem.dm_particles[:-2]))
 

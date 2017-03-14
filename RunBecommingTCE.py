@@ -125,7 +125,7 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/300000/3AU", takeSavedS
     binarySystem.particles.add_particles(innerBinary[1])
     binarySystem.particles.add_particles(starCore)
     coupledSystem = Bridge(timestep=(sphMetaData.relaxationTime / (2 * sphMetaData.relaxationTimeSteps)), verbose=False, use_threading= False)
-    kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.particles, gravity_constant=constants.G)
+    kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.gas_particles, gravity_constant=constants.G)
     epsilonSquared = (hydroSystem.dm_particles.radius[0]/ 2.8)**2
     kick_from_hydro.smoothing_length_squared = epsilonSquared
     kickerCode = MI6(unitConverter,number_of_workers=8, redirection='file', redirect_file='kicker_code_mi6_out.log')

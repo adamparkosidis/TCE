@@ -32,8 +32,11 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
     mesa.initialize_code()
 
     #mesa.parameters.stabilize_new_stellar_model_flag = False
-    
-    mesaParticle =  mesa.new_particle_from_model(internal_structure, 0.0 | units.Myr)
+    savedPath= "/BIGDATA/code/amuse-10.0/Glanz/savings/TCEBecomming/500000/evolution/"
+    savedGas = savedPath + "gas_1.amuse"
+    savedDm = savedPath + "dm_1.amuse"
+    mesaParticle = convert_SPH_to_stellar_model(read_set_from_file(savedGas, format='amuse'), core_particle= read_set_from_file(savedDm, format='amuse'))
+    #mesaParticle =  mesa.new_particle_from_model(internal_structure, 0.0 | units.Myr)
     print mesaParticle
     if withCoreParticle:
         sphStar = convert_stellar_model_to_SPH(mesa, sphParticles,

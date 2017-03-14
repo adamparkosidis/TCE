@@ -114,13 +114,13 @@ def ConvertUnits(listOfElements, factor):
     return [float(element) * factor for element in listOfElements]
 
 def ExponentOf(listOfElements):
-    return [units.e**float(element) for element in listOfElements]
+    return [float(units.e**float(element)) for element in listOfElements]
 
 def AddUnits(internal_structure):
     internal_structure['dmass'] = internal_structure['dmass'] | units.MSun
     #internal_structure['radius'] = internal_structure['radius'] | units.m
     internal_structure['radius'] = ConvertUnits(internal_structure['radius'], 6.957 * 10**10) | units.cm
-    internal_structure['rho'] = internal_structure['rho'] | units.g/units.cm **3
+    internal_structure['rho'] = ExponentOf(internal_structure['rho']) | units.g/units.cm **3
     internal_structure['temperature'] = internal_structure['temperature'] | units.K
     internal_structure['X_H'] = internal_structure['X_H']
     internal_structure['luminosity'] = ConvertUnits(internal_structure['luminosity'], 3.826 * 10**33) | units.erg/ units.s

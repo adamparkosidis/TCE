@@ -48,24 +48,16 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
     hydroSystem.dm_particles.add_particles(innerBinary.stars[1])
     hydroSystem.dm_particles.add_particles(outerBinary.stars[1])
-    coupledSystem= hydroSystem
-    '''
-    unitConverter = nbody_system.nbody_to_si(outerBinary.stars.total_mass(), sphStar.relaxationTime)
-    kickerCode = MI6(unitConverter,number_of_workers=8, redirection='file', redirect_file='kicker_code_mi6_out.log')
+
+    unitConverter = nbody_system.nbody_to_si(outerBinary.stars.total_mass(), sphStar.relaxationTimeSteps)
     binarySystem = Huayno(unitConverter)
-    binarySystem.particles.add_particles(outerBinary.stars)
-
-    epsilonSquared = (hydroSystem.dm_particles.radius[0]/ 2.8)**2
-    kickerCode.parameters.epsilon_squared = (hydroSystem.dm_particles.radius[0]/ 2.8)**2
+    binarySystem.particles.add_particles(innerBinary[1])
+    binarySystem.particles.add_particles(sphStar.core_particle)
     coupledSystem = Bridge(timestep=(sphStar.relaxationTime / (2 * sphStar.relaxationTimeSteps)), verbose=False, use_threading= False)
-    kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.particles, gravity_constant=constants.G)
-    kick_from_hydro.smoothing_length_squared = epsilonSquared
-    coupledSystem.add_system(binarySystem, (kick_from_hydro,), False)
+    kickerCode = MI6(unitConverter,number_of_workers=8, redirection='file', redirect_file='kicker_code_mi6_out.log')
     coupledSystem.add_system(hydroSystem, (kickerCode,), False)
-    coupledSystem.channels.add_channel(hydroSystem.particles.new_channel_to(binarySystem.particles[0]))
-
-    print coupledSystem.particles
-    '''
+    print "bridging between ", hydroSystem.dm_particles[:-2]
+    coupledSystem.channels.add_channel(binarySystem.particles.new_channel_to(hydroSystem.dm_particles[:-2]))
     starEnvelope, dmStars = EvolveNBody.Run(totalMass= outerBinary.stars.total_mass(),
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
                                              stars=None, endTime= sphStar.relaxationTime,
@@ -127,23 +119,21 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/300000/3AU", takeSavedS
                                           sphMetaData.numberOfWorkers)
     hydroSystem.dm_particles.add_particle(innerBinary.stars[1])
     hydroSystem.dm_particles.add_particle(outerBinary.stars[1])
-    coupledSystem = hydroSystem
 
-    '''
-    unitConverter = nbody_system.nbody_to_si(outerBinary.stars.total_mass(), sphStar.relaxationTime)
-    kickerCode = MI6(unitConverter,number_of_workers=8, redirection='file', redirect_file='kicker_code_mi6_out.log')
+    unitConverter = nbody_system.nbody_to_si(outerBinary.stars.total_mass(), sphMetaData.relaxationTimeSteps)
     binarySystem = Huayno(unitConverter)
-    binarySystem.particles.add_particles(outerBinary.stars)
-
-    epsilonSquared = (hydroSystem.dm_particles.radius[0]/ 2.8)**2
-    kickerCode.parameters.epsilon_squared = (hydroSystem.dm_particles.radius[0]/ 2.8)**2
+    binarySystem.particles.add_particles(innerBinary[1])
+    binarySystem.particles.add_particles(starCore)
     coupledSystem = Bridge(timestep=(sphMetaData.relaxationTime / (2 * sphMetaData.relaxationTimeSteps)), verbose=False, use_threading= False)
     kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.particles, gravity_constant=constants.G)
+    epsilonSquared = (hydroSystem.dm_particles.radius[0]/ 2.8)**2
     kick_from_hydro.smoothing_length_squared = epsilonSquared
+    kickerCode = MI6(unitConverter,number_of_workers=8, redirection='file', redirect_file='kicker_code_mi6_out.log')
     coupledSystem.add_system(binarySystem, (kick_from_hydro,), False)
     coupledSystem.add_system(hydroSystem, (kickerCode,), False)
-    coupledSystem.channels.add_channel(hydroSystem.particles.new_channel_to(binarySystem.particles[0]))
-    '''
+    print "bridging between ", hydroSystem.dm_particles[:-2]
+    coupledSystem.channels.add_channel(binarySystem.particles.new_channel_to(hydroSystem.dm_particles[:-2]))
+
     EvolveNBody.Run(totalMass= starMass + innerBinary.stars.mass[-1] + outerBinary.stars.mass[-1],
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=innerBinary,

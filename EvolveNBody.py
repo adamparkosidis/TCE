@@ -34,9 +34,9 @@ def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary):
 
 def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius, numberOfWorkers = 1):
     if sphCode.__name__ =="Gadget2":
-        unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*100*2)
+        unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*1000*2)
     else:
-        unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*100)
+        unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*1000)
     system = sphCode(unitConverter, redirection="file", redirect_file="sph_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
@@ -152,6 +152,8 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
 
             print "\nSetting up Bridge to simulate triple system"
             coupledSystem = CoupledSystem(hydroSystem, binarySystem, endTime, timeSteps, currentTime, relax=relax)
+        else:
+            coupledSystem = hydroSystem
     else: # got it from the outside
         coupledSystem = system
 

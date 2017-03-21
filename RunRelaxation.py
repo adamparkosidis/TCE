@@ -121,7 +121,7 @@ def ConvertUnits(listOfElements, factor):
     return [float(element) * factor for element in listOfElements]
 
 def ExponentOf(listOfElements):
-    return [float(units.e**float(element)) for element in listOfElements]
+    return [float(math.e**float(element)) for element in listOfElements]
 
 def AddUnits(internal_structure):
     internal_structure['dmass'] = internal_structure['dmass'] | units.MSun

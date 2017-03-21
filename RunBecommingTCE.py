@@ -130,8 +130,9 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSave
     coupledSystem.add_system(binarySystem)
     coupledSystem.add_system(hydroSystem)
     print "bridging between ", hydroSystem.dm_particles[:-2]
-    coupledSystem.channels.add_channel(binarySystem.particles.new_channel_to(hydroSystem.dm_particles[:-2]))
-
+    coupledChannel = coupledSystem.channels.add_channel(binarySystem.particles.new_channel_to(hydroSystem.dm_particles[:-2]))
+    coupledChannel.copy()
+    print coupledChannel
     EvolveNBody.Run(totalMass= starMass + innerBinary.stars.mass[-1] + outerBinary.stars.mass[-1],
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=innerBinary,

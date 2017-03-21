@@ -51,6 +51,7 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     system.dm_particles.add_particle(core)
     system.gas_particles.add_particles(envelope)
     system.parameters.timestep_accuracy_parameter = 0.05
+    system.parameters.time_max = t_end * 1.5
     system.parameters.cpu_file = "cpu_code_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +

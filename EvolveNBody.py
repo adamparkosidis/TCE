@@ -160,7 +160,8 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     if dmToSave != None:
         dm = dmToSave
         gas = gasToSave
-        systemParticles = Particles(particles=dm + gas)
+        systemParticles = Particles(particles=dm)
+        systemParticles.add_particle(gas)
     else:
         dm = coupledSystem.dm_particles.copy()
         gas = coupledSystem.gas_particles.copy()

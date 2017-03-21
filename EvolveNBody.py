@@ -89,7 +89,7 @@ def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = 
 
 def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | units.yr, timeSteps = 3 ,
         savedVersionPath = "", saveAfterMinute = 1, step = -1, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
-         numberOfWorkers = 1, takeCompanionInRelaxation = True, system=None):
+         numberOfWorkers = 1, takeCompanionInRelaxation = True, system=None, dmToSave=None, gasToSave=None):
     '''
 
     Args:
@@ -157,11 +157,17 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
             coupledSystem = hydroSystem
     else: # got it from the outside
         coupledSystem = system
-    dm = coupledSystem.dm_particles.copy()
-    gas = coupledSystem.gas_particles.copy()
+    if dmToSave != None:
+        dm = dmToSave
+        gas = gasToSave
+        systemParticles = Particles(particles=dm + gas)
+    else:
+        dm = coupledSystem.dm_particles.copy()
+        gas = coupledSystem.gas_particles.copy()
+        systemParticles = coupledSystem.particles
 
-    centerOfMassRadius = coupledSystem.particles.center_of_mass()
-    centerOfMassV = coupledSystem.particles.center_of_mass_velocity()
+    centerOfMassRadius = systemParticles.center_of_mass()
+    centerOfMassV = systemParticles.center_of_mass_velocity()
 
     #if not relax:
     #    sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[0]*2) #sink radius is the particle radius * 2
@@ -171,13 +177,13 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     print "starting SPH " + adding
     print "evolving from step ", step + 1
     if step ==-1:
-        StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse", coupledSystem.gas_particles)
-        StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse".format(step+1), coupledSystem.dm_particles)
+        StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse", gasToSave)
+        StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse".format(step+1), dmToSave)
         print "pre state saved - {0}".format(savedVersionPath) + "/" + adding
     
     while currentTime < endTime:
         step += 1
-        particles = coupledSystem.particles
+        particles = systemParticles
         if relax:
             particles.position += (centerOfMassRadius - particles.center_of_mass())
             relaxingVFactor = (step * 1.0 / timeSteps)
@@ -190,14 +196,14 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
         currentTime += timeStep
         if (time.time() - currentSecond) > saveAfterMinute * 60:
             if savedVersionPath != "":
-                StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step), coupledSystem.gas_particles)
-                StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step), coupledSystem.dm_particles)
+                StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step), systemParticles.gas_particles)
+                StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step), systemParticles.dm_particles)
                 print "state saved - {0}".format(savedVersionPath) + "/" + adding
-                print coupledSystem.dm_particles
-                print len(coupledSystem.gas_particles)
+                print systemParticles.dm_particles
+                print len(systemParticles.gas_particles)
                 currentSecond = time.time()
-        dm = coupledSystem.dm_particles.copy()
-        gas = coupledSystem.gas_particles.copy()
+        dm = systemParticles.dm_particles.copy()
+        gas = systemParticles.gas_particles.copy()
         #if not relax:
         #    print "masses: ", sinks.mass.as_quantity_in(units.MSun)
     coupledSystem.stop()
@@ -278,10 +284,6 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
 
     currentSecond = time.time()
 
-    potential_energies = hydroSystem.potential_energy.as_vector_with_length(1).as_quantity_in(units.J)
-    kinetic_energies = hydroSystem.kinetic_energy.as_vector_with_length(1).as_quantity_in(units.J)
-    thermal_energies = coupledSystem.thermal_energy.as_vector_with_length(1).as_quantity_in(units.J)
-
     print "starting SPH " + adding
     print "evolving from step ", step + 1
 
@@ -303,11 +305,6 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
 
         coupledSystem.evolve_model(currentTime)
         print "   Evolved to:", currentTime.as_quantity_in(units.day)
-        potential_energies.append(coupledSystem.potential_energy)
-        kinetic_energies.append(coupledSystem.kinetic_energy)
-        thermal_energies.append(coupledSystem.thermal_energy)
-
-        print "   Energies calculated"
 
         currentTime += timeStep
         if (time.time() - currentSecond) > saveAfterMinute * 60:

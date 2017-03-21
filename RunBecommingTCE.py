@@ -129,15 +129,16 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSave
     coupledSystem = Bridge(timestep=(sphMetaData.evolutionTime / (2 * sphMetaData.evolutionTimeSteps)), verbose=False, use_threading= False)
     coupledSystem.add_system(binarySystem)
     coupledSystem.add_system(hydroSystem)
-    print "bridging between ", hydroSystem.dm_particles[:-2]
-    coupledChannel = coupledSystem.channels.add_channel(binarySystem.particles.new_channel_to(hydroSystem.dm_particles[:-2]))
-    coupledChannel.copy()
-    print coupledChannel
+    print "bridging between ", hydroSystem.dm_particles[::-1][1:]
+    coupledSystem.channels.add_channel(binarySystem.particles.new_channel_to(hydroSystem.dm_particles[::-1][1:]))
+    starsToSave = Particles(particles=[innerBinary.stars[1], starCore])
+    binarySystem.particles.new_channel_to(starsToSave)
+    hydroSystem.gas_particles.new_channel_to(starEnvelope)
     EvolveNBody.Run(totalMass= starMass + innerBinary.stars.mass[-1] + outerBinary.stars.mass[-1],
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=innerBinary,
                     endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
-                    savedVersionPath=savedVersionPath, saveAfterMinute= 0, system=coupledSystem)
+                    savedVersionPath=savedVersionPath, saveAfterMinute= 0, system=coupledSystem, dmToSave= starsToSave, gasToSave= starEnvelope)
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":

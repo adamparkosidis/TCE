@@ -34,7 +34,7 @@ class SphStar:
         evolutionType = code()
         print "evolving with MESA"
         mainStar = evolutionType.particles.add_particle(self.pointStar)
-        print "particle added, current radius = ", mainStar.radius.as_quantity_in(units.AU), "target radius = ", self.pointStar.radius
+        print "particle added, current radius = ", mainStar.radius.as_quantity_in(units.AU), "target type = ",stellar_type
         while mainStar.stellar_type < stellar_type:
             mainStar.evolve_one_step()
         try:

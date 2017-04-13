@@ -7,8 +7,6 @@ import pickle
 from amuse.units import units, constants, nbody_system
 from amuse.units import *
 from amuse.datamodel import Particles, Particle
-
-
 def get_relative_velocity_at_apastron(total_mass, semimajor_axis, ecc):
     return (constants.G * total_mass * ((1.0 - ecc)/(1.0 + ecc)) / semimajor_axis).sqrt()
 
@@ -19,13 +17,14 @@ def SqalarMul(v1,v2):
     return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2]
 
 def CalculateSemiMajor(V,R,M):#as in 2.134 in Solar System Dynamics bd C.D Murray and S.F Dermott
+    #print "R: ", R ," V: ",V," M: ",M
     a = 1/((2/CalculateVectorSize(R))-(CalculateVectorSize(V)**2)/(constants.G*M))
     return abs(a)
 
 def CalculateSpecificMomentum(V,R):
     return VectorCross(R,V)
 
-def CalculateEccentricity(particle1,particle2,a):
+def CalculateEccentricity(particle1,particle2):
     #h = ((particle1.mass * GetVelocitySize(particle1)) + (particle2.mass * GetVelocitySize(particle2)))/ miu
     V= CalculateVelocityDifference(particle1,particle2)
     R = CalculateSeparation(particle1,particle2)
@@ -45,6 +44,7 @@ def CalculateEccentricity(particle1,particle2,a):
     element1 = element10/element11
     eAttitude1 = CalculateVectorSize(element1 - element2)
     eAttitude2 = (1 + (2 * CalculateSpecificEnergy(V,R,particle1,particle2)*(hSize**2))/(constants.G*(particle1.mass+particle2.mass))**2)**0.5
+    #print eAttitude1, eAttitude2
     return eAttitude1
 
 def CalculateInclination(V12,R12,V23,R23):
@@ -66,9 +66,9 @@ def GetVelocitySize(particle):
     return  CalculateVectorSize((particle.vx,particle.vy,particle.vz))
 
 def CalculateSeparation(particle1, particle2):
-    x = particle1.x - particle2.x
-    y = particle1.y - particle2.y
-    z = particle1.z - particle2.z
+    x = (particle1.x - particle2.x).as_quantity_in(units.AU)
+    y = (particle1.y - particle2.y).as_quantity_in(units.AU)
+    z = (particle1.z - particle2.z).as_quantity_in(units.AU)
     return (x,y,z)
 
 def CalculateVelocityDifference(particle1, particle2):
@@ -79,3 +79,14 @@ def CalculateVelocityDifference(particle1, particle2):
 
 def GetPositionSize(particle):
     return CalculateVectorSize((particle.x ,particle.y,  particle.z))
+
+def CalculateBinaryParameters(particle, sphGiant):
+    sphGiant.CalculateInnerSPH(particle)
+    innerMass = sphGiant.innerGas.mass.value_in(units.MSun)
+    binaryVelocityDifference = CalculateVelocityDifference(particle, sphGiant.innerGas)
+    binarySeparation = CalculateSeparation(particle, sphGiant.innerGas)
+    binaryMass = particle.mass + sphGiant.innerGas.mass
+
+    aOuter1 = CalculateSemiMajor(binaryVelocityDifference, binarySeparation, binaryMass)
+    eOuter1 = CalculateEccentricity(particle, sphGiant.innerGas)
+    return innerMass, aOuter1.value_in(units.AU), eOuter1, CalculateVectorSize(binarySeparation).value_in(units.RSun)

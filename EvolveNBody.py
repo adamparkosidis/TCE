@@ -20,6 +20,7 @@ from amuse.community.huayno.interface import Huayno
 from amuse.ext.sink import new_sink_particles
 
 import StarModels
+import BinaryCalculations
 #import TCEPlotting
 
 def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary):
@@ -157,19 +158,11 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
             coupledSystem = hydroSystem
     else: # got it from the outside
         coupledSystem = system
-    if dmToSave != None:
-        dm = dmToSave
-        gas = gasToSave
-        systemParticles = Particles()
-        systemParticles.dm_particles = dm
-        systemParticles.gas_particles = gas
-    else:
-        dm = coupledSystem.dm_particles.copy()
-        gas = coupledSystem.gas_particles.copy()
-        systemParticles = coupledSystem.particles
+    dm = coupledSystem.dm_particles.copy()
+    gas = coupledSystem.gas_particles.copy()
 
-    centerOfMassRadius = systemParticles.center_of_mass()
-    centerOfMassV = systemParticles.center_of_mass_velocity()
+    centerOfMassRadius = coupledSystem.particles.center_of_mass()
+    centerOfMassV = coupledSystem.particles.center_of_mass_velocity()
 
     #if not relax:
     #    sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[0]*2) #sink radius is the particle radius * 2
@@ -179,13 +172,13 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     print "starting SPH " + adding
     print "evolving from step ", step + 1
     if step ==-1:
-        StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse", gasToSave)
-        StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse".format(step+1), dmToSave)
+        StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse", gas)
+        StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse".format(step+1), dm)
         print "pre state saved - {0}".format(savedVersionPath) + "/" + adding
     
     while currentTime < endTime:
         step += 1
-        particles = systemParticles
+        particles = coupledSystem.particles
         if relax:
             particles.position += (centerOfMassRadius - particles.center_of_mass())
             relaxingVFactor = (step * 1.0 / timeSteps)
@@ -194,18 +187,34 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
         #    sinks.accrete(coupledSystem.gas_particles)
         coupledSystem.evolve_model(currentTime)
         print "   Evolved to:", currentTime.as_quantity_in(units.day)
-
         currentTime += timeStep
         if (time.time() - currentSecond) > saveAfterMinute * 60:
             if savedVersionPath != "":
-                StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step), systemParticles.gas_particles)
-                StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step), systemParticles.dm_particles)
+                StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step), coupledSystem.gas_particles)
+                StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step), coupledSystem.dm_particles)
                 print "state saved - {0}".format(savedVersionPath) + "/" + adding
-                print systemParticles.dm_particles
-                print len(systemParticles.gas_particles)
+                print coupledSystem.dm_particles
+                print len(coupledSystem.gas_particles)
                 currentSecond = time.time()
-        dm = systemParticles.dm_particles.copy()
-        gas = systemParticles.gas_particles.copy()
+        dm = coupledSystem.dm_particles.copy()
+        gas = coupledSystem.gas_particles.copy()
+
+        if BinaryCalculations.CalculateSeparation(coupledSystem.dm_particles[0], coupledSystem.dm_particles[1]) <= \
+            max(coupledSystem.dm_particles[0].radius, coupledSystem.dm_particles[1].radius):
+            print "merger between particle 0 and particle 1!"
+            coupledSystem.stop()
+            return gas, dm
+        if  BinaryCalculations.CalculateSeparation(coupledSystem.dm_particles[0], coupledSystem.dm_particles[2]) <= \
+            max(coupledSystem.dm_particles[0].radius, coupledSystem.dm_particles[2].radius):
+            print "merger between particle 0 and particle 2!"
+            coupledSystem.stop()
+            return gas, dm
+        if  BinaryCalculations.CalculateSeparation(coupledSystem.dm_particles[1], coupledSystem.dm_particles[2]) <= \
+            max(coupledSystem.dm_particles[1].radius, coupledSystem.dm_particles[2].radius):
+            print "merger between particle 1 and particle 2!"
+            coupledSystem.stop()
+            return gas, dm
+            
         #if not relax:
         #    print "masses: ", sinks.mass.as_quantity_in(units.MSun)
     coupledSystem.stop()

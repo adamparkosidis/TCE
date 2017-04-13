@@ -44,7 +44,7 @@ class SphStar:
             pass
         print evolutionType
         print mainStar
-        pickle_stellar_model(mainStar, savingPath + "/" + code.__name__ + "_" + mainStar.mass + "_" + mainStar.stellar_type)
+        pickle_stellar_model(mainStar, savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.RSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type)))
         print "star saved to: ", savingPath + "/" + code.__name__ , "mass: ",mainStar.mass, "stellar type:", mainStar.stellar_type
         return mainStar
 
@@ -54,8 +54,8 @@ def Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels"
     sphStar = SphStar(giant, configurationFile, configurationSection="MainStar",
                                 savedMesaStarPath = "", takeSavedMesa=False)
     #saved state
-    StarModels.SaveDm(savedVersionPath+"/dm_" + sphStar.pointStar.mass +".amuse", [sphStar.core_particle])
-    StarModels.SaveGas(savedVersionPath+"/envelope_" + sphStar.pointStar.mass +".amuse", sphStar.gas_particles)
+    StarModels.SaveDm(savedVersionPath+"/dm_" + sphStar.pointStar.mass.value_in(units.RSun) + "_" + str(sphStar.stellar_type.value_in(units.stellar_type) +".amuse", [sphStar.core_particle])
+    StarModels.SaveGas(savedVersionPath+"/envelope_" + sphStar.pointStar.mass.value_in(units.RSun) + "_" + str(sphStar.stellar_type.value_in(units.stellar_type) +".amuse", sphStar.gas_particles)
     print "state saved - {0}".format(savedVersionPath)
 
     print "****************** Simulation Completed ******************"

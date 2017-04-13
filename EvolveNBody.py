@@ -183,7 +183,24 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
             particles.position += (centerOfMassRadius - particles.center_of_mass())
             relaxingVFactor = (step * 1.0 / timeSteps)
             particles.velocity = relaxingVFactor * (particles.velocity - particles.center_of_mass_velocity()) + centerOfMassV
-        #else:
+        else:
+            # check if there is a merger - don't continue
+            if BinaryCalculations.CalculateSeparation(coupledSystem.dm_particles[0], coupledSystem.dm_particles[1]) <= \
+            max(coupledSystem.dm_particles[0].radius, coupledSystem.dm_particles[1].radius):
+            print "merger between particle 0 and particle 1!"
+            coupledSystem.stop()
+            return gas, dm
+        if  BinaryCalculations.CalculateSeparation(coupledSystem.dm_particles[0], coupledSystem.dm_particles[2]) <= \
+            max(coupledSystem.dm_particles[0].radius, coupledSystem.dm_particles[2].radius):
+            print "merger between particle 0 and particle 2!"
+            coupledSystem.stop()
+            return gas, dm
+        if  BinaryCalculations.CalculateSeparation(coupledSystem.dm_particles[1], coupledSystem.dm_particles[2]) <= \
+            max(coupledSystem.dm_particles[1].radius, coupledSystem.dm_particles[2].radius):
+            print "merger between particle 1 and particle 2!"
+            coupledSystem.stop()
+            return gas, dm
+
         #    sinks.accrete(coupledSystem.gas_particles)
         coupledSystem.evolve_model(currentTime)
         print "   Evolved to:", currentTime.as_quantity_in(units.day)
@@ -199,22 +216,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
         dm = coupledSystem.dm_particles.copy()
         gas = coupledSystem.gas_particles.copy()
 
-        if BinaryCalculations.CalculateSeparation(coupledSystem.dm_particles[0], coupledSystem.dm_particles[1]) <= \
-            max(coupledSystem.dm_particles[0].radius, coupledSystem.dm_particles[1].radius):
-            print "merger between particle 0 and particle 1!"
-            coupledSystem.stop()
-            return gas, dm
-        if  BinaryCalculations.CalculateSeparation(coupledSystem.dm_particles[0], coupledSystem.dm_particles[2]) <= \
-            max(coupledSystem.dm_particles[0].radius, coupledSystem.dm_particles[2].radius):
-            print "merger between particle 0 and particle 2!"
-            coupledSystem.stop()
-            return gas, dm
-        if  BinaryCalculations.CalculateSeparation(coupledSystem.dm_particles[1], coupledSystem.dm_particles[2]) <= \
-            max(coupledSystem.dm_particles[1].radius, coupledSystem.dm_particles[2].radius):
-            print "merger between particle 1 and particle 2!"
-            coupledSystem.stop()
-            return gas, dm
-            
+
         #if not relax:
         #    print "masses: ", sinks.mass.as_quantity_in(units.MSun)
     coupledSystem.stop()

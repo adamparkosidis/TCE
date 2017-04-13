@@ -19,7 +19,7 @@ class SphStar:
         self.pointStar = pointStar
         self.sphParticles = parser.get(configurationSection, "sphParticles")
         self.stellar_type = types[(parser.get(configurationSection, "stellar_type"))]
-
+        self.saving_name = parser.get(configurationSection, "name")
         mesaStar = self.EvolveStarWithStellarCode(MESA, savedMesaStarPath, stellar_type= self.stellar_type)
 
         self.sphStar = convert_stellar_model_to_SPH(mesaStar, self.sphParticles, do_relax = False, with_core_particle=False,
@@ -44,7 +44,7 @@ class SphStar:
             pass
         print evolutionType
         print mainStar
-        pickle_stellar_model(mainStar, savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.RSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type)))
+        pickle_stellar_model(mainStar, savingPath + "/" + code.__name__ + "_" + self.saving_name)
         print "star saved to: ", savingPath + "/" + code.__name__ , "mass: ",mainStar.mass, "stellar type:", mainStar.stellar_type
         return mainStar
 
@@ -54,8 +54,8 @@ def Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels"
     sphStar = SphStar(giant, configurationFile, configurationSection="MainStar",
                                 savedMesaStarPath = "", takeSavedMesa=False)
     #saved state
-    StarModels.SaveDm(savedVersionPath+"/dm_" + sphStar.pointStar.mass.value_in(units.RSun) + "_" + str(sphStar.stellar_type.value_in(units.stellar_type)) +".amuse", [sphStar.core_particle])
-    StarModels.SaveGas(savedVersionPath+"/envelope_" + sphStar.pointStar.mass.value_in(units.RSun) + "_" + str(sphStar.stellar_type.value_in(units.stellar_type)) +".amuse", sphStar.gas_particles)
+    StarModels.SaveDm(savedVersionPath+"/dm_" + sphStar.saving_name +".amuse", [sphStar.core_particle])
+    StarModels.SaveGas(savedVersionPath+"/envelope_" + sphStar.saving_name +".amuse", sphStar.gas_particles)
     print "state saved - {0}".format(savedVersionPath)
 
     print "****************** Simulation Completed ******************"

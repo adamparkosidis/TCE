@@ -5,10 +5,11 @@ from amuse.lab import *
 from amuse.community.mesa.interface import MESA
 import StarModels
 
-def GetStellarType(stellar_type):
-    for type, type_index in units.stellar_type , xrange(len(units.stellar_type)):
-        if type == stellar_type:
-            return type_index | units.stellar_type
+types = dict()
+types["MS"] = 1 | units.stellar_type
+types["RGB"] = 3 | units.stellar_type
+types["AGB"] = 4 | units.stellar_type
+
 
 class SphStar:
     def __init__(self, pointStar, configurationFile="", configurationSection="", savedMesaStarPath = "", takeSavedMesa = False,savedGas="", savedDm=""):
@@ -17,7 +18,7 @@ class SphStar:
         parser.read(configurationFile)
         self.pointStar = pointStar
         self.sphParticles = parser.get(configurationSection, "sphParticles")
-        self.stellar_type = GetStellarType(parser.get(configurationSection, "stellar_type"))
+        self.stellar_type = types[(parser.get(configurationSection, "stellar_type"))]
 
         mesaStar = self.EvolveStarWithStellarCode(MESA, savedMesaStarPath, stellar_type= self.stellar_type)
 

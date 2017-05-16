@@ -87,6 +87,7 @@ class SphStar:
         print mainStar
         pickle_stellar_model(mainStar, savingPath + "/" + code.__name__)
         print "star saved to: ", savingPath + "/" + code.__name__ , "mass: ",mainStar.mass, "stellar type:", mainStar.stellar_type
+        print "core mass from " + code.__name__ + " is ", mainStar.core_mass
         return mainStar
 
 class SphMetaData:

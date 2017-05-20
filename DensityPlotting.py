@@ -55,11 +55,15 @@ class Star:
 class SphGiant:
     def __init__(self, gas_particles_file, dm_particles_file, opposite= False):
         self.gasParticles = read_set_from_file(gas_particles_file, format='amuse')
-        dms = read_set_from_file(dm_particles_file, format='amuse')
-        if opposite: #core is the first particle
-            self.core = dms[0]
+        if dm_particles_file is not None:
+            dms = read_set_from_file(dm_particles_file, format='amuse')
+            if opposite: #core is the first particle
+                self.core = dms[0]
+            else:
+                self.core = dms[-1]
         else:
-            self.core = dms[-1]
+            self.core = Particle()
+            self.core.mass = 0 | units.MSun
         self.gas = Star(None, None)
         self.gas.mass = self.gasParticles.total_mass()
         self.gas.position = self.gasParticles.center_of_mass()
@@ -218,7 +222,8 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax):
         print "problem plotting"
         return
     pynbody_column_density_plot(sphGiant ,resolution=2000, width=4|units.AU,vmin= vmin, vmax= vmax,cmap= "hot")
-    scatter(core.x, core.y, c="r")
+    if core.mass != 0 | units.MSun:
+        scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
     pyplot.savefig(outputDir + "/plotting_{0}.jpg".format(i))
     pyplot.close()
@@ -236,7 +241,8 @@ def PlotVelocity(sphGiant,core,binary,step, outputDir, vmin, vmax):
     units = 'm_p cm^-2'
     pynbody_sph.velocity_image(pyndata, width=width.value_in(length_unit), units=units,vmin= vmin, vmax= vmax)
     UnitlessArgs.current_plot = native_plot.gca()
-    scatter(core.x, core.y, c="r")
+    if core.mass != 0 | units.MSun:
+        scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
     pyplot.savefig(outputDir + "/velocity/velocity_plotting_{0}.jpg".format(step))
     pyplot.close()
@@ -272,7 +278,10 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
     for i in [j - beginStep for j in chunk]:
         #print "step #",i
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i + beginStep])
-        dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i + beginStep])
+        if len(dmFiles) > 0 :
+            dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i + beginStep])
+        else:
+            dm_particles_files = None
         #binaryDistances = AdaptingVectorQuantity()
         
         #eccentricities = []
@@ -317,9 +326,9 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             if newBinarySpecificEnergy > 0 | (units.m **2 / units.s **2):
                 print "binary is breaking up", binary.specificEnergy, i
 
-            temperature_density_plot(sphGiant, i + beginStep , outputDir)
-            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep , outputDir, vmin, vmax)
-            PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep, outputDir, vmin, vmax)
+        temperature_density_plot(sphGiant, i + beginStep , outputDir)
+        PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep , outputDir, vmin, vmax)
+        PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep, outputDir, vmin, vmax)
 
     for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
         try:

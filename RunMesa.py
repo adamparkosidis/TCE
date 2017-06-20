@@ -51,8 +51,14 @@ class SphStar:
         print evolutionType
         print mainStar
         pickle_stellar_model(mainStar, savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type)))
-        DensityPlotting.Plot1Axe(radiuses, "radiuses", savingPath, evolutionType.time_step)
-        DensityPlotting.Plot1Axe(times, "times", savingPath, evolutionType.time_step)
+
+        textFile = open(savingPath + '/radiuses.txt', 'w')
+        textFile.write(', '.join([str(y) for y in radiuses]))
+        textFile.close()
+
+        textFile = open(savingPath + '/times.txt', 'w')
+        textFile.write(', '.join([str(y) for y in times]))
+        textFile.close()
         print "star saved to: ", savingPath + "/" + code.__name__ , "mass: ",mainStar.mass, "stellar type:", mainStar.stellar_type
         return mainStar
 

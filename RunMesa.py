@@ -38,6 +38,8 @@ class SphStar:
         print "particle added, current radius = ", mainStar.radius.as_quantity_in(units.AU), "target type = ",stellar_type
         while mainStar.stellar_type < stellar_type:
             mainStar.evolve_one_step()
+        mainStar.evolve_one_step()
+        print "star's type: ", mainStar.stellar_type, "star's age: ", mainStar.current_age
         try:
             os.makedirs(savingPath)
         except(OSError):

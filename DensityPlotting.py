@@ -64,6 +64,11 @@ class SphGiant:
         else:
             self.core = Particle()
             self.core.mass = 0 | units.MSun
+            self.core.position = (0.0, 0.0, 0.0) | units.AU
+            self.core.vx = 0.0| units.m/units.s
+            self.core.vy = 0.0 | units.m/units.s
+            self.core.vz = 0.0 | units.m/units.s
+            self.core.radius = 0.0 | units.RSun
         self.gas = Star(None, None)
         self.gas.mass = self.gasParticles.total_mass()
         self.gas.position = self.gasParticles.center_of_mass()
@@ -79,6 +84,7 @@ class SphGiant:
         #self.vx, self.vy, self.vz =  self.core.vx, self.core.vy, self.core.vz
         self.v = (self.vx, self.vy, self.vz)
         self.position = (self.x,self.y,self.z)
+        self.radius = self.gasParticles.total_radius()
 
     def CalculateInnerSPH(self, relativeParticle):
         self.innerGas = Star(None, None)
@@ -184,7 +190,10 @@ def temperature_density_plot(sphGiant, step, outputDir):
     
     sphGiant.gasParticles.temperature = 2.0/3.0 * sphGiant.gasParticles.u * mu() / constants.kB
     sphGiant.gasParticles.mu = mu()
-    star = sph_to_star.convert_SPH_to_stellar_model(sphGiant.gasParticles, core_particle=sphGiant.core)
+    if sphGiant.core.mass > 0.0 | units.MSun:
+        star = sph_to_star.convert_SPH_to_stellar_model(sphGiant.gasParticles, core_particle=sphGiant.core)
+    else:
+        star = sph_to_star.convert_SPH_to_stellar_model(sphGiant.gasParticles)
     data = structure_from_star(star)
     #sphGiant.gasParticles.radius = CalculateVectorSize((sphGiant.gasParticles.x,sphGiant.gasParticles.y,sphGiant.gasParticles.z))
     #data = convert_particles_to_pynbody_data(sphGiant.gasParticles, length_unit, pynbody_unit)
@@ -278,12 +287,10 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
     for i in [j - beginStep for j in chunk]:
         #print "step #",i
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i + beginStep])
-        if len(dmFiles) > 0 :
+        dm_particles_file = None
+        if len(dmFiles) > 0:
             dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i + beginStep])
-        else:
-            dm_particles_files = None
         #binaryDistances = AdaptingVectorQuantity()
-        
         #eccentricities = []
         sphGiant = SphGiant(gas_particles_file, dm_particles_file, opposite=True)
         try:
@@ -428,7 +435,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
 def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax):
     separationTime = 0
     if lastStep == 0 : # no boundary on last step
-        lastStep = len(dmFiles)
+        lastStep = len(gasFiles)
     print lastStep
     binaryDistances = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     semmimajors = multiprocessing.Array('f', [0.0 for i in range(beginStep, lastStep)])

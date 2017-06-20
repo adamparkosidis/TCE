@@ -4,7 +4,6 @@ from amuse.units import units
 from amuse.lab import *
 from amuse.community.mesa.interface import MESA
 import StarModels
-import DensityPlotting
 
 types = dict()
 types["MS"] = 1 | units.stellar_type

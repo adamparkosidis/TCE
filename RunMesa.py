@@ -27,6 +27,8 @@ class SphStar:
                                             base_grid_options=dict(type="fcc"))
         self.gas_particles = self.sphStar.gas_particles
         self.core_particle = self.sphStar.core_particle
+    def CheckLimitType(self, starType):
+            return starType >= 16 or starType == 7 or starType < self.stellar_type.value_in(units.stellar_type)
 
     def  EvolveStarWithStellarCode(self, code = MESA, savingPath = "", stellar_type= 3 | units.stellar_type ):
         '''
@@ -39,7 +41,7 @@ class SphStar:
         times = []
         mainStar = evolutionType.particles.add_particle(self.pointStar)
         print "particle added, current radius = ", mainStar.radius.as_quantity_in(units.AU), "target type = ",stellar_type
-        while mainStar.stellar_type != stellar_type:
+        while self.CheckLimitType(mainStar.stellar_type.value_in(units.stellar_type)):
             mainStar.evolve_one_step()
             radiuses.append(mainStar.radius)
             times.append(mainStar.age)

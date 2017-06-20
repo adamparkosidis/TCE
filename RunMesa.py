@@ -6,9 +6,9 @@ from amuse.community.mesa.interface import MESA
 import StarModels
 
 types = dict()
-types["MS"] = 1 | units.stellar_type
-types["RGB"] = 3 | units.stellar_type
-types["AGB"] = 4 | units.stellar_type
+types["MS"] = (1 + 1) | units.stellar_type
+types["RGB"] = (1 + 3) | units.stellar_type
+types["AGB"] = (1 + 4) | units.stellar_type
 
 
 
@@ -34,12 +34,12 @@ class SphStar:
         :return: the star after has been created with MESA
         '''
         evolutionType = code()
-        print "evolving with MESA, time step: ", evolutionType.time_step
+        print "evolving with MESA"
         radiuses = []
         times = []
         mainStar = evolutionType.particles.add_particle(self.pointStar)
         print "particle added, current radius = ", mainStar.radius.as_quantity_in(units.AU), "target type = ",stellar_type
-        while mainStar.stellar_type != stellar_type + 1:
+        while mainStar.stellar_type != stellar_type:
             mainStar.evolve_one_step()
             radiuses.append(mainStar.radius)
             times.append(mainStar.age)

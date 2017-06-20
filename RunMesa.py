@@ -8,7 +8,7 @@ import StarModels
 types = dict()
 types["MS"] = (1 + 1) | units.stellar_type
 types["RGB"] = (1 + 3) | units.stellar_type
-types["AGB"] = (1 + 4) | units.stellar_type
+types["AGB"] = (1 + 5) | units.stellar_type
 
 
 
@@ -74,5 +74,9 @@ def Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels"
     print "****************** Simulation Completed ******************"
 
 if __name__ == "__main__":
-    Start()
+    Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels", takeSavedState = "False", step = -1, configurationFile = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels/1RGBConfiguration.ini")
+    Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels", takeSavedState = "False", step = -1, configurationFile = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels/1.5AGBConfiguration.ini")
+    Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels", takeSavedState = "False", step = -1, configurationFile = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels/2AGBConfiguration.ini")
+    Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels", takeSavedState = "False", step = -1, configurationFile = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels/2.5AGBConfiguration.ini")
+    Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels", takeSavedState = "False", step = -1, configurationFile = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels/3AGBConfiguration.ini")
 

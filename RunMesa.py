@@ -4,11 +4,13 @@ from amuse.units import units
 from amuse.lab import *
 from amuse.community.mesa.interface import MESA
 import StarModels
+import DensityPlotting
 
 types = dict()
 types["MS"] = 1 | units.stellar_type
 types["RGB"] = 3 | units.stellar_type
 types["AGB"] = 4 | units.stellar_type
+
 
 
 class SphStar:
@@ -20,7 +22,7 @@ class SphStar:
         self.sphParticles = parser.get(configurationSection, "sphParticles")
         self.stellar_type = types[(parser.get(configurationSection, "stellar_type"))]
         self.saving_name = parser.get(configurationSection, "name")
-        mesaStar = self.EvolveStarWithStellarCode(MESA, savedMesaStarPath, stellar_type= self.stellar_type)
+        mesaStar = self.EvolveStarWithStellarCode(MESA, savedMesaStarPath + "/" + self.saving_name, stellar_type= self.stellar_type)
 
         self.sphStar = convert_stellar_model_to_SPH(mesaStar, self.sphParticles, do_relax = False, with_core_particle=False,
                                             base_grid_options=dict(type="fcc"))
@@ -33,13 +35,15 @@ class SphStar:
         :return: the star after has been created with MESA
         '''
         evolutionType = code()
-        print "evolving with MESA"
+        print "evolving with MESA, time step: ", evolutionType.time_step
+        radiuses = []
+        times = []
         mainStar = evolutionType.particles.add_particle(self.pointStar)
         print "particle added, current radius = ", mainStar.radius.as_quantity_in(units.AU), "target type = ",stellar_type
-        while mainStar.stellar_type < stellar_type:
+        while mainStar.stellar_type < stellar_type + 1:
             mainStar.evolve_one_step()
-        mainStar.evolve_one_step()
-        print "star's type: ", mainStar.stellar_type, "star's age: ", mainStar.current_age
+            radiuses.append(mainStar.radius)
+            times.append(mainStar.age)
         try:
             os.makedirs(savingPath)
         except(OSError):
@@ -47,6 +51,8 @@ class SphStar:
         print evolutionType
         print mainStar
         pickle_stellar_model(mainStar, savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type)))
+        DensityPlotting.Plot1Axe(radiuses, "radiuses", savingPath, evolutionType.time_step)
+        DensityPlotting.Plot1Axe(times, "times", savingPath, evolutionType.time_step)
         print "star saved to: ", savingPath + "/" + code.__name__ , "mass: ",mainStar.mass, "stellar type:", mainStar.stellar_type
         return mainStar
 

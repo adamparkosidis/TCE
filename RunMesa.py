@@ -45,6 +45,7 @@ class SphStar:
             mainStar.evolve_one_step()
             radiuses.append(mainStar.radius)
             times.append(mainStar.age)
+        radiuses.append(mainStar.radius)
         try:
             os.makedirs(savingPath)
         except(OSError):

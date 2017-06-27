@@ -18,7 +18,7 @@ from amuse.community.gadget2.interface import Gadget2
 import StarModels
 import EvolveNBody
 
-def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|units.MSun):
+def Run(configurationFile, mesaPath = "", withCoreParticle=True, coreMass = 0|units.MSun):
     '''
     creating the binary
     :return:main star's mass, the envelope particles, the core particles, the binary stars and the binary semmimajor
@@ -31,23 +31,33 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=False, coreMass = 0|u
     #stellarModel = derive_stellar_structure(internal_structure)
     mesa= MESA()
     print "initializing mesa code"
+    part = Particle()
+    part.mass= 1.0 | units.MSun
+    mesa.particles.add_particle(part)
+    sphStar = convert_stellar_model_to_SPH(mesa.particles[0], 100)
+    gadget = Gadget2()
+    gadget.gas_particles.add_particles(sphStar)
+    mesaParticle = convert_SPH_to_stellar_model(gadget.gas_particles)
+    print mesaParticle
     #mesa.parameters.metallicity = 0.3
     #mesa.new_stellar_model()
     #mesa.initialize_code()
 
     #mesa.parameters.stabilize_new_stellar_model_flag = False
     savedPath= "/BIGDATA/code/amuse-10.0/Glanz/savings/TCEBecomming/500000/evolution/"
-    savedGas = savedPath + "gas_1.amuse"
-    savedDm = savedPath + "dm_1.amuse"
-    mesaParticle = convert_SPH_to_stellar_model(read_set_from_file(savedGas, format='amuse'), core_particle= read_set_from_file(savedDm, format='amuse'))
+    savedGas = read_set_from_file(savedPath + "gas_1.amuse",format='amuse')
+    savedGas.mu = [1.0 | units.kg for p in savedGas.mass]
+    #savedGas.mu = 1.0 | units.kg
+    savedDm = read_set_from_file(savedPath + "dm_1.amuse", format='amuse')
+    mesaParticle = convert_SPH_to_stellar_model(sph_particles=savedGas, core_particle=savedDm[0])
     #mesaParticle =  mesa.new_particle_from_model(internal_structure, 0.0 | units.Myr)
-    print mesaParticle
+    print mesa.new_particle_from_model(mesaParticle, 0.0 | units.Myr)
     if withCoreParticle:
-        sphStar = convert_stellar_model_to_SPH(mesaParticle, sphParticles,
+        sphStar = convert_stellar_model_to_SPH(mesa.particles[0], sphParticles,
                                                with_core_particle = withCoreParticle, target_core_mass  = coreMass ,
                                                            do_store_composition = True,base_grid_options=dict(type="fcc"))
     else:
-        sphStar = convert_stellar_model_to_SPH(mesaParticle, sphParticles,
+        sphStar = convert_stellar_model_to_SPH(mesa.particles[0], sphParticles,
                                                        do_store_composition = True,base_grid_options=dict(type="fcc"))
     print "Now having the sph star and the binaries, ready for relaxing"
     starEnvelope, dmStars = Relax(sphStar.gas_particles, sphStar.core_particle, endTime= sphStar.relaxationTime, timeSteps=sphStar.relaxationTimeSteps,

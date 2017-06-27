@@ -128,6 +128,7 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSave
     binarySystem.particles.add_particle(starCore)
     coupledSystem = Bridge(timestep=(sphMetaData.evolutionTime / (2 * sphMetaData.evolutionTimeSteps)), verbose=False, use_threading= False)
     coupledSystem.add_system(binarySystem)
+    print coupledSystem.particles
     coupledSystem.add_system(hydroSystem)
     print "bridging between ", hydroSystem.dm_particles[::-1][1:]
     coupledSystem.channels.add_channel(binarySystem.particles.new_channel_to(hydroSystem.dm_particles[::-1][1:]))
@@ -142,5 +143,5 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSave
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":
-    Start(takeSavedState="Mesa")
+    Start(takeSavedState="True")
 

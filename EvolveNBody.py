@@ -35,9 +35,9 @@ def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary):
 
 def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius, numberOfWorkers = 1):
     if sphCode.__name__ =="Gadget2":
-        unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*1000*2)
+        unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*100*2)
     else:
-        unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*1000)
+        unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*100)
     system = sphCode(unitConverter, redirection="file", redirect_file="sph_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
@@ -147,7 +147,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
         if step == -1:# the radius of the core is now 10 times the real one becuase of epsilon = 10r_c
             hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
         else:# if its not the first step we shouldn't multiply by 20 again...
-            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(10*2), numberOfWorkers)
+            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(2), numberOfWorkers)
         if not relax or takeCompanionInRelaxation:
             print "\nSetting up {0} to simulate triple system".format(dynamicsCode.__name__)
             binarySystem = DynamicsForBinarySystem(dynamicsCode, semmiMajor, stars.stars)
@@ -160,7 +160,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
         coupledSystem = system
     dm = coupledSystem.dm_particles.copy()
     gas = coupledSystem.gas_particles.copy()
-
+    
     centerOfMassRadius = coupledSystem.particles.center_of_mass()
     centerOfMassV = coupledSystem.particles.center_of_mass_velocity()
 
@@ -215,6 +215,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
                 currentSecond = time.time()
         dm = coupledSystem.dm_particles.copy()
         gas = coupledSystem.gas_particles.copy()
+        #if not relax:
         #if not relax:
         #    print "masses: ", sinks.mass.as_quantity_in(units.MSun)
     coupledSystem.stop()
@@ -275,7 +276,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
         if step == -1:
             hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
         else: # if its not the first step we shouldn't multiply by 20 again...
-            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(10*2), numberOfWorkers)
+            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(2), numberOfWorkers)
         if not relax or takeCompanionInRelaxation:
             hydroSystem.dm_particles.add_particle(stars.stars[-1])
             coupledSystem = hydroSystem

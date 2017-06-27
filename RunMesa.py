@@ -46,7 +46,9 @@ class SphStar:
         mainStar = evolutionType.particles.add_particle(self.pointStar)
         print "particle added, current radius = ", mainStar.radius.as_quantity_in(units.AU), "target type = ",stellar_type
         oldStellarType = mainStar.stellar_type.value_in(units.stellar_type)
-        while mainStar.radius < self.pointStar.radius or self.CheckLimitType(mainStar.stellar_type.value_in(units.stellar_type)):
+        while mainStar.radius < self.pointStar.radius or \
+                (self.pointStar.radius.value_in(units.RSun) == 0 and
+                     self.CheckLimitType(mainStar.stellar_type.value_in(units.stellar_type))):
             mainStar.evolve_one_step()
             radiuses.append(mainStar.radius)
             times.append(mainStar.age)

@@ -163,7 +163,7 @@ def InitializeSnapshots(savingDir):
 
 
 
-def main(args= ["/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels",0]):
+def main(args= ["/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels"]):
     savingDir = GetArgs(args)
     print "plotting pics to " +  savingDir +  " from " +  savingDir
     try:

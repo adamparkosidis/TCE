@@ -36,7 +36,7 @@ class Star:
         if os.path.isfile(self.pickle_file):
             infile = open(self.pickle_file, 'rb')
         else:
-            raise ("Input pickle file '{0}' does not exist".format(self.pickle_file))
+            raise BaseException("Input pickle file '{0}' does not exist".format(self.pickle_file))
         structure = pickle.load(infile)
         self.mass   = structure['mass']
         self.radius = structure['radius']

@@ -86,19 +86,16 @@ def structure_from_star(star):
         sound_speed = star.sound_speed
     )
 
-def temperature_density_plot(sphGiant, step, outputDir, pickleFile):
+def temperature_density_plot(outputDir, pickleFile):
     if not HAS_PYNBODY:
         print "problem plotting"
         return
     width = 5.0 | units.AU
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
-    
-    sphGiant.gasParticles.temperature = 2.0/3.0 * sphGiant.gasParticles.u * mu() / constants.kB
-    sphGiant.gasParticles.mu = mu()
+
     star = Star(pickleFile)
     data = structure_from_star(star)
-    #sphGiant.gasParticles.radius = CalculateVectorSize((sphGiant.gasParticles.x,sphGiant.gasParticles.y,sphGiant.gasParticles.z))
-    #data = convert_particles_to_pynbody_data(sphGiant.gasParticles, length_unit, pynbody_unit)
+    adding = pickleFile.split("MESA_")[-1]
     figure = pyplot.figure(figsize = (8, 10))
     pyplot.subplot(1, 1, 1)
     ax = pyplot.gca()
@@ -113,19 +110,19 @@ def temperature_density_plot(sphGiant, step, outputDir, pickleFile):
     ylabel('Density')
 
     #plot to file
-    textFile = open(outputDir + '/radial_profile/temperature_{0}'.format(step) + '.txt', 'w')
+    textFile = open(outputDir + '/radial_profile/temperature_' + adding + '.txt', 'w')
     textFile.write(', '.join([str(y) for y in data["temperature"]]))
     textFile.close()
-    textFile = open(outputDir + '/radial_profile/density_{0}'.format(step) + '.txt', 'w')
+    textFile = open(outputDir + '/radial_profile/density_' + adding + '.txt', 'w')
     textFile.write(', '.join([str(y) for y in data["density"]]))
     textFile.close()
-    textFile = open(outputDir + '/radial_profile/radius_{0}'.format(step) + '.txt', 'w')
+    textFile = open(outputDir + '/radial_profile/radius_' + adding +  '.txt', 'w')
     textFile.write(', '.join([str(y) for y in data["radius"]]))
     textFile.close()
     #print "saved"
     pyplot.legend()
-    pyplot.suptitle('Structure of a {0} star'.format(sphGiant.mass))
-    pyplot.savefig(outputDir + "/radial_profile/temperature_radial_proile_{0}".format(step))
+    pyplot.suptitle('Structure of a ' + adding + ' mass star')
+    pyplot.savefig(outputDir + "/radial_profile/temperature_radial_profile_" + adding )
     pyplot.close()
 
 
@@ -147,98 +144,36 @@ def GetArgs(args):
         directory=args[1]
     else:
         directory = args[0]
-    if len(args) > 2:
-        savingDir = directory + "/" + args[2]
-        if args[2] == "snapshots":
-            toCompare = False
-        else:
-            toCompare = True
-    else:
-        savingDir = directory + "/evolution"
-        toCompare = True
-    if len(args) > 3:
-        beginStep = int(args[3])
-    else:
-        beginStep = 0
-    if (args) > 4:
-        lastStep = int(args[4])
-    else:
-        lastStep = 0
-    if len(args) > 5:
-        vmin= float(args[5])
-    else:
-        vmin = 1e16
-    if len(args) > 6:
-        vmax = float(args[6])
-    else:
-        vmax= 1e34
-    if len(args) >7:
-        opposite = True
-    else:
-        opposite = False
-    outputDir = savingDir + "/pics"
-    return savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, opposite
 
-def InitializeSnapshots(savingDir, toCompare=False):
+    return directory
+
+def InitializeSnapshots(savingDir):
     '''
     taking the snapshots directory of past run
-    Returns: sorted dm snapshots and gas snapshots
+    Returns: sorted mesa pickle files
 
     '''
     snapshots = os.listdir(os.path.join(os.getcwd(),savingDir))
-    numberOfSnapshots = len(snapshots) / 2
-    dmFiles = []
-    gasFiles = []
+    picklerFiles = []
     for snapshotFile in snapshots:
-        if 'dm' in snapshotFile: #if the word dm is in the filename
-            dmFiles.append(snapshotFile)
-        if 'gas' in snapshotFile:
-            gasFiles.append(snapshotFile)
-    if toCompare:
-        dmFiles.sort(cmp=compare)
-        gasFiles.sort(cmp= compare)
-    else:
-        dmFiles.sort()
-        gasFiles.sort()
-    numberOfCompanion = 0
-    if len(dmFiles) > 0:
-        numberOfCompanion = len(read_set_from_file(os.path.join(os.getcwd(), savingDir,dmFiles[0]), format='amuse'))
-    return gasFiles, dmFiles, numberOfCompanion
-
-def compare(st1, st2):
-    num1 = int(st1.split("_")[1].split(".")[0])
-    num2 = int(st2.split("_")[1].split(".")[0])
-    if num1 < num2:
-        return -1
-    return 1
+        if 'MESA' in snapshotFile: #if the word dm is in the filename
+            picklerFiles.append(snapshotFile)
+    picklerFiles.sort()
+    return picklerFiles
 
 
-def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0,1e16,1e34]):
-    savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, opposite = GetArgs(args)
-    print "plotting pics to " +  outputDir +  " from " +  savingDir +" begin step = " , beginStep , " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare
+
+def main(args= ["/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels"]):
+    savingDir = GetArgs(args)
+    print "plotting pics to " +  savingDir +  " from " +  savingDir
     try:
-        os.makedirs(outputDir)
+        os.makedirs(savingDir + "/radial_profile")
     except(OSError):
         pass
-    try:
-        os.makedirs(outputDir + "/velocity")
-    except(OSError):
-        pass
-    try:
-        os.makedirs(outputDir + "/graphs")
-    except (OSError):
-        pass
-    try:
-        os.makedirs(outputDir + "/radial_profile")
-    except(OSError):
-        pass
-    gasFiles, dmFiles, numberOfCompanion = InitializeSnapshots(savingDir, toCompare)
+    pickleMesaFiles = InitializeSnapshots(savingDir)
+    for pickleFile in pickleMesaFiles:
+        temperature_density_plot(savingDir, pickleFile)
 
-    if numberOfCompanion <= 2: #binary
-        print "analyzing binary"
-        AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax)
-    elif numberOfCompanion ==3: #triple
-        AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, opposite)
 
 if __name__ == "__main__":
     main(sys.argv)

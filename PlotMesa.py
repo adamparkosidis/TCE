@@ -92,7 +92,7 @@ def temperature_density_plot(outputDir, pickleFile):
 
     star = Star(outputDir + "/" + pickleFile)
     data = structure_from_star(star)
-    adding = pickleFile.split("MESA_")[-1]
+    adding = pickleFile.split("MESA")[-1]
     figure = pyplot.figure(figsize = (8, 10))
     pyplot.subplot(1, 1, 1)
     ax = pyplot.gca()

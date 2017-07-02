@@ -23,7 +23,7 @@ class SphStar:
         self.saving_name = parser.get(configurationSection, "name")
         try:
             self.radius = float(parser.get(configurationSection, "radius")) | units.RSun
-        finally:
+        except:
             self.radius = 0 | units.RSun
         mesaStar = self.EvolveStarWithStellarCode(MESA, savedMesaStarPath + "/" + self.saving_name, stellar_type= self.stellar_type)
 
@@ -44,10 +44,10 @@ class SphStar:
         radiuses = []
         times = []
         mainStar = evolutionType.particles.add_particle(self.pointStar)
-        print "particle added, current radius = ", mainStar.radius.as_quantity_in(units.AU), "target type = ",stellar_type
+        print "particle added, current radius = ", mainStar.radius.as_quantity_in(units.RSun), " target radius = ", self.radius, " target type = ",stellar_type
         oldStellarType = mainStar.stellar_type.value_in(units.stellar_type)
-        while mainStar.radius < self.pointStar.radius or \
-                (self.pointStar.radius.value_in(units.RSun) == 0 and
+        while mainStar.radius < self.radius or \
+                (self.radius.value_in(units.RSun) == 0 and
                      self.CheckLimitType(mainStar.stellar_type.value_in(units.stellar_type))):
             mainStar.evolve_one_step()
             radiuses.append(mainStar.radius)

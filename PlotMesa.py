@@ -53,7 +53,7 @@ class Star:
         self.sound_speed = self.temperature/self.temperature | units.m * units.s**-1
         for i in xrange(len(self.sound_speed)):
             #print self.temperature[i] * constants.Rydberg_constant / self.mu_profile[i]
-            self.sound_speed[i] = math.sqrt(((5.0/3.0) * constants.Rydberg_constant * self.temperature[i] / self.mu_profile[i]).value_in(units.K * units.m**-1 * units.kg**-1)) | units.m / units.s
+            self.sound_speed[i] = math.sqrt(((5.0/3.0) * constants.kB * self.temperature[i] / self.mu_profile[i]).value_in(units.m **2 * units.s**-2)) | units.m / units.s
 def mu(X = None, Y = 0.25, Z = 0.02, x_ion = 0.1):
     """
     Compute the mean molecular weight in kg (the average weight of particles in a gas)
@@ -91,12 +91,13 @@ def temperature_density_plot(outputDir, pickleFile):
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
 
     star = Star(outputDir + "/" + pickleFile)
+    print star.number_of_zones
     data = structure_from_star(star)
     adding = pickleFile.split("MESA")[-1]
     figure = pyplot.figure(figsize = (8, 10))
     pyplot.subplot(1, 1, 1)
     ax = pyplot.gca()
-    plotT = semilogy(data["radius"], data["temperature"], 'r-', label = r'$T(r)$')
+    plotT = semilogy(data["radius"], data["temperature"].as_quantity_in(units.K), 'r-', label = r'$T(r)$')
     xlabel('Radius')
     ylabel('Temperature')
     ax.twinx()
@@ -115,6 +116,9 @@ def temperature_density_plot(outputDir, pickleFile):
     textFile.close()
     textFile = open(outputDir + '/radial_profile/radius_' + adding +  '.txt', 'w')
     textFile.write(', '.join([str(y) for y in data["radius"]]))
+    textFile.close()
+    textFile = open(outputDir + '/radial_profile/sound_speed_' + adding +  '.txt', 'w')
+    textFile.write(', '.join([str(y) for y in data["sound_speed"]]))
     textFile.close()
     #print "saved"
     pyplot.legend()

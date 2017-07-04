@@ -172,13 +172,16 @@ def structure_from_star(star):
         radii_cubed.prepend(0|units.m**3)
         mass_profile = (4.0/3.0 * constants.pi) * density_profile * (radii_cubed[1:] - radii_cubed[:-1])
         #print("Derived mass profile from density and radius.")
-
+    sound_speed = star.temperature/star.temperature | units.m * units.s**-1
+    for i in xrange(len(sound_speed)):
+        sound_speed[i] = math.sqrt(((5.0/3.0) * constants.Rydberg_constant * star.temperature[i] / mu()).value_in(units.K * units.m**-1 * units.kg**-1)) | units.m / units.s
     return dict(
         radius = radius_profile.as_quantity_in(units.RSun),
         density = density_profile,
         mass = mass_profile,
         temperature = star.temperature,
-        pressure = star.pressure
+        pressure = star.pressure,
+        sound_speed = sound_speed
     )
 
 def temperature_density_plot(sphGiant, step, outputDir):
@@ -191,7 +194,7 @@ def temperature_density_plot(sphGiant, step, outputDir):
     sphGiant.gasParticles.temperature = 2.0/3.0 * sphGiant.gasParticles.u * mu() / constants.kB
     sphGiant.gasParticles.mu = mu()
     if sphGiant.core.mass > 0.0 | units.MSun:
-        star = sph_to_star.convert_SPH_to_stellar_model(sphGiant.gasParticles, core_particle=sphGiant.core)
+        star = sph_to_star.convert_SPH_to_stellar_model(sphGiant.gasParticles, core_particle=sphGiant.core)#TODO: surround it by a code which adds the density of the core from mesa.
     else:
         star = sph_to_star.convert_SPH_to_stellar_model(sphGiant.gasParticles)
     data = structure_from_star(star)
@@ -204,11 +207,16 @@ def temperature_density_plot(sphGiant, step, outputDir):
     xlabel('Radius')
     ylabel('Temperature')
     ax.twinx()
-    plotrho = semilogy(data["radius"], data["density"], 'g-', label = r'$\rho(r)$')
+    plotrho = semilogy(data["radius"], data["density"].as_quantity_in(units.g * units.cm **-3), 'g-', label = r'$\rho(r)$')
     plots = plotT + plotrho
     labels = [one_plot.get_label() for one_plot in plots]
     ax.legend(plots, labels, loc=3)
     ylabel('Density')
+    #print "saved"
+    pyplot.legend()
+    pyplot.suptitle('Structure of a {0} star'.format(sphGiant.mass))
+    pyplot.savefig(outputDir + "/radial_profile/temperature_radial_proile_{0}".format(step))
+    pyplot.close()
 
     #plot to file
     textFile = open(outputDir + '/radial_profile/temperature_{0}'.format(step) + '.txt', 'w')
@@ -220,11 +228,9 @@ def temperature_density_plot(sphGiant, step, outputDir):
     textFile = open(outputDir + '/radial_profile/radius_{0}'.format(step) + '.txt', 'w')
     textFile.write(', '.join([str(y) for y in data["radius"]]))
     textFile.close()
-    #print "saved"
-    pyplot.legend()
-    pyplot.suptitle('Structure of a {0} star'.format(sphGiant.mass))
-    pyplot.savefig(outputDir + "/radial_profile/temperature_radial_proile_{0}".format(step))
-    pyplot.close()
+    textFile = open(outputDir + '/radial_profile/sound_speed_{0}'.format(step) + '.txt', 'w')
+    textFile.write(', '.join([str(y) for y in data["sound_speed"]]))
+    textFile.close()
 
 def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax):
     if not HAS_PYNBODY:
@@ -250,7 +256,7 @@ def PlotVelocity(sphGiant,core,binary,step, outputDir, vmin, vmax):
     units = 'm_p cm^-2'
     pynbody_sph.velocity_image(pyndata, width=width.value_in(length_unit), units=units,vmin= vmin, vmax= vmax)
     UnitlessArgs.current_plot = native_plot.gca()
-    if core.mass != 0 | units.MSun:
+    if core.mass.value_in(units.MSun) != 0 :
         scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
     pyplot.savefig(outputDir + "/velocity/velocity_plotting_{0}.jpg".format(step))

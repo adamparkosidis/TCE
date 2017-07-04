@@ -104,5 +104,5 @@ def Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/TCE/0511_1/
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":
-    Start()
+    Start(takeSavedState= "Mesa")
 

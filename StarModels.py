@@ -85,6 +85,9 @@ class SphStar:
             pass
         print evolutionType
         print mainStar
+        mesaFile = savingPath + "/" + code.__name__
+        if os.path.isfile(mesaFile):
+           os.remove(mesaFile)
         pickle_stellar_model(mainStar, savingPath + "/" + code.__name__)
         print "star saved to: ", savingPath + "/" + code.__name__ , "mass: ",mainStar.mass, "stellar type:", mainStar.stellar_type
         print "core mass from " + code.__name__ + " is ", mainStar.core_mass

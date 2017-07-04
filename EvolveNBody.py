@@ -26,7 +26,7 @@ import BinaryCalculations
 def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary):
 
     unitConverter = nbody_system.nbody_to_si(binary.total_mass(), semmiMajor)
-    system = dynamicsCode(unitConverter, redirection="file", redirect_file="dynamics_code_out.log",info_file="info2.txt")
+    system = dynamicsCode(unitConverter, redirection="file", redirect_file="/home/glanz/dynamics_code_out.log",info_file="info2.txt")
     system.parameters.epsilon_squared = 0 | units.m**2
     system.parameters.inttype_parameter = system.inttypes.SHARED10
     system.parameters.timestep_parameter = 0.2
@@ -38,7 +38,8 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
         unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*100*2)
     else:
         unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*100)
-    system = sphCode(unitConverter, redirection="file", redirect_file="sph_code_out{0}.log"
+    print "preparing the system"
+    system = sphCode(unitConverter, redirection="file", redirect_file="/home/glanz/sph_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
@@ -53,15 +54,15 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     system.gas_particles.add_particles(envelope)
     system.parameters.timestep_accuracy_parameter = 0.05
     system.parameters.time_max = t_end * 1.5
-    system.parameters.cpu_file = "cpu_code_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
+    system.parameters.cpu_file = "/home/glanz/cpu_code_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec))
-    system.parameters.energy_file = "energy_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
+    system.parameters.energy_file = "/home/glanz/energy_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec))
-    system.parameters.info_file = "info_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
+    system.parameters.info_file = "/home/glanzinfo_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec))

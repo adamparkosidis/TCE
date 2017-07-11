@@ -256,8 +256,10 @@ def PlotVelocity(sphGiant,core,binary,step, outputDir, vmin, vmax):
     units = 'm_p cm^-2'
     pynbody_sph.velocity_image(pyndata, width=width.value_in(length_unit), units=units,vmin= vmin, vmax= vmax)
     UnitlessArgs.current_plot = native_plot.gca()
-    if core.mass.value_in(units.MSun) != 0 :
-        scatter(core.x, core.y, c="r")
+    #print core.mass
+    #if core.mass != 0 |units.MSun:
+    #    scatter(core.x, core.y, c="r")
+    scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
     pyplot.savefig(outputDir + "/velocity/velocity_plotting_{0}.jpg".format(step))
     pyplot.close()

@@ -51,18 +51,22 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     starCore = dmStars[-1]
     starCore.radius = sphStar.core_particle.radius
 
+    #moving the main star back to the center
+    centerOfMassPos = (starCore.position*starCore.mass + starEnvelope.center_of_mass() * starEnvelope.total_mass())/ giant.mass
+    centerOfMassV = (starCore.velocity*starCore.mass + starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass())/ giant.mass
+    diffPosition = centerOfMassPos - giantInSet.position
+    diffVelocity = centerOfMassV -giantInSet.velocity
+    starEnvelope.position -= diffPosition
+    starCore.position -= diffPosition
+    starEnvelope.velocity -= diffVelocity
+    starCore.velocity -= diffVelocity
+
     sphMetaData = StarModels.SphMetaData(sphStar)
 
     #saved state
     StarModels.SaveState(savedPath, starEnvelope.total_mass() + starCore.mass, starEnvelope, dmStars, outerBinary.semimajorAxis, sphMetaData)
 
-    #moving the main star back to the center
-    diffPosition = starCore.position - giantInSet.position
-    diffVelocity = (starCore.velocity*starCore.mass + starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass())/ giant.mass
-    starEnvelope.position -= diffPosition
-    starCore.position -= diffPosition
-    starEnvelope.velocity -= diffVelocity
-    starCore.velocity -= diffVelocity
+
 
     return giant.mass, starEnvelope, starCore, innerBinary, outerBinary.semimajorAxis, sphMetaData
 

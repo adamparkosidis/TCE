@@ -142,8 +142,11 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
         giant = CreatePointStar(configurationFile,configurationSection="MainStar")
         starMass = starEnvelope.total_mass() + starCore.mass
 
-        #changing according to before relaxation
-        diffPosition = starCore.position - giant.position
+        #moving the main star back to the center
+        centerOfMassPos = (starCore.position*starCore.mass + starEnvelope.center_of_mass() * starEnvelope.total_mass())/ giant.mass
+
+        #changing according to before relaxation, in case of an old state
+        diffPosition = centerOfMassPos - giant.position
         diffVelocity = (starCore.velocity*starCore.mass + starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass())/ starMass
         starEnvelope.position -= diffPosition
         starCore.position -= diffPosition
@@ -158,7 +161,7 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
 
         if opposite: #0 star of the inner binary is the giant, not the core
             innerBinary.stars[0].mass = starMass
-            innerBinary.stars[0].velocity = giant.velocity
+            innerBinary.stars.velocity += giant.velocity
             outerBinary.stars[0].mass = starMass + innerBinary.stars[1].mass
             outerBinary.stars[0].velocity = innerBinary.stars.center_of_mass_velocity()
             outerBinary.stars[1].velocity += outerBinary.stars[0].velocity
@@ -168,10 +171,11 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
         else:
             triple = innerBinary.stars
             giantInSet = triple.add_particle(giant)
-
-            triple.move_to_center()
             innerBinary.stars = triple - giantInSet
             tripleSemmimajor = outerBinary.semimajorAxis
+
+            triple.stars.position -= giantInSet.position
+            triple.stars.velocity -= giantInSet.velocity
 
 
     if step > -1:

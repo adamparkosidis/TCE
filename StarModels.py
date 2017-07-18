@@ -174,8 +174,8 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
             innerBinary.stars = triple - giantInSet
             tripleSemmimajor = outerBinary.semimajorAxis
 
-            triple.stars.position -= giantInSet.position
-            triple.stars.velocity -= giantInSet.velocity
+            triple.position -= giantInSet.position
+            triple.velocity -= giantInSet.velocity
 
 
     if step > -1:

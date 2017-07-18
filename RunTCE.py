@@ -35,8 +35,8 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     giantInSet = triple.add_particle(giant)
     innerBinary.stars = triple - giantInSet
 
-    triple.stars.position -= giantInSet.position
-    triple.stars.velocity -= giantInSet.velocity
+    triple.position -= giantInSet.position
+    triple.velocity -= giantInSet.velocity
 
     print triple
 

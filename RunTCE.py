@@ -49,7 +49,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
                                               numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=10)
     starCore = dmStars[-1]
-    starCore.radius = sphStar.core_particle.radius
+    #starCore.radius = sphStar.core_particle.radius
 
     #moving the main star back to the center
     centerOfMassPos = (starCore.position*starCore.mass + starEnvelope.center_of_mass() * starEnvelope.total_mass())/ giant.mass

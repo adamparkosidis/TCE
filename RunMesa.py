@@ -1,4 +1,5 @@
 import os
+import pickle
 import ConfigParser
 from amuse.units import units
 from amuse.lab import *
@@ -46,6 +47,10 @@ class SphStar:
         mainStar = evolutionType.particles.add_particle(self.pointStar)
         print "particle added, current radius = ", mainStar.radius.as_quantity_in(units.RSun), " target radius = ", self.radius, " target type = ",stellar_type
         oldStellarType = mainStar.stellar_type.value_in(units.stellar_type)
+        try:
+            os.makedirs(savingPath)
+        except(OSError):
+            pass
         while mainStar.radius < self.radius or \
                 (self.radius.value_in(units.RSun) == 0 and
                      self.CheckLimitType(mainStar.stellar_type.value_in(units.stellar_type))):
@@ -54,12 +59,11 @@ class SphStar:
             times.append(mainStar.age)
             if mainStar.stellar_type.value_in(units.stellar_type) != oldStellarType:
                 print mainStar.stellar_type, mainStar.radius
+                #save a pickle of all the mesa properties
+                pickle.dump(mainStar,savingPath + "/" + code.__name__ + "_" + str(self.pointStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type)))
                 oldStellarType = mainStar.stellar_type.value_in(units.stellar_type)
         radiuses.append(mainStar.radius)
-        try:
-            os.makedirs(savingPath)
-        except(OSError):
-            pass
+
         print evolutionType
         print mainStar
         if not os.path.isfile(savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type))):

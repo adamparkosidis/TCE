@@ -23,7 +23,8 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     #now setting up the giant (want it to be relaxed and spinning)
     outerBinary = StarModels.Binary(configurationFile, configurationSection="OuterBinary")
     #notice that the giant is the binary.stars[0], the companions are the next
-    
+
+    #the inner binary's center of mass is the second star of the outer binary. so move the center of mass to that place.
     innerBinary.stars.position += outerBinary.stars[1].position
     innerBinary.stars.velocity += outerBinary.stars[1].velocity
 
@@ -32,9 +33,10 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
     triple = innerBinary.stars
     giantInSet = triple.add_particle(giant)
-
-    triple.move_to_center()
     innerBinary.stars = triple - giantInSet
+
+    triple.stars.position -= giantInSet.position
+    triple.stars.velocity -= giantInSet.velocity
 
     print triple
 

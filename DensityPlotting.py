@@ -148,7 +148,20 @@ def LoadBinaries(file, opposite= False):
     return stars
 
 
+def GetPropertyAtRadius(mesaStarPropertyProfile, mesaStarRadiusProfile, radius):
+    profileLength = len(mesaStarRadiusProfile)
+    i = 0
+    while i < profileLength and mesaStarRadiusProfile[i] < radius:
+        i += 1
+    return mesaStarPropertyProfile[min(i, profileLength - 1)]
 
+def CalculateCumulantiveMass(densityProfile, radiusProfile):
+    profileLength = len(radiusProfile)
+    cmass = [densityProfile[0] * 4.0/3.0 * constants.pi * radiusProfile[0] ** 3 for i in xrange(profileLength)]
+    for i in xrange(1, profileLength):
+        dr = radiusProfile[i] - radiusProfile[i-1]
+        cmass[i] = cmass[i-1] + densityProfile[i] * 4.0 * constants.pi*(radiusProfile[i] ** 2) * dr
+    return cmass
 
 def mu(X = None, Y = 0.25, Z = 0.02, x_ion = 0.1):
     """
@@ -171,17 +184,18 @@ def structure_from_star(star):
         radii_cubed = radius_profile**3
         radii_cubed.prepend(0|units.m**3)
         mass_profile = (4.0/3.0 * constants.pi) * density_profile * (radii_cubed[1:] - radii_cubed[:-1])
-        #print("Derived mass profile from density and radius.")
+    cumulative_mass_profile = CalculateCumulantiveMass(density_profile, radius_profile)
     sound_speed = star.temperature/star.temperature | units.m * units.s**-1
     for i in xrange(len(sound_speed)):
-        sound_speed[i] = math.sqrt(((5.0/3.0) * constants.Rydberg_constant * star.temperature[i] / mu()).value_in(units.K * units.m**-1 * units.kg**-1)) | units.m / units.s
+        sound_speed[i] = math.sqrt(((5.0/3.0) * constants.kB * star.temperature[i] / mu()).value_in(units.m **2 * units.s**-2)) | units.m / units.s
     return dict(
         radius = radius_profile.as_quantity_in(units.RSun),
         density = density_profile,
         mass = mass_profile,
         temperature = star.temperature,
         pressure = star.pressure,
-        sound_speed = sound_speed
+        sound_speed = sound_speed,
+        cumulative_mass = cumulative_mass_profile
     )
 
 def temperature_density_plot(sphGiant, step, outputDir):
@@ -231,6 +245,14 @@ def temperature_density_plot(sphGiant, step, outputDir):
     textFile = open(outputDir + '/radial_profile/sound_speed_{0}'.format(step) + '.txt', 'w')
     textFile.write(', '.join([str(y) for y in data["sound_speed"]]))
     textFile.close()
+    textFile = open(outputDir + '/radial_profile/mass_profile{0}'.format(step) + '.txt', 'w')
+    textFile.write(', '.join([str(y) for y in data["mass"]]))
+    textFile.close()
+    mdot = (4.0 * constants.pi * (1517.0 | units.RSun)**2 * GetPropertyAtRadius(data["density"],data["radius"], 1517 | units.RSun) * GetPropertyAtRadius(data["sound_speed"],data["radius"], 1517 | units.RSun)).as_quantity_in(units.MSun / units.yr)
+    m =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 1517.0 | units.RSun)
+    print "Mdot at 1517: ", mdot
+    print "m at 1517: ", m.as_quantity_in(units.MSun)
+    print "time: ", (m/mdot).as_quantity_in(units.yr)
 
 def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax):
     if not HAS_PYNBODY:
@@ -248,13 +270,11 @@ def PlotVelocity(sphGiant,core,binary,step, outputDir, vmin, vmax):
         print HAS_PYNBODY
         print "problem plotting"
         return
-    
     width = 1.7 * sphGiant.position.lengths_squared().amax().sqrt()
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
     pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
-    units = 'm_p cm^-2'
-    pynbody_sph.velocity_image(pyndata, width=width.value_in(length_unit), units=units,vmin= vmin, vmax= vmax)
+    pynbody_sph.velocity_image(pyndata, width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax)
     UnitlessArgs.current_plot = native_plot.gca()
     #print core.mass
     #if core.mass != 0 |units.MSun:

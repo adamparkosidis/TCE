@@ -291,7 +291,7 @@ def Plot1Axe(x, fileName, outputDir, timeStep= 1400.0/7000.0, beginTime = 0):
     native_plot.figure(figsize= (20, 20), dpi= 80)
     plot(timeLine,x)
     xlabel('time[days]')
-    native_plot.savefig(outputDir + '/' + fileName + '.jpg')
+    native_plot.savefig(outputDir + '/' + fileName + 'time_' + str(beginTime) + "_to_" + str(beginTime + (len(x) - 1.0) * timeStep) + 'days.jpg')
     textFile = open(outputDir + '/' + fileName + '.txt', 'w')
     textFile.write(', '.join([str(y) for y in x]))
     textFile.close()
@@ -306,10 +306,10 @@ def PlotEccentricity(eccentricities, outputDir, beginTime = 0, timeStep= 1400.0/
         if e[0] != []:
             Plot1Axe(e[0], e[1], outputDir, timeStep, beginTime)
 
-def PlotBinaryDistance(distances, outputDir, beginTime = 0):
+def PlotBinaryDistance(distances, outputDir, beginTime = 0, timeStep= 1400.0/7000.0):
     for d in distances:
         if d[0]:
-            Plot1Axe(d[0], d[1], outputDir)
+            Plot1Axe(d[0], d[1], outputDir, timeStep, beginTime)
 
 def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, beginStep, binaryDistances,semmimajors,eccentricities, innerMass):
     for i in [j - beginStep for j in chunk]:
@@ -502,8 +502,8 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         newSemmimajors.append(float(semmimajors[j]) | units.AU)
         newInnerMass.append(float(innerMass[j]) | units.MSun)
     #print newBinaryDistances
-    PlotBinaryDistance([(newBinaryDistances, "InnerBinaryDistances")], outputDir + "/graphs")
-    PlotAdaptiveQuantities([(newSemmimajors ,"aInners")], outputDir+"/graphs")
+    PlotBinaryDistance([(newBinaryDistances, "InnerBinaryDistances")], outputDir + "/graphs", beginStep)
+    PlotAdaptiveQuantities([(newSemmimajors ,"aInners")], outputDir+"/graphs", beginStep)
     PlotEccentricity([(eccentricities, "eInners")], outputDir + "/graphs", beginStep)
     PlotAdaptiveQuantities([(innerMass, "InnerMass")], outputDir + "/graphs", beginStep)
 
@@ -577,12 +577,12 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         newInnerMass2.append(float(innerMass2[j]) | units.MSun)
 
     PlotBinaryDistance([(newBinaryDistances, "InnerBinaryDistances"), (newTriple1Distances, "triple1Distances"),
-                        (newTriple2Distances, "triple2Distances")], outputDir + "/graphs")
+                        (newTriple2Distances, "triple2Distances")], outputDir + "/graphs", beginStep)
     PlotAdaptiveQuantities([(newAInners,"aInners"),(newAOuters, "aOuters")], outputDir+"/graphs")
     PlotAdaptiveQuantities([(newAOuters1, "aOuters1"), (newAOuters2, "aOuters2")], outputDir+ "/graphs", separationTime)
-    PlotEccentricity([(eInners, "eInners"), (eOuters, "eOuters")], outputDir + "/graphs")
+    PlotEccentricity([(eInners, "eInners"), (eOuters, "eOuters")], outputDir + "/graphs", beginStep)
     PlotEccentricity([(eOuters1, "eOuters1"), (eOuters2, "eOuters2")],outputDir + "/graphs", separationTime)
-    Plot1Axe(inclinations,"inclinations", outputDir+"/graphs", beginStep)
+    Plot1Axe(inclinations,"inclinations", outputDir+"/graphs", beginTime=beginStep)
     PlotAdaptiveQuantities([(innerMass, "InnerMass"), (innerMass1, "InnerMass1"), (innerMass2, "InnerMass2")], outputDir + "/graphs", beginStep)
 
 def GetArgs(args):
@@ -616,11 +616,15 @@ def GetArgs(args):
     else:
         vmax= 1e34
     if len(args) >7:
+        plot = int(args[7])
+    else:
+        plot = 0
+    if len(args) >7:
         opposite = True
     else:
         opposite = False
     outputDir = savingDir + "/pics"
-    return savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, opposite
+    return savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, opposite
 
 def InitializeSnapshots(savingDir, toCompare=False):
     '''
@@ -656,9 +660,10 @@ def compare(st1, st2):
     return 1
 
 
-def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0,1e16,1e34]):
-    savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, opposite = GetArgs(args)
-    print "plotting pics to " +  outputDir +  " from " +  savingDir +" begin step = " , beginStep , " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare
+def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0,1e16,1e34, 1]):
+    savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, opposite = GetArgs(args)
+    print "plotting to " +  outputDir + "plot- " + str(plot) +  " from " +  savingDir +" begin step = " , beginStep , \
+        " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare
     try:
         os.makedirs(outputDir)
     except(OSError):

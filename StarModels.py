@@ -192,7 +192,8 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
                                                              starMass + innerBinary.stars.total_mass())
 
     sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
-
+    print innerBinary.stars
+    print starCore
     return starMass, starEnvelope, starCore, innerBinary, tripleSemmimajor, sphMetaData
 
 def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):

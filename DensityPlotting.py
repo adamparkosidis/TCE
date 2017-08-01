@@ -250,12 +250,26 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False):
     textFile.write(', '.join([str(y) for y in data["mass"]]))
     textFile.close()
     mdot = (4.0 * constants.pi * (1517.0 | units.RSun)**2 * GetPropertyAtRadius(data["density"],data["radius"], 1517 | units.RSun) * GetPropertyAtRadius(data["sound_speed"],data["radius"], 1517 | units.RSun)).as_quantity_in(units.MSun / units.yr)
+    mdot227 = (4.0 * constants.pi * (500.0 | units.RSun)**2 * GetPropertyAtRadius(data["density"],data["radius"], 500 | units.RSun) * GetPropertyAtRadius(data["sound_speed"],data["radius"], 500 | units.RSun)).as_quantity_in(units.MSun / units.yr)
+    mdot1557 = (4.0 * constants.pi * (3600.0 | units.RSun)**2 * GetPropertyAtRadius(data["density"],data["radius"], 3600 | units.RSun) * GetPropertyAtRadius(data["sound_speed"],data["radius"], 3600 | units.RSun)).as_quantity_in(units.MSun / units.yr)
+    mcore = GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 500.0 | units.RSun)
     m =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 1517.0 | units.RSun)
-    '''
+    m227 =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 500.0 | units.RSun)
+    m1557 =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 3600.0 | units.RSun)
+    M =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 7000.0 | units.RSun)
     print "Mdot at 1517: ", mdot
+    print "Mdot at 227: ", mdot227
+    print "Mdot at 1557: ", mdot1557
+    print "cs at 1517: ",  GetPropertyAtRadius(data["sound_speed"],data["radius"], 1517 | units.RSun)
+    print "cs at 227: ",  GetPropertyAtRadius(data["sound_speed"],data["radius"], 500 | units.RSun)
+    print "cs at 1557: ",  GetPropertyAtRadius(data["sound_speed"],data["radius"], 3600 | units.RSun)
     print "m at 1517: ", m.as_quantity_in(units.MSun)
+    print "m at 227: ", m227.as_quantity_in(units.MSun)
+    print "m at 1557: ", m1557.as_quantity_in(units.MSun)
+    print "m at 11: ", mcore.as_quantity_in(units.MSun)
+    print "M at: ", M.as_quantity_in(units.MSun)
     print "time: ", (m/mdot).as_quantity_in(units.yr)
-    '''
+
 
 def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax):
     if not HAS_PYNBODY:

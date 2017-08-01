@@ -392,16 +392,16 @@ class Binary:
         self.semimajorAxis = BinaryCalculations.CalculateSemiMajor(velocityDifference,separation,mass)
         self.inclination = math.radians(BinaryCalculations.CalculateInclination((0,0,0) | (units.m / units.s),(0,0,0)| units.m,
                                                                    velocityDifference, separation))
-        self.eccentricity =BinaryCalculations.CalculateEccentricity(self.stars[0],self.stars[1],self.semimajorAxis)
+        self.eccentricity =BinaryCalculations.CalculateEccentricity(self.stars[0],self.stars[1])
 
     def CalculateEccentricity(self):
-        V= self.CalculateVelocityDifference()
-        R = self.CalculateSeparation()
-        h = BinaryCalculations.CalculateSpecificMomentum(V,R)
+        V= BinaryCalculations.CalculateVelocityDifference(self.stars[0], self.stars[1])
+        R = BinaryCalculations.CalculateSeparation(self.stars[0], self.stars[1])
+        h = BinaryCalculations.CalculateSpecificMomentum(V, R)
         hSize = BinaryCalculations.CalculateVectorSize(h)
         miu = constants.G*(self.stars.total_mass())
         element2 = (R[0].value_in(units.m),R[1].value_in(units.m),R[2].value_in(units.m))/(BinaryCalculations.CalculateVectorSize(R).value_in(units.m))
-        vxh = BinaryCalculations.VectorCross(V,h)
+        vxh = BinaryCalculations.VectorCross(V, h)
         element10 = (vxh[0].value_in(units.m**3*units.s**-2),vxh[1].value_in(units.m**3*units.s**-2),vxh[2].value_in(units.m**3*units.s**-2))
         element11 = miu.value_in(units.m**3*units.s**-2)
         element1 = element10/element11

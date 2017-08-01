@@ -54,6 +54,10 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     system.gas_particles.add_particles(envelope)
     system.parameters.timestep_accuracy_parameter = 0.05
     system.parameters.time_max = t_end * 1.5
+    system.parameters.gadget_output_directory = "/home/glanz/gadget_output_{0}".format(str(time.localtime().tm_year) + "-" +
+                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
+                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
+                            str(time.localtime().tm_sec))
     system.parameters.cpu_file = "/home/glanz/cpu_code_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
@@ -62,10 +66,11 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec))
-    system.parameters.info_file = "/home/glanzinfo_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
+    system.parameters.info_file = "/home/glanz/info_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec))
+
     print system.dm_particles
     print system.parameters.epsilon_squared
     print system.parameters.gas_epsilon

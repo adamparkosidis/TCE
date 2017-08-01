@@ -124,6 +124,7 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
     :return: the saved system- NOTICE that if opposite=True it returns the whole system! (different output)
     '''
     print "using saved state file - {0}".format(savedVersionPath)
+    giant = CreatePointStar(configurationFile,configurationSection="MainStar")
     if step > -1:
         starEnvelope= LoadGas(savedVersionPath + "/gas_{0}.amuse".format(step))
         load= LoadDm(savedVersionPath + "/dm_{0}.amuse".format(step))
@@ -132,6 +133,13 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
         else:
             starCore=load[-1]
         innerBinary = Binary(particles=Particles(2, particles=[load[0], load[1]]))
+        starMass = starEnvelope.total_mass() + starCore.mass
+        giant.mass = starMass
+        vx, vy, vz = starEnvelope.center_of_mass_velocity()
+        starEnvelopeV = (vx, vy, vz)
+        giant.velocity = (starEnvelopeV * starEnvelope.total_mass() +
+                          (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass
+
     else:
         starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
         load = LoadDm(savedVersionPath + "/dm.amuse")
@@ -139,7 +147,6 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
         innerBinary = Binary(configurationFile, configurationSection="InnerBinary")
         outerBinary = Binary(configurationFile, configurationSection="OuterBinary")
 
-        giant = CreatePointStar(configurationFile,configurationSection="MainStar")
         starMass = starEnvelope.total_mass() + starCore.mass
 
         #moving the main star back to the center

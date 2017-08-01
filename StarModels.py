@@ -386,6 +386,9 @@ class Binary:
             self.stars = stars
         else:
             self.LoadBinary(particles)
+        self.velocity = self.stars.center_of_mass_velocity()
+        self.vx, self.vy, self.vz = self.velocity
+
     def LoadBinary(self, particles):
 
         print "loading binary "
@@ -400,6 +403,7 @@ class Binary:
         self.inclination = math.radians(BinaryCalculations.CalculateInclination((0,0,0) | (units.m / units.s),(0,0,0)| units.m,
                                                                    velocityDifference, separation))
         self.eccentricity =BinaryCalculations.CalculateEccentricity(self.stars[0],self.stars[1])
+
 
     def CalculateEccentricity(self):
         V= BinaryCalculations.CalculateVelocityDifference(self.stars[0], self.stars[1])

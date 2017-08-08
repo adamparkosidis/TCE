@@ -155,6 +155,7 @@ def GetPropertyAtRadius(mesaStarPropertyProfile, mesaStarRadiusProfile, radius):
         i += 1
     return mesaStarPropertyProfile[min(i, profileLength - 1)]
 
+
 def CalculateCumulantiveMass(densityProfile, radiusProfile):
     profileLength = len(radiusProfile)
     cmass = [densityProfile[0] * 4.0/3.0 * constants.pi * radiusProfile[0] ** 3 for i in xrange(profileLength)]
@@ -249,27 +250,22 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False):
     textFile = open(outputDir + '/radial_profile/mass_profile{0}'.format(step) + '.txt', 'w')
     textFile.write(', '.join([str(y) for y in data["mass"]]))
     textFile.close()
-    mdot = (4.0 * constants.pi * (1517.0 | units.RSun)**2 * GetPropertyAtRadius(data["density"],data["radius"], 1517 | units.RSun) * GetPropertyAtRadius(data["sound_speed"],data["radius"], 1517 | units.RSun)).as_quantity_in(units.MSun / units.yr)
-    mdot227 = (4.0 * constants.pi * (500.0 | units.RSun)**2 * GetPropertyAtRadius(data["density"],data["radius"], 500 | units.RSun) * GetPropertyAtRadius(data["sound_speed"],data["radius"], 500 | units.RSun)).as_quantity_in(units.MSun / units.yr)
-    mdot1557 = (4.0 * constants.pi * (3600.0 | units.RSun)**2 * GetPropertyAtRadius(data["density"],data["radius"], 3600 | units.RSun) * GetPropertyAtRadius(data["sound_speed"],data["radius"], 3600 | units.RSun)).as_quantity_in(units.MSun / units.yr)
-    mcore = GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 500.0 | units.RSun)
-    m =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 1517.0 | units.RSun)
-    m227 =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 500.0 | units.RSun)
-    m1557 =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 3600.0 | units.RSun)
+    mdot = (4.0 * constants.pi * (560.0 | units.RSun)**2 * GetPropertyAtRadius(data["density"],data["radius"], 560.0 | units.RSun) * GetPropertyAtRadius(data["sound_speed"],data["radius"], 560.0 | units.RSun)).as_quantity_in(units.MSun / units.yr)
+    m =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 560.0 | units.RSun)
     M =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 7000.0 | units.RSun)
-    print "Mdot at 1517: ", mdot
-    print "Mdot at 227: ", mdot227
-    print "Mdot at 1557: ", mdot1557
-    print "cs at 1517: ",  GetPropertyAtRadius(data["sound_speed"],data["radius"], 1517 | units.RSun)
-    print "cs at 227: ",  GetPropertyAtRadius(data["sound_speed"],data["radius"], 500 | units.RSun)
-    print "cs at 1557: ",  GetPropertyAtRadius(data["sound_speed"],data["radius"], 3600 | units.RSun)
-    print "m at 1517: ", m.as_quantity_in(units.MSun)
-    print "m at 227: ", m227.as_quantity_in(units.MSun)
-    print "m at 1557: ", m1557.as_quantity_in(units.MSun)
-    print "m at 11: ", mcore.as_quantity_in(units.MSun)
+    print "Mdot at 560: ", mdot
+    print "cs at 560: ",  GetPropertyAtRadius(data["sound_speed"],data["radius"], 560 | units.RSun)
+    print "m over 560: ", (M - m).as_quantity_in(units.MSun)
     print "M at: ", M.as_quantity_in(units.MSun)
-    print "time: ", (m/mdot).as_quantity_in(units.yr)
+    print "time: ", ((M-m)/mdot).as_quantity_in(units.yr)
 
+
+    mdot = (4.0 * constants.pi * (1387.57 | units.RSun)**2 * GetPropertyAtRadius(data["density"],data["radius"], 1387.57 | units.RSun) * GetPropertyAtRadius(data["sound_speed"],data["radius"], 1387.57 | units.RSun)).as_quantity_in(units.MSun / units.yr)
+    m =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 1387.57 | units.RSun)
+    print "Mdot at 1387.57: ", mdot
+    print "cs at 1387.57: ",  GetPropertyAtRadius(data["sound_speed"],data["radius"], 1387.57 | units.RSun)
+    print "m over 1387.57: ", (M - m).as_quantity_in(units.MSun)
+    print "time: ", ((M-m)/mdot).as_quantity_in(units.yr)
 
 def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax):
     if not HAS_PYNBODY:
@@ -309,7 +305,7 @@ def Plot1Axe(x, fileName, outputDir, timeStep= 1400.0/7000.0, beginTime = 0):
     plot(timeLine,x)
     xlabel('time[days]')
     native_plot.savefig(outputDir + '/' + fileName + 'time_' + str(beginTime) + "_to_" + str(beginTime + (len(x) - 1.0) * timeStep) + 'days.jpg')
-    textFile = open(outputDir + '/' + fileName + '.txt', 'w')
+    textFile = open(outputDir + '/' + fileName + 'time_' + str(beginTime) + "_to_" + str(beginTime + (len(x) - 1.0) * timeStep) + 'days.txt', 'w')
     textFile.write(', '.join([str(y) for y in x]))
     textFile.close()
 

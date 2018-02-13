@@ -47,11 +47,12 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     if sphCode.__name__ == "Fi":
         system.parameters.timestep = t_end / n_steps
         system.parameters.eps_is_h_flag = True
-
-    system.parameters.gadget_output_directory = "/vol/sci/astro/home/glanz/gadget_output_{0}".format(str(time.localtime().tm_year) + "-" +
+    outputDirectory = "/vol/sci/astro/home/glanz/gadget_output_{0}".format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec))
+    os.makedirs(outputDirectory)
+    system.parameters.gadget_output_directory = outputDirectory
     system.parameters.begin_time = beginTime
     system.parameters.time_limit_cpu = 7200000000 | units.s
     print "core radius:",core.radius.as_string_in(units.RSun), core.radius

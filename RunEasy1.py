@@ -26,11 +26,14 @@ from amuse.ext.sink import new_sink_particles
 
 if __name__ == "__main__":
     part = Particle()
+    part.mass = 8.0 | units.MSun
     evolutionCode = MESA()
     mainStar = evolutionCode.particles.add_particle(part)
     mainStar.evolve_one_step()
+    print "MESA succeeded"
     sphStar = convert_stellar_model_to_SPH(mainStar, 500000, do_relax = False, with_core_particle=True,
-                                                    target_core_mass = 2.4, base_grid_options=dict(type="fcc"))
+            target_core_mass = 2.4 | units.MSun, base_grid_options=dict(type="fcc"))
+    print "conversion succeeded"
     parts = Particles(2)
     parts.mass = [1.0 | units.MSun , 1.0 | units.MSun]
     unitConverter = nbody_system.nbody_to_si(10.0 | units.MSun, 0.511 | units.AU)
@@ -54,3 +57,4 @@ if __name__ == "__main__":
     coupledSystem.add_system(hydroSystem, (kickFromBinary,), False)
 
     coupledSystem.evolve_model(0.2 | units.day)
+    print "end os simulation"

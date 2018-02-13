@@ -484,8 +484,9 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     semmimajors = multiprocessing.Array('f', [0.0 for i in range(beginStep, lastStep)])
     eccentricities = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     innerMass = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
-
-    chunkSize= (lastStep-beginStep)/(multiprocessing.cpu_count()-6)
+    
+    chunkSize = (lastStep - beginStep) / 8
+    #chunkSize= (lastStep-beginStep)/(multiprocessing.cpu_count()-6)
     if chunkSize == 0:
         if lastStep - beginStep == 0:
             return

@@ -123,7 +123,7 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
     :param opposite: if the main star is in the inner binry and not the outer
     :return: the saved system- NOTICE that if opposite=True it returns the whole system! (different output)
     '''
-    print "using saved state file - {0}".format(savedVersionPath)
+    print "using saved state file - {0}".format(savedVersionPath) , "config file: ", configurationFile
     giant = CreatePointStar(configurationFile,configurationSection="MainStar")
     if step > -1:
         starEnvelope= LoadGas(savedVersionPath + "/gas_{0}.amuse".format(step))

@@ -17,6 +17,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     creating the TCE
     :return:main star's mass, the envelope particles, the core particles, the binary stars and the triple semmimajor
     '''
+    print configurationFile
     giant = StarModels.CreatePointStar(configurationFile,configurationSection="MainStar")
     innerBinary = StarModels.Binary(configurationFile, configurationSection="InnerBinary")
 
@@ -72,7 +73,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
 
 
-def Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/TCE/0511_1/8MSun/0Phase/26RSun/5inclin", takeSavedState = "False", step = -1, configurationFile = "/BIGDATA/code/amuse-10.0/Glanz/savings/TCE/0511_1/8MSun/0Phase/26RSun/5inclin/TCEConfiguration.ini"):
+def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savings/TCE/0511_1/8MSun/0Phase/26RSun/5inclin", takeSavedState = "False", step = -1, configurationFile = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savings/TCE/0511_1/8MSun/0Phase/26RSun/5inclin/TCEConfiguration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -110,5 +111,5 @@ def Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/TCE/0511_1/
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":
-    Start(takeSavedState= "Mesa")
+    Start(takeSavedState="Evolve", step=4911)
 

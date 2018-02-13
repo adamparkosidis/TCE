@@ -26,7 +26,7 @@ import BinaryCalculations
 def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary):
 
     unitConverter = nbody_system.nbody_to_si(binary.total_mass(), semmiMajor)
-    system = dynamicsCode(unitConverter, redirection="file", redirect_file="/home/glanz/dynamics_code_out.log",info_file="info2.txt")
+    system = dynamicsCode(unitConverter, redirection="file", redirect_file="/vol/sci/astro/home/glanz/dynamics_code_out.log")
     system.parameters.epsilon_squared = 0 | units.m**2
     system.parameters.inttype_parameter = system.inttypes.SHARED10
     system.parameters.timestep_parameter = 0.2
@@ -38,8 +38,8 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
         unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*1000*2)
     else:
         unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*1000)
-    print "preparing the system"
-    system = sphCode(unitConverter, redirection="file", redirect_file="/home/glanz/sph_code_out{0}.log"
+    print "preparing the system with ",numberOfWorkers, " workers"
+    system = sphCode(unitConverter, mode="adaptivegravity", redirection="file", redirect_file="/vol/sci/astro/home/glanz/sph_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
@@ -51,22 +51,24 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     system.parameters.time_limit_cpu = 7200000000 | units.s
     print "core radius:",core.radius.as_string_in(units.RSun), core.radius
     system.dm_particles.add_particle(core)
+    print "core added to hydro"
     system.gas_particles.add_particles(envelope)
-    system.parameters.timestep_accuracy_parameter = 0.05
+    print "envelope added to hydro"
+    system.timestep_accuracy_parameter = 0.05
     system.parameters.time_max = t_end * 1.5
-    system.parameters.gadget_output_directory = "/home/glanz/gadget_output_{0}".format(str(time.localtime().tm_year) + "-" +
+    system.parameters.gadget_output_directory = "/vol/sci/astro/home/glanz/gadget_output_{0}".format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec))
-    system.parameters.cpu_file = "/home/glanz/cpu_code_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
+    system.parameters.cpu_file = "/vol/sci/astro/home/glanz/cpu_code_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec))
-    system.parameters.energy_file = "/home/glanz/energy_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
+    system.parameters.energy_file = "/vol/sci/astro/home/glanz/energy_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec))
-    system.parameters.info_file = "/home/glanz/info_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
+    system.parameters.info_file = "/vol/sci/astro/home/glanz/info_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec))
@@ -80,10 +82,12 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
 
 def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = False):
     unitConverter = nbody_system.nbody_to_si(binarySystem.particles.total_mass(), t_end)
-    kickerCode = MI6(unitConverter,number_of_workers= 8, redirection='file', redirect_file='kicker_code_mi6_out.log')
+    kickerCode = MI6(unitConverter,number_of_workers= 8, redirection='file', redirect_file='/vol/sci/astro/home/glanz/kicker_code_mi6_out.log')
+    print "kicker code intialized"
     epsilonSquared = (hydroSystem.dm_particles.radius[0]/ 2.8)**2
     kickerCode.parameters.epsilon_squared = epsilonSquared
     kickFromBinary = CalculateFieldForCodesUsingReinitialize(kickerCode, (binarySystem,))
+    print "creating bridge"
     coupledSystem = Bridge(timestep=(t_end / (2 * n_steps)), verbose=False, use_threading= not relax)
     if not relax:
         kick_from_hydro = CalculateFieldForParticles(particles=hydroSystem.particles, gravity_constant=constants.G)

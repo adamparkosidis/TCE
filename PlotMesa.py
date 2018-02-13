@@ -17,12 +17,13 @@ from amuse.units import *
 from amuse.lab import *
 from amuse.units.quantities import AdaptingVectorQuantity
 from amuse.datamodel import Particles, Particle
-from amuse.ext import sph_to_star
+from amuse.ext import sph_to_star, star_to_sph
 from amuse.io import write_set_to_file, read_set_from_file
 
 from amuse.plot import scatter, xlabel, ylabel, plot, pynbody_column_density_plot, HAS_PYNBODY, _smart_length_units_for_pynbody_data, convert_particles_to_pynbody_data, UnitlessArgs, semilogx, semilogy, loglog, xlabel, ylabel
 
 from matplotlib import pyplot
+import numpy as np
 import pynbody
 import pynbody.plot.sph as pynbody_sph
 from amuse.plot import scatter, xlabel, ylabel, plot, native_plot, sph_particles_plot
@@ -126,6 +127,20 @@ def temperature_density_plot(outputDir, pickleFile):
     pyplot.savefig(outputDir + "/radial_profile/temperature_radial_profile_" + adding + ".jpg")
     pyplot.close()
 
+    native_plot.figure()
+    r, th = np.meshgrid(data["radius"][:-1000].value_in(units.RSun),np.linspace(0,2*np.pi,len(data["radius"][:-1000])))
+    native_plot.subplot(projection="polar")
+    native_plot.xlabel("radius")
+    native_plot.ylabel("radius")
+    density2D, r2 = np.meshgrid(data["density"][:-1000].value_in(units.kg / units.m**3) , data["radius"][:-1000].value_in(units.RSun))
+    #print density2D
+    #native_plot.pcolormesh(density2D)
+    native_plot.pcolormesh(th, r, density2D)
+    native_plot.plot(np.linspace(0,2*np.pi,len(data["radius"][:-1000])), r, color='k', ls='none')
+    native_plot.colorbar()
+    #native_plot.imshow(density, cmap="hot", interpolation="nearest", origin='lower')
+    native_plot.savefig(outputDir + "/radial_profile/density_" + adding + ".jpg")
+    native_plot.close()
 
 def Plot1Axe(x, fileName, outputDir, timeStep= 1400.0/7000.0, beginTime = 0):
     if len(x) == 0:

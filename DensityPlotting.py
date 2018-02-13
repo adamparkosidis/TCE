@@ -8,7 +8,7 @@ import math
 import pickle
 import gc
 import h5py
-
+import argparse
 import matplotlib
 matplotlib.use('Agg')
 from amuse.units import units, constants, nbody_system
@@ -25,7 +25,7 @@ from amuse.plot import scatter, xlabel, ylabel, plot, pynbody_column_density_plo
 from matplotlib import pyplot
 import pynbody
 import pynbody.plot.sph as pynbody_sph
-from amuse.plot import scatter, xlabel, ylabel, plot, native_plot, sph_particles_plot
+from amuse.plot import scatter, xlabel, ylabel, plot, native_plot, sph_particles_plot, circle_with_radius, axvline
 from BinaryCalculations import *
 
 class Star:
@@ -161,8 +161,40 @@ def CalculateCumulantiveMass(densityProfile, radiusProfile):
     cmass = [densityProfile[0] * 4.0/3.0 * constants.pi * radiusProfile[0] ** 3 for i in xrange(profileLength)]
     for i in xrange(1, profileLength):
         dr = radiusProfile[i] - radiusProfile[i-1]
-        cmass[i] = cmass[i-1] + densityProfile[i] * 4.0 * constants.pi*(radiusProfile[i] ** 2) * dr
-    return cmass
+        cmass[i] = (cmass[i-1] + densityProfile[i] * 4.0 * constants.pi*(radiusProfile[i] ** 2) * dr)
+    vectormass = [m.value_in(units.MSun) for m in cmass]
+    return vectormass
+
+def CalculateTau(densityProfile, radiusProfile, coreRadius, coreDensity,temperatureProfile, edgeRadius):
+    profileLength = len(radiusProfile)
+    radiusIndex = 0
+    while radiusProfile[radiusIndex] < edgeRadius:
+            radiusIndex += 1
+
+    X= 0.73
+    Y = 0.25
+    Z= 0.02
+    #kappa = 0.2 * (1 + X) | (units.cm**2)*(units.g**-1)
+    kappa = 12.0 | units.cm**2 / units.g
+    #kappa = (3.8*10**22)*(1 + X)* (X + Y)* densityProfile * temperatureProfile**(-7.0/2)
+    #print kappa
+    tauPoint = [kappa * densityProfile[i] * (radiusProfile[i+1] - radiusProfile[i]) for i in xrange(0, radiusIndex)]
+    tauPoint.append((0.0 |(units.g*units.cm**-2))*kappa)
+    tau = tauPoint
+    tau[radiusIndex] = tauPoint[radiusIndex]
+    for i in xrange(radiusIndex - 1, 0 , -1 ):
+        tau[i] = tau[i + 1] + tauPoint[i]
+    print tau[-1], tau[-100]
+    i = radiusIndex
+    while (tau[i] < 2.0/3.0 and i >= 0):
+        i -= 1
+    j = radiusIndex
+    while (tau[j] < 13.0 and j >= 0):
+        j -= 1
+
+    print "edge: ", radiusProfile[radiusIndex].as_quantity_in(units.RSun), " at index= ",radiusIndex, " photosphere radius: ", \
+        radiusProfile[i].as_quantity_in(units.RSun), " at index= ", i, "tau is 13 at radius= ", radiusProfile[j].as_quantity_in(units.RSun)
+    return tau
 
 def mu(X = None, Y = 0.25, Z = 0.02, x_ion = 0.1):
     """
@@ -186,6 +218,7 @@ def structure_from_star(star):
         radii_cubed.prepend(0|units.m**3)
         mass_profile = (4.0/3.0 * constants.pi) * density_profile * (radii_cubed[1:] - radii_cubed[:-1])
     cumulative_mass_profile = CalculateCumulantiveMass(density_profile, radius_profile)
+    tau = CalculateTau(density_profile, radius_profile, 0.0159 | units.RSun, (0.392|units.MSun)/((4.0/3.0)*constants.pi*(0.0159 |units.RSun)**3), star.temperature, radius_profile[-250000])
     sound_speed = star.temperature/star.temperature | units.m * units.s**-1
     for i in xrange(len(sound_speed)):
         sound_speed[i] = math.sqrt(((5.0/3.0) * constants.kB * star.temperature[i] / mu()).value_in(units.m **2 * units.s**-2)) | units.m / units.s
@@ -196,8 +229,10 @@ def structure_from_star(star):
         temperature = star.temperature,
         pressure = star.pressure,
         sound_speed = sound_speed,
-        cumulative_mass = cumulative_mass_profile
+        cumulative_mass = cumulative_mass_profile,
+        tau = tau
     )
+
 
 def temperature_density_plot(sphGiant, step, outputDir, toPlot = False):
     if not HAS_PYNBODY:
@@ -209,32 +244,79 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False):
     sphGiant.gasParticles.temperature = 2.0/3.0 * sphGiant.gasParticles.u * mu() / constants.kB
     sphGiant.gasParticles.mu = mu()
     if sphGiant.core.mass > 0.0 | units.MSun:
-        star = sph_to_star.convert_SPH_to_stellar_model(sphGiant.gasParticles, core_particle=sphGiant.core)#TODO: surround it by a code which adds the density of the core from mesa.
+        star = sph_to_star.convert_SPH_to_stellar_model(sphGiant.gasParticles, core_particle=sphGiant.core, particles_per_zone= 1 )#TODO: surround it by a code which adds the density of the core from mesa.
     else:
         star = sph_to_star.convert_SPH_to_stellar_model(sphGiant.gasParticles)
     data = structure_from_star(star)
     #sphGiant.gasParticles.radius = CalculateVectorSize((sphGiant.gasParticles.x,sphGiant.gasParticles.y,sphGiant.gasParticles.z))
     #data = convert_particles_to_pynbody_data(sphGiant.gasParticles, length_unit, pynbody_unit)
     if toPlot:
+
         figure = pyplot.figure(figsize = (8, 10))
         pyplot.subplot(1, 1, 1)
         ax = pyplot.gca()
-        plotT = semilogy(data["radius"], data["temperature"], 'r-', label = r'$T(r)$')
-        xlabel('Radius')
-        ylabel('Temperature')
+        plotT = semilogy(data["radius"][:-1000], data["temperature"][:-1000], 'r-', label = r'$T(r)$', linewidth=3.0)
+        xlabel('Radius', fontsize=24.0)
+        ylabel('Temperature', fontsize= 24.0)
         ax.twinx()
-        plotrho = semilogy(data["radius"], data["density"].as_quantity_in(units.g * units.cm **-3), 'g-', label = r'$\rho(r)$')
+        plotrho = semilogy(data["radius"][:-1000], data["density"][:-1000].as_quantity_in(units.g * units.cm **-3), 'g-', label = r'$\rho(r)$', linewidth=3.0)
         plots = plotT + plotrho
         labels = [one_plot.get_label() for one_plot in plots]
-        ax.legend(plots, labels, loc=3)
+        ax.legend(plots, labels, loc=3, fontsize=24.0)
+        ax.labelsize=20.0
+        ax.titlesize=24.0
         ylabel('Density')
         #print "saved"
         pyplot.legend()
+        pyplot.xticks(fontsize=20.0)
+        pyplot.yticks(fontsize=20.0)
         pyplot.suptitle('Structure of a {0} star'.format(sphGiant.mass))
         pyplot.savefig(outputDir + "/radial_profile/temperature_radial_proile_{0}".format(step))
-        pyplot.close()
 
+        #pyplot.close(figure)
+        pyplot.clf()
+        pyplot.cla()
+
+
+        figure = pyplot.figure(figsize = (15, 11))
+        #pyplot.subplot(1, 1,1)
+        ax = pyplot.gca()
+        pyplot.axes()
+        plotC = semilogx(data["radius"][:-1000], (data["cumulative_mass"]/data["mass"][-1])[:-1000], 'r-', label = r'$Mint(r)/Mtot$',linewidth=3.0)
+        print (data["radius"])[-1000]
+        ax.twinx()
+        plotRc= axvline(340.0 | units.RSun, linestyle='dashed', label = r'$Rc$',linewidth=3.0)
+        legend = ax.legend(labels=[r'$Mint(r)/Mtot$', r'$Rc$'],ncol=3, loc=4, fontsize= 24.0)
+        ax.set_yticklabels([])
+        ax.set_ylabel('')
+        ax.set_xlabel('Radius [RSun]')
+        loc = legend._get_loc()
+        print loc
+        xlabel('Radius', fontsize=24.0)
+        ylabel('')
+        ax.set_ylabel('')
+        #ylabel('Cumulative Mass to Total Mass Ratio', fontsize=24.0)
+        pyplot.xlim(10,10000)
+        pyplot.xlabel('Radius', fontsize=24.0)
+        pyplot.xticks(fontsize = 20.0)
+        #ax.set_xticklabels([10^1,10^2,10^3,10^4,10^5],fontsize=20)
+        pyplot.yticks(fontsize= 20.0)
+        pyplot.ylabel('')
+        ax.set_ylabel('Cumulative Mass to Total Mass Ratio')
+        ax.yaxis.set_label_coords(-0.1,0.5)
+        #pyplot.ylabel('Cumulative Mass to Total Mass Ratio')
+        #pyplot.axes.labelsize = 24.0
+        #pyplot.axes.titlesize = 24.0
+        pyplot.legend(bbox_to_anchor=(1.0,0.2),loc=0, fontsize=24.0)
+        matplotlib.rcParams.update({'font.size': 20})
+        pyplot.tick_params(axis='y', which='both', labelleft='on', labelright='off')
+        #pyplot.rc('text', usetex=True)
+        #pyplot.suptitle('Cumulative mass ratio of {0} MSun Red Giant Star as a function of the distance from its core'.format(int(sphGiant.mass.value_in(units.MSun) * 100) / 100.0), fontsize=24)
+        pyplot.savefig(outputDir + "/radial_profile/cumulative_mass_radial_proile_{0}".format(step))
+        pyplot.close()
+    
     #plot to file
+    print "writing data to files"
     textFile = open(outputDir + '/radial_profile/temperature_{0}'.format(step) + '.txt', 'w')
     textFile.write(', '.join([str(y) for y in data["temperature"]]))
     textFile.close()
@@ -250,31 +332,55 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False):
     textFile = open(outputDir + '/radial_profile/mass_profile{0}'.format(step) + '.txt', 'w')
     textFile.write(', '.join([str(y) for y in data["mass"]]))
     textFile.close()
-    mdot = (4.0 * constants.pi * (560.0 | units.RSun)**2 * GetPropertyAtRadius(data["density"],data["radius"], 560.0 | units.RSun) * GetPropertyAtRadius(data["sound_speed"],data["radius"], 560.0 | units.RSun)).as_quantity_in(units.MSun / units.yr)
-    m =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 560.0 | units.RSun)
+    textFile = open(outputDir + '/radial_profile/cumulative_mass_profile{0}'.format(step) + '.txt', 'w')
+    textFile.write(', '.join([str(y) for y in data["cumulative_mass"]]))
+    textFile.close()
+    print "claculating values"
+    mdot = (4.0 * constants.pi * (340.0 | units.RSun)**2 * GetPropertyAtRadius(data["density"],data["radius"], 340.0 | units.RSun) * GetPropertyAtRadius(data["sound_speed"],data["radius"], 340.0 | units.RSun)).as_quantity_in(units.MSun / units.yr)
+    m =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 340.0 | units.RSun)
     M =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 7000.0 | units.RSun)
-    print "Mdot at 560: ", mdot
-    print "cs at 560: ",  GetPropertyAtRadius(data["sound_speed"],data["radius"], 560 | units.RSun)
-    print "m over 560: ", (M - m).as_quantity_in(units.MSun)
-    print "M at: ", M.as_quantity_in(units.MSun)
-    print "time: ", ((M-m)/mdot).as_quantity_in(units.yr)
+    print "Mdot at 340: ", mdot
+    print "cs at 340: ",  GetPropertyAtRadius(data["sound_speed"],data["radius"], 3000.0 | units.RSun)
+    #print "tau at 3000: ",  GetPropertyAtRadius(data["tau"],data["radius"], 3000.0 | units.RSun)
+    print "density at 340: ",  GetPropertyAtRadius(data["density"],data["radius"], 340.0 | units.RSun)
+    print "m over 340: ", (M - m)
+    print "M total: ", M
+    print "time: ", ((M-m)/mdot)
 
-
-    mdot = (4.0 * constants.pi * (1387.57 | units.RSun)**2 * GetPropertyAtRadius(data["density"],data["radius"], 1387.57 | units.RSun) * GetPropertyAtRadius(data["sound_speed"],data["radius"], 1387.57 | units.RSun)).as_quantity_in(units.MSun / units.yr)
-    m =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 1387.57 | units.RSun)
-    print "Mdot at 1387.57: ", mdot
-    print "cs at 1387.57: ",  GetPropertyAtRadius(data["sound_speed"],data["radius"], 1387.57 | units.RSun)
-    print "m over 1387.57: ", (M - m).as_quantity_in(units.MSun)
-    print "time: ", ((M-m)/mdot).as_quantity_in(units.yr)
-
-def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax):
+def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, dustRadius=700 | units.RSun):
     if not HAS_PYNBODY:
         print "problem plotting"
         return
-    pynbody_column_density_plot(sphGiant ,resolution=2000, width=4|units.AU,vmin= vmin, vmax= vmax,cmap= "hot")
+    figure = pyplot.figure(figsize=(18,18))
+    #width = 0.08 * sphGiant.position.lengths_squared().amax().sqrt()
+    width = 7.0 * sphGiant.position.lengths_squared().amax().sqrt()
+    length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
+    pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
+    UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
+    cbar = pynbody_sph.image(pyndata, resolution=2000,width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax)
+    UnitlessArgs.current_plot = native_plot.gca()
+    '''native_plot.xlim(xmax=2, xmin=-10)
+    native_plot.ylim(ymax=6, ymin=-6)
+    native_plot.xticks([-10,-8,-6,-4,-2,0,2],[-6,-4,-2,0,2,4,6])'''
+    native_plot.xlabel('x[AU]')
+    native_plot.ylabel('y[AU]')
+    #pyplot.xlim(-5,-2)
+    #pynbody_column_density_plot(sphGiant, resolution=2000, width=50|units.RSun,vmin= vmin, vmax= vmax,cmap= "hot", fill_nan=True, fill_val=1e25)
     if core.mass != 0 | units.MSun:
-        scatter(core.x, core.y, c="r")
-    scatter(binary.x, binary.y, c="w")
+        print core.x.as_quantity_in(units.AU), core.y.as_quantity_in(units.AU)
+        #scatter(core.x, core.y, c="r")
+    #scatter(binary.x, binary.y, c="w")
+    print binary.x.as_quantity_in(units.AU), binary.y.as_quantity_in(units.AU)
+    #pyplot.xlim(-930, -350)
+    #pyplot.ylim(-190,390)
+    if plotDust:
+        circle_with_radius(core.x, core.y,dustRadius, fill=False, color='white', linestyle= 'dashed', linewidth=3.0)
+    #native_plot.colorbar(fontsize=20.0)
+    matplotlib.rcParams.update({'font.size': 36, 'font.family': 'Serif'})
+    #pyplot.rc('text', usetex=True)
+    #cbar.ax.set_yticklabels(cbar
+    # .ax.get_yticklabels(), fontsize=24)
+    #pyplot.axes.labelsize(24)
     pyplot.savefig(outputDir + "/plotting_{0}.jpg".format(i))
     pyplot.close()
 
@@ -324,7 +430,7 @@ def PlotBinaryDistance(distances, outputDir, beginTime = 0, timeStep= 1400.0/700
         if d[0]:
             Plot1Axe(d[0], d[1], outputDir, timeStep, beginTime)
 
-def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, beginStep, binaryDistances,semmimajors,eccentricities, innerMass, toPlot = False):
+def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, beginStep, binaryDistances,semmimajors,eccentricities, innerMass, toPlot = False, plotDust=False, dustRadius= 700.0 | units.RSun):
     for i in [j - beginStep for j in chunk]:
         #print "step #",i
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i + beginStep])
@@ -374,9 +480,10 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             if newBinarySpecificEnergy > 0 | (units.m **2 / units.s **2):
                 print "binary is breaking up", binary.specificEnergy, i
 
-        temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
+        #temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
+
         if toPlot:
-            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep , outputDir, vmin, vmax)
+            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep , outputDir, vmin, vmax, plotDust= plotDust, dustRadius=dustRadius)
             PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep, outputDir, vmin, vmax)
 
     for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
@@ -475,7 +582,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             except:
                 pass
 
-def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False):
+def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False, plotDust=True, dustRadius=700.0|units.RSun):
     separationTime = 0
     if lastStep == 0 : # no boundary on last step
         lastStep = len(gasFiles)
@@ -503,7 +610,8 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         processes.append(multiprocessing.Process(target= AnalyzeBinaryChunk,args=(savingDir,gasFiles,dmFiles,outputDir,
                                                                                   chunk, vmin, vmax, beginStep,
                                                                                   binaryDistances, semmimajors,
-                                                                                  eccentricities, innerMass, toPlot,)))
+                                                                                  eccentricities, innerMass, toPlot,
+                                                                                  plotDust,dustRadius,)))
         #pool.map()
     for p in processes:
         p.start()
@@ -632,10 +740,10 @@ def GetArgs(args):
     else:
         vmax= 1e34
     if len(args) >7:
-        plot = int(args[7])
+        plot = bool(int(args[7]))
     else:
-        plot = 0
-    if len(args) >7:
+        plot = False
+    if len(args) >8:
         opposite = True
     else:
         opposite = False
@@ -678,7 +786,7 @@ def compare(st1, st2):
 
 def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0,1e16,1e34, 1]):
     savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, opposite = GetArgs(args)
-    print "plotting to " +  outputDir + "plot- " + str(plot) +  " from " +  savingDir +" begin step = " , beginStep , \
+    print "plotting to " +  outputDir + " plot- " + str(plot) +  " from " +  savingDir +" begin step = " , beginStep , \
         " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare
     try:
         os.makedirs(outputDir)

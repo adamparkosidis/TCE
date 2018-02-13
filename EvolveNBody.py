@@ -47,6 +47,11 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     if sphCode.__name__ == "Fi":
         system.parameters.timestep = t_end / n_steps
         system.parameters.eps_is_h_flag = True
+
+    system.parameters.gadget_output_directory = "/vol/sci/astro/home/glanz/gadget_output_{0}".format(str(time.localtime().tm_year) + "-" +
+                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
+                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
+                            str(time.localtime().tm_sec))
     system.parameters.begin_time = beginTime
     system.parameters.time_limit_cpu = 7200000000 | units.s
     print "core radius:",core.radius.as_string_in(units.RSun), core.radius
@@ -56,11 +61,7 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     print "envelope added to hydro"
     system.timestep_accuracy_parameter = 0.05
     system.parameters.time_max = t_end * 1.5
-    system.parameters.gadget_output_directory = "/vol/sci/astro/home/glanz/gadget_output_{0}".format(str(time.localtime().tm_year) + "-" +
-                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
-                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
-                            str(time.localtime().tm_sec))
-    system.parameters.cpu_file = "/vol/sci/astro/home/glanz/cpu_code_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
+    '''system.parameters.cpu_file = "/vol/sci/astro/home/glanz/cpu_code_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec))
@@ -72,7 +73,7 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec))
-
+    '''
     print system.dm_particles
     print system.parameters.epsilon_squared
     print system.parameters.gas_epsilon

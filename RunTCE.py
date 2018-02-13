@@ -10,7 +10,6 @@ from amuse.io import read_set_from_file
 import StarModels
 import EvolveNBody
 
-import yt
 
 def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, takeSavedMesa = False):
     '''

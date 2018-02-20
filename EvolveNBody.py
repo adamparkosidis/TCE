@@ -39,7 +39,12 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     else:
         unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*1000)
     print "preparing the system with ",numberOfWorkers, " workers"
-    system = sphCode(unitConverter, mode="adaptivegravity", redirection="file", redirect_file="/vol/sci/astro/home/glanz/sph_code_out{0}.log"
+    outputDirectory = "/vol/sci/astro/home/glanz/hydro_output_{0}".format(str(time.localtime().tm_year) + "-" +
+                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
+                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
+                            str(time.localtime().tm_sec))
+    os.makedirs(outputDirectory)
+    system = sphCode(unitConverter, mode="adaptivegravity", redirection="file", redirect_file= outputDirectory + "/sph_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
@@ -47,12 +52,8 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     if sphCode.__name__ == "Fi":
         system.parameters.timestep = t_end / n_steps
         system.parameters.eps_is_h_flag = True
-    outputDirectory = "/vol/sci/astro/home/glanz/gadget_output_{0}".format(str(time.localtime().tm_year) + "-" +
-                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
-                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
-                            str(time.localtime().tm_sec))
-    os.makedirs(outputDirectory)
-    system.parameters.gadget_output_directory = outputDirectory
+    else:
+        system.parameters.gadget_output_directory = outputDirectory
     system.parameters.begin_time = beginTime
     system.parameters.time_limit_cpu = 7200000000 | units.s
     print "core radius:",core.radius.as_string_in(units.RSun), core.radius
@@ -62,29 +63,17 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     print "envelope added to hydro"
     system.timestep_accuracy_parameter = 0.05
     system.parameters.time_max = t_end * 1.5
-    '''system.parameters.cpu_file = "/vol/sci/astro/home/glanz/cpu_code_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
-                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
-                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
-                            str(time.localtime().tm_sec))
-    system.parameters.energy_file = "/vol/sci/astro/home/glanz/energy_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
-                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
-                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
-                            str(time.localtime().tm_sec))
-    system.parameters.info_file = "/vol/sci/astro/home/glanz/info_out_{0}.txt".format(str(time.localtime().tm_year) + "-" +
-                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
-                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
-                            str(time.localtime().tm_sec))
-    '''
+
     print system.dm_particles
     print system.parameters.epsilon_squared
     print system.parameters.gas_epsilon
     print system.parameters.timestep
-    print "info file: ", system.parameters.info_file, "output: ", system.parameters.gadget_output_directory
+    print "output directory: ", system.parameters.gadget_output_directory
     return system
 
-def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = False):
+def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = False, numberOfWorkers = 8):
     unitConverter = nbody_system.nbody_to_si(binarySystem.particles.total_mass(), t_end)
-    kickerCode = MI6(unitConverter,number_of_workers= 8, redirection='file', redirect_file='/vol/sci/astro/home/glanz/kicker_code_mi6_out.log')
+    kickerCode = MI6(unitConverter,number_of_workers= numberOfWorkers, redirection='file', redirect_file='/vol/sci/astro/home/glanz/kicker_code_mi6_out.log')
     print "kicker code intialized"
     epsilonSquared = (hydroSystem.dm_particles.radius[0]/ 2.8)**2
     kickerCode.parameters.epsilon_squared = epsilonSquared
@@ -167,7 +156,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
             binarySystem = DynamicsForBinarySystem(dynamicsCode, semmiMajor, stars.stars)
 
             print "\nSetting up Bridge to simulate triple system"
-            coupledSystem = CoupledSystem(hydroSystem, binarySystem, endTime, timeSteps, currentTime, relax=relax)
+            coupledSystem = CoupledSystem(hydroSystem, binarySystem, endTime, timeSteps, currentTime, relax=relax, numberOfWorkers=numberOfWorkers)
         else:
             coupledSystem = hydroSystem
     else: # got it from the outside

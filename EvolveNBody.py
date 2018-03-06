@@ -23,26 +23,26 @@ import StarModels
 import BinaryCalculations
 #import TCEPlotting
 
-def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary):
+def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary, outputDirectory="/vol/sci/astro/home/glanz"):
 
     unitConverter = nbody_system.nbody_to_si(binary.total_mass(), semmiMajor)
-    system = dynamicsCode(unitConverter, redirection="file", redirect_file="/vol/sci/astro/home/glanz/dynamics_code_out.log")
+    system = dynamicsCode(unitConverter, redirection="file", redirect_file=outputDirectory + "/dynamics_code_out{0}.log"
+                     .format(str(time.localtime().tm_year) + "-" +
+                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
+                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
+                            str(time.localtime().tm_sec)))
     system.parameters.epsilon_squared = 0 | units.m**2
     system.parameters.inttype_parameter = system.inttypes.SHARED10
     system.parameters.timestep_parameter = 0.2
     system.particles.add_particles(binary)
     return system
 
-def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius, numberOfWorkers = 1):
+def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius, numberOfWorkers = 1, outputDirectory=""):
     if sphCode.__name__ =="Gadget2":
         unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*1000*2)
     else:
         unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*1000)
     print "preparing the system with ",numberOfWorkers, " workers"
-    outputDirectory = "/vol/sci/astro/home/glanz/hydro_output_{0}".format(str(time.localtime().tm_year) + "-" +
-                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
-                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
-                            str(time.localtime().tm_sec))
     os.makedirs(outputDirectory)
     system = sphCode(unitConverter, mode="adaptivegravity", redirection="file", redirect_file= outputDirectory + "/sph_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +
@@ -71,9 +71,13 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     print "output directory: ", system.parameters.gadget_output_directory
     return system
 
-def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = False, numberOfWorkers = 8):
+def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = False, numberOfWorkers = 8, outputDirectory=""):
     unitConverter = nbody_system.nbody_to_si(binarySystem.particles.total_mass(), t_end)
-    kickerCode = MI6(unitConverter,number_of_workers= numberOfWorkers, redirection='file', redirect_file='/vol/sci/astro/home/glanz/kicker_code_mi6_out.log')
+    os.makedirs(outputDirectory)
+    kickerCode = MI6(unitConverter,number_of_workers= numberOfWorkers, redirection='file', redirect_file=outputDirectory + '/kicker_code_mi6_out{0}.log'.format(str(time.localtime().tm_year) + "-" +
+                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
+                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
+                            str(time.localtime().tm_sec)))
     print "kicker code intialized"
     epsilonSquared = (hydroSystem.dm_particles.radius[0]/ 2.8)**2
     kickerCode.parameters.epsilon_squared = epsilonSquared
@@ -145,18 +149,23 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
         currentTime = step * timeStep
 
     if system is None:
+        outputDirectory = savedVersionPath + "/codes_output_{0}".format(str(time.localtime().tm_year) + "-" +
+                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
+                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
+                            str(time.localtime().tm_sec))
+        os.makedirs(outputDirectory)
         if step == -1 and relax:# the radius of the core is now 10 times the real one becuase of epsilon = 10r_c
-            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
+            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
         elif sphCode.__name__ =="Gadget2":# if its not the first step we shouldn't multiply by 20 again...
-            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(2*10), numberOfWorkers)
+            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(2*10), numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
         else:
-            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(10), numberOfWorkers)
+            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(10), numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
         if not relax or takeCompanionInRelaxation:
             print "\nSetting up {0} to simulate triple system".format(dynamicsCode.__name__)
-            binarySystem = DynamicsForBinarySystem(dynamicsCode, semmiMajor, stars.stars)
+            binarySystem = DynamicsForBinarySystem(dynamicsCode, semmiMajor, stars.stars, outputDirectory=outputDirectory + "/dynamics")
 
             print "\nSetting up Bridge to simulate triple system"
-            coupledSystem = CoupledSystem(hydroSystem, binarySystem, endTime, timeSteps, currentTime, relax=relax, numberOfWorkers=numberOfWorkers)
+            coupledSystem = CoupledSystem(hydroSystem, binarySystem, endTime, timeSteps, currentTime, relax=relax, numberOfWorkers=numberOfWorkers, outputDirectory=outputDirectory + "/coupled")
         else:
             coupledSystem = hydroSystem
     else: # got it from the outside
@@ -205,8 +214,8 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
                 return gas, dm
 
         #    sinks.accrete(coupledSystem.gas_particles)
-        coupledSystem.evolve_model(currentTime)
-        print "   Evolved to:", currentTime.as_quantity_in(units.day)
+        coupledSystem.evolve_model(currentTime + timeStep)
+        print "   Evolved to:", (currentTime + timeStep).as_quantity_in(units.day)
         currentTime += timeStep
         if (time.time() - currentSecond) > saveAfterMinute * 60:
             if savedVersionPath != "":
@@ -320,9 +329,8 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
         #else:
         #    sinks.accrete(coupledSystem.gas_particles)
 
-        coupledSystem.evolve_model(currentTime)
-        print "   Evolved to:", currentTime.as_quantity_in(units.day)
-
+        coupledSystem.evolve_model(currentTime + timeStep)
+        print "   Evolved to:", (currentTime + timeStep).as_quantity_in(units.day)
         currentTime += timeStep
         if (time.time() - currentSecond) > saveAfterMinute * 60:
             if savedVersionPath != "":

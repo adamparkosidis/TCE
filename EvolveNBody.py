@@ -24,8 +24,8 @@ import BinaryCalculations
 #import TCEPlotting
 
 def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary, outputDirectory="/vol/sci/astro/home/glanz"):
-
     unitConverter = nbody_system.nbody_to_si(binary.total_mass(), semmiMajor)
+    os.mkdir(outputDirectory)
     system = dynamicsCode(unitConverter, redirection="file", redirect_file=outputDirectory + "/dynamics_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +

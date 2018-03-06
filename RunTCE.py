@@ -1,6 +1,6 @@
 import pickle
 import os
-
+import sys
 from amuse.units import units
 from amuse.units.units import *
 from amuse.plot import native_plot, sph_particles_plot
@@ -72,7 +72,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
 
 
-def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savings/TCE/0511_1/8MSun/0Phase/26RSun/5inclin", takeSavedState = "False", step = -1, configurationFile = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savings/TCE/0511_1/8MSun/0Phase/26RSun/5inclin/TCEConfiguration.ini"):
+def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savings/TCE/0511_1/8MSun/0Phase/26RSun/5inclin", takeSavedState = "False", step = -1, configurationFile = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savings/TCE/0511_1/8MSun/0Phase/26RSun/5inclin/TCEConfiguration.ini", args=[]):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -110,5 +110,9 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":
-    Start(takeSavedState="Evolve", step=4911)
+    args = sys.argv
+    if len(args) > 1:
+        Start(savedVersionPath=args[1],takeSavedState=args[2], step=int(args[3]))
+    else:
+        Start(takeSavedState="Evolve", step=4911)
 

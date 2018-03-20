@@ -56,6 +56,7 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
         system.parameters.gadget_output_directory = outputDirectory
     system.parameters.begin_time = beginTime
     system.parameters.time_limit_cpu = 7200000000 | units.s
+    core.radius = core_radius * 20
     print "core radius:",core.radius.as_string_in(units.RSun), core.radius
     system.dm_particles.add_particle(core)
     print "core added to hydro"
@@ -65,9 +66,11 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     system.parameters.time_max = t_end * 1.5
 
     print system.dm_particles
+    #print core
     print system.parameters.epsilon_squared
     print system.parameters.gas_epsilon
     print system.parameters.timestep
+    print system.parameters.begin_time
     print "output directory: ", system.parameters.gadget_output_directory
     return system
 

@@ -72,7 +72,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
 
 
-def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savings/TCE/0511_1/8MSun/0Phase/26RSun/5inclin", takeSavedState = "False", step = -1, configurationFile = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savings/TCE/0511_1/8MSun/0Phase/26RSun/5inclin/TCEConfiguration.ini", args=[]):
+def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savings/TCE/0511_1/8MSun/0Phase/3RSun/5inclin", takeSavedState = "False", step = -1, configurationFile = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savings/TCE/0511_1/8MSun/0Phase/3RSun/5inclin/TCEConfiguration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -85,6 +85,9 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
         os.makedirs(savedVersionPath + "/pics")
     except(OSError):
         pass
+
+    continueEvolutionSimulation = False
+    
     # creating the triple system
     if takeSavedState == "True":
         starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = \
@@ -94,14 +97,12 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
             StarModels.TakeTripleSavedState(savedVersionPath + "/evolution", configurationFile, step)
     else:
         if takeSavedState == "Mesa":
-            starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = CreateTripleSystem(configurationFile, savedVersionPath, takeSavedMesa= True)
+            starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = CreateTripleSystem(configurationFile, savedVersionPath, takeSavedMesa= True)            
         else:
             starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = CreateTripleSystem(configurationFile, savedVersionPath)
+        step=-1
 
     # creating the NBody system with the 3 and evolving
-
-
-
     EvolveNBody.Run(totalMass= starMass + binary.stars.total_mass(),
                     semmiMajor= tripleSemmimajor, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=binary,
@@ -112,7 +113,7 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
 if __name__ == "__main__":
     args = sys.argv
     if len(args) > 1:
-        Start(savedVersionPath=args[1],takeSavedState=args[2], step=int(args[3]))
+        Start(savedVersionPath=args[1],takeSavedState=args[2], step=int(args[3]), configurationFile=args[1] + "/TCEConfiguration.ini")
     else:
-        Start(takeSavedState="Evolve", step=4911)
+        Start(takeSavedState="Evolve", step=1625)
 

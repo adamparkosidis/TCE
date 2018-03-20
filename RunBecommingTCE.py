@@ -1,5 +1,5 @@
 import pickle
-import os
+import os, sys
 
 from amuse.units import units
 from amuse.community.gadget2.interface import Gadget2
@@ -144,5 +144,9 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSave
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":
-    Start(takeSavedState="True")
+    args = sys.argv
+    if len(args) > 1:
+        Start(savedVersionPath=args[1],takeSavedState=args[2], step=int(args[3]))
+    else:
+        Start()
 

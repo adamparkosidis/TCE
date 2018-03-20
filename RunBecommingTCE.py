@@ -121,8 +121,9 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSave
                                           sphMetaData.numberOfWorkers)
     hydroSystem.dm_particles.add_particle(innerBinary.stars[1])
     hydroSystem.dm_particles.add_particle(outerBinary.stars[1])
+    coupledSystem = hydroSystem
 
-    unitConverter = nbody_system.nbody_to_si(outerBinary.stars[1].mass + innerBinary.stars[1].mass, sphMetaData.evolutionTime)
+    '''unitConverter = nbody_system.nbody_to_si(outerBinary.stars[1].mass + innerBinary.stars[1].mass, sphMetaData.evolutionTime)
     binarySystem = Huayno(unitConverter)
     binarySystem.particles.add_particle(innerBinary.stars[1])
     binarySystem.particles.add_particle(starCore)
@@ -134,12 +135,12 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSave
     coupledSystem.channels.add_channel(binarySystem.particles.new_channel_to(hydroSystem.dm_particles[::-1][1:]))
     starsToSave = Particles(particles=[innerBinary.stars[1], starCore])
     binarySystem.particles.new_channel_to(starsToSave)
-    hydroSystem.gas_particles.new_channel_to(starEnvelope)
+    hydroSystem.gas_particles.new_channel_to(starEnvelope)'''
     EvolveNBody.Run(totalMass= starMass + innerBinary.stars.mass[-1] + outerBinary.stars.mass[-1],
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=innerBinary,
                     endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
-                    savedVersionPath=savedVersionPath, saveAfterMinute= 0, system=coupledSystem, dmToSave= starsToSave, gasToSave= starEnvelope)
+                    savedVersionPath=savedVersionPath, saveAfterMinute= 0, system=coupledSystem)
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":

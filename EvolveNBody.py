@@ -43,6 +43,8 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     else:
         unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*1000)
     print "preparing the system with ",numberOfWorkers, " workers"
+    if outputDirectory == "":
+        outputDirectory = "code_output"
     os.makedirs(outputDirectory)
     system = sphCode(unitConverter, mode="adaptivegravity", redirection="file", redirect_file= outputDirectory + "/sph_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +
@@ -64,6 +66,7 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     print "envelope added to hydro"
     system.timestep_accuracy_parameter = 0.05
     system.parameters.time_max = t_end * 1.5
+
 
     print system.dm_particles
     #print core
@@ -288,12 +291,17 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
         currentTime = step * timeStep
         
     if system is  None:
+        outputDirectory = savedVersionPath + "/codes_output_{0}".format(str(time.localtime().tm_year) + "-" +
+                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
+                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
+                            str(time.localtime().tm_sec))
+        os.makedirs(outputDirectory)
         if step == -1 and relax:
-            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers)
+            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
         elif sphCode.__name__ =="Gadget2": # if its not the first step we shouldn't multiply by 20 again...
-            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(2*10), numberOfWorkers)
+            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(2*10), numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
         else:
-            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(10), numberOfWorkers)
+            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(10), numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
         if not relax or takeCompanionInRelaxation:
             hydroSystem.dm_particles.add_particle(stars.stars[-1])
             coupledSystem = hydroSystem

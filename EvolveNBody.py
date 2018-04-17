@@ -25,7 +25,10 @@ import BinaryCalculations
 
 def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary, outputDirectory="/vol/sci/astro/home/glanz"):
     unitConverter = nbody_system.nbody_to_si(binary.total_mass(), semmiMajor)
-    os.mkdir(outputDirectory)
+    try:
+        os.mkdir(outputDirectory)
+    except(OSError):
+        pass
     system = dynamicsCode(unitConverter, redirection="file", redirect_file=outputDirectory + "/dynamics_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
@@ -45,7 +48,10 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     print "preparing the system with ",numberOfWorkers, " workers"
     if outputDirectory == "":
         outputDirectory = "code_output"
-    os.makedirs(outputDirectory)
+    try:
+        os.makedirs(outputDirectory)
+    except(OSError):
+        pass
     system = sphCode(unitConverter, mode="adaptivegravity", redirection="file", redirect_file= outputDirectory + "/sph_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
@@ -79,7 +85,10 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
 
 def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = False, numberOfWorkers = 8, outputDirectory=""):
     unitConverter = nbody_system.nbody_to_si(binarySystem.particles.total_mass(), t_end)
-    os.makedirs(outputDirectory)
+    try:
+        os.makedirs(outputDirectory)
+    except(OSError):
+        pass
     kickerCode = MI6(unitConverter,number_of_workers= numberOfWorkers, redirection='file', redirect_file=outputDirectory + '/kicker_code_mi6_out{0}.log'.format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +

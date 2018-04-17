@@ -733,7 +733,7 @@ def GetArgs(args):
         beginStep = int(args[3])
     else:
         beginStep = 0
-    if (args) > 4:
+    if len(args) > 4:
         lastStep = int(args[4])
     else:
         lastStep = 0
@@ -819,4 +819,7 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
         AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, plot, opposite)
 
 if __name__ == "__main__":
+    for arg in sys.argv:
+        print arg
+    print len(sys.argv)
     main(sys.argv)

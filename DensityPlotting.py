@@ -459,8 +459,8 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             #break
 
         if isBinary:
-            semmimajor = CalculateSemiMajor(CalculateVelocityDifference(companion, sphGiant.core), CalculateSeparation(companion, sphGiant.core),companion.mass + sphGiant.core.mass).as_quantity_in(units.AU)
-            CalculateEccentricity(companion, sphGiant.core)
+            #semmimajor = CalculateSemiMajor(CalculateVelocityDifference(companion, sphGiant.core), CalculateSeparation(companion, sphGiant.core),companion.mass + sphGiant.core.mass).as_quantity_in(units.AU)
+            #CalculateEccentricity(companion, sphGiant.core)
             #check if the companion is inside, take into account only the inner mass of the companion's orbit
             sphGiant.CalculateInnerSPH(companion)
             #print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
@@ -499,6 +499,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                        toPlot = False, opposite= False):
 
     for i in [j - beginStep for j in chunk]:
+        print i
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i + beginStep])
         dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i + beginStep])
 
@@ -518,18 +519,18 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         eInner = CalculateEccentricity(particle1,particle2)
 
         if CalculateVectorSize(innerBinary.separation) < min(particle1.radius, particle2.radius):
-            print "merger between the inner binary!" , innerBinary.separation.as_quantity_in(units.RSun)
+            print "merger between the inner binary!" , innerBinary.separation.as_quantity_in(units.RSun) , i * 1400/7000.0
 
         if CalculateVectorSize(CalculateSeparation(sphGiant.core,particle1)) < sphGiant.core.radius:
-            print "merger between particle1 and the giant!"
+            print "merger between particle1 and the giant!" , i * 1400/7000.0
             #break
 
         if CalculateVectorSize(CalculateSeparation(sphGiant.core, particle2)) < min(sphGiant.core.radius, particle2.radius):
-            print "merger between particle 2 and the giant!"
+            print "merger between particle 2 and the giant!" , i * 1400/7000.0
             #break
         #check if the binry is breaking up
         if innerBinary.specificEnergy > 0 | (units.m **2 / units.s **2):
-            print "binary is breaking up", innerBinary.specificEnergy
+            print "binary is breaking up", innerBinary.specificEnergy , i * 1400/7000.0
 
         #check if the couple particle1 + giant are breaking up
         if triple1.specificEnergy > 0 | (units.m **2 / units.s **2):
@@ -538,7 +539,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                 separationTime = i * 1400/7000
             #check if the couple particle2 + giant are also breaking up
             if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
-                print "triple2 is also breaking up", triple2.specificEnergy
+                print "triple2 is also breaking up", triple2.specificEnergy , i * 1400/7000.0
                 break
 
         #check if the couple particle2 + giant are breaking up
@@ -551,12 +552,12 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         sphGiant.CalculateInnerSPH(innerBinary)
         innerMass[i] = sphGiant.innerGas.mass.value_in(units.MSun)
 
-        tripleMass = innerBinary.mass + sphGiant.mass
-        tripleVelocityDifference = CalculateVelocityDifference(innerBinary,sphGiant.gas)
-        tripleSeparation = CalculateSeparation(innerBinary,sphGiant.gas)
+        tripleMass = innerBinary.mass + sphGiant.innerGas.mass
+        tripleVelocityDifference = CalculateVelocityDifference(innerBinary,sphGiant.innerGas)
+        tripleSeparation = CalculateSeparation(innerBinary,sphGiant.innerGas)
 
         aOuter = CalculateSemiMajor(tripleVelocityDifference, tripleSeparation, tripleMass)
-        eOuter = CalculateEccentricity(innerBinary,sphGiant.gas)
+        eOuter = CalculateEccentricity(innerBinary,sphGiant.innerGas)
 
         inclination = CalculateInclination(tripleVelocityDifference, tripleSeparation, innerBinary.velocityDifference, innerBinary.separation)
 

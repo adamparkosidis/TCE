@@ -601,8 +601,11 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
             chunkSize = 1
 
     chunks = [xrange(i,i+chunkSize) for i in xrange(beginStep,lastStep,chunkSize)]
-    chunks[-1]= xrange(int((lastStep-beginStep)/chunkSize)*chunkSize + beginStep - 1,int((lastStep-beginStep)/chunkSize)*chunkSize +
-                       lastStep-int((lastStep-beginStep)/chunkSize)*chunkSize)
+    if len(chunks) > 1:
+        lastChunkBegin = chunks[-2][-1] + 1
+    else:
+        lastChunkBegin = 0
+    chunks[-1]= xrange(lastChunkBegin,lastStep)
 
     processes = []
     print chunks

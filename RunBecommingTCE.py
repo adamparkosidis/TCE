@@ -146,7 +146,7 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSave
 if __name__ == "__main__":
     args = sys.argv
     if len(args) > 1:
-        Start(savedVersionPath=args[1],takeSavedState=args[2], step=int(args[3]))
+        Start(savedVersionPath=args[1],takeSavedState=args[2], step=int(args[3]), configurationFile=args[1] + "/Configuration.ini")
     else:
         Start()
 

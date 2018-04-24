@@ -193,8 +193,8 @@ def CalculateTau(densityProfile, radiusProfile, coreRadius, coreDensity,temperat
     while (tau[j] < 13.0 and j >= 0):
         j -= 1
 
-    print "edge: ", radiusProfile[radiusIndex].as_quantity_in(units.RSun), " at index= ",radiusIndex, " photosphere radius: ", \
-        radiusProfile[i].as_quantity_in(units.RSun), " at index= ", i, "tau is 13 at radius= ", radiusProfile[j].as_quantity_in(units.RSun)
+    #print "edge: ", radiusProfile[radiusIndex].as_quantity_in(units.RSun), " at index= ",radiusIndex, " photosphere radius: ", \
+    #    radiusProfile[i].as_quantity_in(units.RSun), " at index= ", i, "tau is 13 at radius= ", radiusProfile[j].as_quantity_in(units.RSun)
     return tau
 
 def mu(X = None, Y = 0.25, Z = 0.02, x_ion = 0.1):
@@ -260,6 +260,7 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False):
         xlabel('Radius', fontsize=24.0)
         ylabel('Temperature', fontsize= 24.0)
         ax.twinx()
+        #plotrho = semilogy(data["radius"][:-1000], data["density"][:-1000].as_quantity_in(units.g * units.cm **-3), 'g-', label = r'$\rho(r)$', linewidth=3.0)
         plotrho = semilogy(data["radius"][:-1000], data["density"][:-1000].as_quantity_in(units.g * units.cm **-3), 'g-', label = r'$\rho(r)$', linewidth=3.0)
         plots = plotT + plotrho
         labels = [one_plot.get_label() for one_plot in plots]
@@ -278,7 +279,7 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False):
         pyplot.clf()
         pyplot.cla()
 
-
+        '''
         figure = pyplot.figure(figsize = (15, 11))
         #pyplot.subplot(1, 1,1)
         ax = pyplot.gca()
@@ -297,7 +298,7 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False):
         ylabel('')
         ax.set_ylabel('')
         #ylabel('Cumulative Mass to Total Mass Ratio', fontsize=24.0)
-        pyplot.xlim(10,10000)
+        #pyplot.xlim(10,10000)
         pyplot.xlabel('Radius', fontsize=24.0)
         pyplot.xticks(fontsize = 20.0)
         #ax.set_xticklabels([10^1,10^2,10^3,10^4,10^5],fontsize=20)
@@ -314,7 +315,9 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False):
         #pyplot.rc('text', usetex=True)
         #pyplot.suptitle('Cumulative mass ratio of {0} MSun Red Giant Star as a function of the distance from its core'.format(int(sphGiant.mass.value_in(units.MSun) * 100) / 100.0), fontsize=24)
         pyplot.savefig(outputDir + "/radial_profile/cumulative_mass_radial_proile_{0}".format(step))
+        '''
         pyplot.close()
+
     
     #plot to file
     print "writing data to files"

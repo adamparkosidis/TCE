@@ -91,7 +91,7 @@ class SphGiant:
         radius = CalculateVectorSize(CalculateSeparation(relativeParticle, self.core))
         self.CalculateSphMassVelocityAndPositionInsideRadius(radius)
         self.innerGas.x , self.innerGas.y, self.innerGas.z = self.innerGas.position
-
+        print "calculated!"
     def CalculateTotalGasMassInsideRadius(self, radius):
         innerMass = self.core.mass
         i = 0
@@ -118,6 +118,7 @@ class SphGiant:
                 velocityAndMass += (particle.vx * pmass, particle.vy * pmass, particle.vz * pmass)
                 positionAndMass += (particle.x * pmass, particle.y * pmass, particle.z * pmass)
                 particles += 1
+        print particles
         if particles > 0:
             totalMass=  self.innerGas.mass.value_in(units.MSun)
             self.innerGas.vxTot = velocityAndMass[0] / totalMass

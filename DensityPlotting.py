@@ -185,7 +185,7 @@ def CalculateTau(densityProfile, radiusProfile, coreRadius, coreDensity,temperat
     tau[radiusIndex] = tauPoint[radiusIndex]
     for i in xrange(radiusIndex - 1, 0 , -1 ):
         tau[i] = tau[i + 1] + tauPoint[i]
-    print tau[-1], tau[-100]
+    #print tau[-1], tau[-100]
     i = radiusIndex
     while (tau[i] < 2.0/3.0 and i >= 0):
         i -= 1

@@ -372,8 +372,8 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
     #pynbody_column_density_plot(sphGiant, resolution=2000, width=50|units.RSun,vmin= vmin, vmax= vmax,cmap= "hot", fill_nan=True, fill_val=1e25)
     if core.mass != 0 | units.MSun:
         print core.x.as_quantity_in(units.AU), core.y.as_quantity_in(units.AU)
-        #scatter(core.x, core.y, c="r")
-    #scatter(binary.x, binary.y, c="w")
+        scatter(core.x, core.y, c="r")
+    scatter(binary.x, binary.y, c="w")
     print binary.x.as_quantity_in(units.AU), binary.y.as_quantity_in(units.AU)
     #pyplot.xlim(-930, -350)
     #pyplot.ylim(-190,390)
@@ -819,7 +819,7 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
 
     if numberOfCompanion <= 2: #binary
         print "analyzing binary"
-        AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, plot)
+        AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, plot, plotDust=False)
     elif numberOfCompanion ==3: #triple
         AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, plot, opposite)
 

@@ -235,7 +235,7 @@ def structure_from_star(star):
     )
 
 
-def temperature_density_plot(sphGiant, step, outputDir, toPlot = False):
+def temperature_density_plot(sphGiant, step, outputDir, toPlot = False, plotDust= False, dustRadius= 0.0 | units.RSun):
     if not HAS_PYNBODY:
         print "problem plotting"
         return
@@ -339,19 +339,20 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False):
         pyplot.close()
 
     
-    '''
-    print "claculating values"
-    mdot = (4.0 * constants.pi * (340.0 | units.RSun)**2 * GetPropertyAtRadius(data["density"],data["radius"], 340.0 | units.RSun) * GetPropertyAtRadius(data["sound_speed"],data["radius"], 340.0 | units.RSun)).as_quantity_in(units.MSun / units.yr)
-    m =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 340.0 | units.RSun)
-    M =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 7000.0 | units.RSun)
-    print "Mdot at 340: ", mdot
-    print "cs at 340: ",  GetPropertyAtRadius(data["sound_speed"],data["radius"], 3000.0 | units.RSun)
-    #print "tau at 3000: ",  GetPropertyAtRadius(data["tau"],data["radius"], 3000.0 | units.RSun)
-    print "density at 340: ",  GetPropertyAtRadius(data["density"],data["radius"], 340.0 | units.RSun)
-    print "m over 340: ", (M - m)
-    print "M total: ", M
-    print "time: ", ((M-m)/mdot)
-    '''
+    if plotDust:
+        print "calculating values"
+        mdot = (4.0 * constants.pi * (dustRadius)**2 * GetPropertyAtRadius(data["density"],data["radius"], dustRadius) * GetPropertyAtRadius(data["sound_speed"],data["radius"],dustRadius)).as_quantity_in(units.MSun / units.yr)
+        m =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], dustRadius)
+        M =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 7000.0 | units.RSun)
+        print "Mdot at 340: ", mdot
+        print "cs at 340: ",  GetPropertyAtRadius(data["sound_speed"],data["radius"], dustRadius)
+        #print "tau at 3000: ",  GetPropertyAtRadius(data["tau"],data["radius"], 3000.0 | units.RSun)
+        print "density at 340: ",  GetPropertyAtRadius(data["density"],data["radius"], dustRadius)
+        print "m over 340: ", (M - m)
+        print "M total: ", M
+        print "time: ", ((M-m)/mdot)
+
+
 
 def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, dustRadius=700 | units.RSun):
     if not HAS_PYNBODY:
@@ -417,7 +418,7 @@ def Plot1Axe(x, fileName, outputDir, timeStep= 1400.0/7000.0, beginTime = 0):
     textFile = open(outputDir + '/' + fileName + 'time_' + str(beginTime) + "_to_" + str(beginTime + (len(x) - 1.0) * timeStep) + 'days.txt', 'w')
     textFile.write(', '.join([str(y) for y in x]))
     textFile.close()
-    
+
     native_plot.figure(figsize= (20, 20), dpi= 80)
     plot(timeLine,x)
     xlabel('time[days]')

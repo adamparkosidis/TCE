@@ -273,7 +273,6 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False):
     textFile.write(', '.join([str(y) for y in data["cumulative_mass"]]))
     textFile.close()
     if toPlot:
-
         figure = pyplot.figure(figsize = (8, 10))
         pyplot.subplot(1, 1, 1)
         ax = pyplot.gca()
@@ -285,7 +284,7 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False):
         plotrho = semilogy(data["radius"][:-1000], data["density"][:-1000].as_quantity_in(units.g * units.cm **-3), 'g-', label = r'$\rho(r)$', linewidth=3.0)
         plots = plotT + plotrho
         labels = [one_plot.get_label() for one_plot in plots]
-        ax.legend(plots, labels, loc=3, fontsize=24.0)
+        ax.legend(plots, labels, loc=3)
         ax.labelsize=20.0
         ax.titlesize=24.0
         ylabel('Density')
@@ -414,13 +413,15 @@ def Plot1Axe(x, fileName, outputDir, timeStep= 1400.0/7000.0, beginTime = 0):
     if len(x) == 0:
         return
     timeLine = [beginTime + time * timeStep for time in xrange(len(x))] | units.day
+
+    textFile = open(outputDir + '/' + fileName + 'time_' + str(beginTime) + "_to_" + str(beginTime + (len(x) - 1.0) * timeStep) + 'days.txt', 'w')
+    textFile.write(', '.join([str(y) for y in x]))
+    textFile.close()
+    
     native_plot.figure(figsize= (20, 20), dpi= 80)
     plot(timeLine,x)
     xlabel('time[days]')
     native_plot.savefig(outputDir + '/' + fileName + 'time_' + str(beginTime) + "_to_" + str(beginTime + (len(x) - 1.0) * timeStep) + 'days.jpg')
-    textFile = open(outputDir + '/' + fileName + 'time_' + str(beginTime) + "_to_" + str(beginTime + (len(x) - 1.0) * timeStep) + 'days.txt', 'w')
-    textFile.write(', '.join([str(y) for y in x]))
-    textFile.close()
 
 def PlotAdaptiveQuantities(arrayOfValueAndNamePairs, outputDir, beginTime = 0, timeStep= 1400.0/7000.0):
     for a in arrayOfValueAndNamePairs:

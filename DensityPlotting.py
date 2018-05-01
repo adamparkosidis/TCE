@@ -251,6 +251,27 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False):
     data = structure_from_star(star)
     #sphGiant.gasParticles.radius = CalculateVectorSize((sphGiant.gasParticles.x,sphGiant.gasParticles.y,sphGiant.gasParticles.z))
     #data = convert_particles_to_pynbody_data(sphGiant.gasParticles, length_unit, pynbody_unit)
+
+    #plot to file
+    print "writing data to files"
+    textFile = open(outputDir + '/radial_profile/temperature_{0}'.format(step) + '.txt', 'w')
+    textFile.write(', '.join([str(y) for y in data["temperature"]]))
+    textFile.close()
+    textFile = open(outputDir + '/radial_profile/density_{0}'.format(step) + '.txt', 'w')
+    textFile.write(', '.join([str(y) for y in data["density"]]))
+    textFile.close()
+    textFile = open(outputDir + '/radial_profile/radius_{0}'.format(step) + '.txt', 'w')
+    textFile.write(', '.join([str(y) for y in data["radius"]]))
+    textFile.close()
+    textFile = open(outputDir + '/radial_profile/sound_speed_{0}'.format(step) + '.txt', 'w')
+    textFile.write(', '.join([str(y) for y in data["sound_speed"]]))
+    textFile.close()
+    textFile = open(outputDir + '/radial_profile/mass_profile{0}'.format(step) + '.txt', 'w')
+    textFile.write(', '.join([str(y) for y in data["mass"]]))
+    textFile.close()
+    textFile = open(outputDir + '/radial_profile/cumulative_mass_profile{0}'.format(step) + '.txt', 'w')
+    textFile.write(', '.join([str(y) for y in data["cumulative_mass"]]))
+    textFile.close()
     if toPlot:
 
         figure = pyplot.figure(figsize = (8, 10))
@@ -319,26 +340,7 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False):
         pyplot.close()
 
     
-    #plot to file
-    print "writing data to files"
-    textFile = open(outputDir + '/radial_profile/temperature_{0}'.format(step) + '.txt', 'w')
-    textFile.write(', '.join([str(y) for y in data["temperature"]]))
-    textFile.close()
-    textFile = open(outputDir + '/radial_profile/density_{0}'.format(step) + '.txt', 'w')
-    textFile.write(', '.join([str(y) for y in data["density"]]))
-    textFile.close()
-    textFile = open(outputDir + '/radial_profile/radius_{0}'.format(step) + '.txt', 'w')
-    textFile.write(', '.join([str(y) for y in data["radius"]]))
-    textFile.close()
-    textFile = open(outputDir + '/radial_profile/sound_speed_{0}'.format(step) + '.txt', 'w')
-    textFile.write(', '.join([str(y) for y in data["sound_speed"]]))
-    textFile.close()
-    textFile = open(outputDir + '/radial_profile/mass_profile{0}'.format(step) + '.txt', 'w')
-    textFile.write(', '.join([str(y) for y in data["mass"]]))
-    textFile.close()
-    textFile = open(outputDir + '/radial_profile/cumulative_mass_profile{0}'.format(step) + '.txt', 'w')
-    textFile.write(', '.join([str(y) for y in data["cumulative_mass"]]))
-    textFile.close()
+    '''
     print "claculating values"
     mdot = (4.0 * constants.pi * (340.0 | units.RSun)**2 * GetPropertyAtRadius(data["density"],data["radius"], 340.0 | units.RSun) * GetPropertyAtRadius(data["sound_speed"],data["radius"], 340.0 | units.RSun)).as_quantity_in(units.MSun / units.yr)
     m =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 340.0 | units.RSun)
@@ -350,6 +352,7 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False):
     print "m over 340: ", (M - m)
     print "M total: ", M
     print "time: ", ((M-m)/mdot)
+    '''
 
 def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, dustRadius=700 | units.RSun):
     if not HAS_PYNBODY:
@@ -544,7 +547,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             #check if the couple particle2 + giant are also breaking up
             if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
                 print "triple2 is also breaking up", triple2.specificEnergy , i * 1400/7000.0
-                break
+                #break
 
         #check if the couple particle2 + giant are breaking up
         if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):

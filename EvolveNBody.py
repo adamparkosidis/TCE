@@ -229,6 +229,14 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
                 return gas, dm
 
         #    sinks.accrete(coupledSystem.gas_particles)
+        firstBinary = Particles(particles=[coupledSystem.dm_particles[0], coupledSystem.dm_particles[1]])
+        firstBinaryCOM = firstBinary.center_of_mass()
+        firstBinaryOldSep = BinaryCalculations.CalculateVectorSize(firstBinaryCOM - Particles(particles=[coupledSystem.dm_particles[2]]).center_of_mass())
+
+        secondBinary = Particles(particles=[coupledSystem.dm_particles[2], coupledSystem.dm_particles[1]])
+        secondBinaryCOM = firstBinary.center_of_mass()
+        secondBinaryOldSep = BinaryCalculations.CalculateVectorSize(firstBinaryCOM - Particles(particles=[coupledSystem.dm_particles[0]]).center_of_mass())
+
         coupledSystem.evolve_model(currentTime + timeStep)
         print "   Evolved to:", (currentTime + timeStep).as_quantity_in(units.day)
         currentTime += timeStep
@@ -242,7 +250,17 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
                 currentSecond = time.time()
         dm = coupledSystem.dm_particles.copy()
         gas = coupledSystem.gas_particles.copy()
-        #if not relax:
+
+        firstBinary = Particles(particles=[coupledSystem.dm_particles[0], coupledSystem.dm_particles[1]])
+        firstBinaryCOM = firstBinary.center_of_mass()
+        firstBinaryNewSep = BinaryCalculations.CalculateVectorSize(firstBinaryCOM - Particles(particles=[coupledSystem.dm_particles[2]]).center_of_mass())
+
+        secondBinary = Particles(particles=[coupledSystem.dm_particles[2], coupledSystem.dm_particles[1]])
+        secondBinaryCOM = firstBinary.center_of_mass()
+        secondBinaryNewSep = BinaryCalculations.CalculateVectorSize(firstBinaryCOM - Particles(particles=[coupledSystem.dm_particles[0]]).center_of_mass())
+
+        print "first binary difference in separation- ", firstBinaryOldSep - firstBinaryNewSep
+        print "second binary difference in separation- ", secondBinaryOldSep - secondBinaryNewSep
         #if not relax:
         #    print "masses: ", sinks.mass.as_quantity_in(units.MSun)
     coupledSystem.stop()

@@ -293,7 +293,7 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False, plotDust
         pyplot.xticks(fontsize=20.0)
         pyplot.yticks(fontsize=20.0)
         pyplot.suptitle('Structure of a {0} star'.format(sphGiant.mass))
-        pyplot.savefig(outputDir + "/radial_profile/temperature_radial_proile_{0}.jpg".format(step), transparent= False)
+        pyplot.savefig(outputDir + "/radial_profile/temperature_radial_proile_{0}.jpg".format(step), format='jpeg')
 
         #pyplot.close(figure)
         pyplot.clf()
@@ -388,7 +388,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
     #cbar.ax.set_yticklabels(cbar
     # .ax.get_yticklabels(), fontsize=24)
     #pyplot.axes.labelsize(24)
-    pyplot.savefig(outputDir + "/plotting_{0}.jpg".format(i), transparent= False)
+    pyplot.savefig(outputDir + "/plotting_{0}.jpg".format(i), transparent=False)
     pyplot.close()
 
 def PlotVelocity(sphGiant,core,binary,step, outputDir, vmin, vmax):
@@ -407,7 +407,7 @@ def PlotVelocity(sphGiant,core,binary,step, outputDir, vmin, vmax):
     #    scatter(core.x, core.y, c="r")
     scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
-    pyplot.savefig(outputDir + "/velocity/velocity_plotting_{0}.jpg".format(step), transparent= False)
+    pyplot.savefig(outputDir + "/velocity/velocity_plotting_{0}.jpg".format(step), transparent=False)
     pyplot.close()
 
 def Plot1Axe(x, fileName, outputDir, timeStep= 1400.0/7000.0, beginTime = 0):

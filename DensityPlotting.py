@@ -219,7 +219,7 @@ def structure_from_star(star):
         radii_cubed.prepend(0|units.m**3)
         mass_profile = (4.0/3.0 * constants.pi) * density_profile * (radii_cubed[1:] - radii_cubed[:-1])
     cumulative_mass_profile = CalculateCumulantiveMass(density_profile, radius_profile)
-    tau = CalculateTau(density_profile, radius_profile, 0.0159 | units.RSun, (0.392|units.MSun)/((4.0/3.0)*constants.pi*(0.0159 |units.RSun)**3), star.temperature, radius_profile[-250000])
+    tau = CalculateTau(density_profile, radius_profile, 0.0159 | units.RSun, (0.392|units.MSun)/((4.0/3.0)*constants.pi*(0.0159 |units.RSun)**3), star.temperature, radius_profile[-100])
     sound_speed = star.temperature/star.temperature | units.m * units.s**-1
     for i in xrange(len(sound_speed)):
         sound_speed[i] = math.sqrt(((5.0/3.0) * constants.kB * star.temperature[i] / mu()).value_in(units.m **2 * units.s**-2)) | units.m / units.s

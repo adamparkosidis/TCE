@@ -82,6 +82,7 @@ class SphGiant:
         self.x , self.y, self.z = (self.gas.position * self.gas.mass + self.core.position * self.core.mass) / self.mass
         #self.x , self.y, self.z = self.core.position
         self.vx, self.vy, self.vz = (self.gas.v * self.gas.mass + (self.core.vx, self.core.vy, self.core.vz) * self.core.mass) / self.mass
+        print "3: ", (self.gas.v * self.gas.mass + (self.core.vx, self.core.vy, self.core.vz) * self.core.mass) / self.mass
         #self.vx, self.vy, self.vz =  self.core.vx, self.core.vy, self.core.vz
         self.v = (self.vx, self.vy, self.vz)
         self.position = (self.x,self.y,self.z)
@@ -107,8 +108,8 @@ class SphGiant:
         self.innerGas.vxTot , self.innerGas.vyTot , self.innerGas.vzTot = ( 0.0 , 0.0, 0.0 )| units.m * units.s**-1
         self.innerGas.xTot , self.innerGas.yTot , self.innerGas.zTot = ( 0.0 , 0.0, 0.0 )| units.m
         cmass = self.core.mass.value_in(units.MSun)
-        velocityAndMass = (self.core.vx * cmass, self.core.vy * cmass,self.core.vz * cmass)
-        positionAndMass = (self.core.x * cmass, self.core.y * cmass,self.core.z * cmass)
+        velocityAndMass = [self.core.vx * cmass, self.core.vy * cmass,self.core.vz * cmass]
+        positionAndMass = [self.core.x * cmass, self.core.y * cmass,self.core.z * cmass]
 
         particles = 0
         i = 0
@@ -119,8 +120,12 @@ class SphGiant:
             if separation < radius:
                 pmass = particle.mass.value_in(units.MSun)
                 self.innerGas.mass += particle.mass
-                velocityAndMass += (particle.vx * pmass, particle.vy * pmass, particle.vz * pmass)
-                positionAndMass += (particle.x * pmass, particle.y * pmass, particle.z * pmass)
+                velocityAndMass[0] += particle.vx * pmass
+                velocityAndMass[1] += particle.vy * pmass
+                velocityAndMass[2] += particle.vz * pmass
+                positionAndMass[0] += particle.x * pmass
+                positionAndMass[1] += particle.y * pmass
+                positionAndMass[2] += particle.z * pmass
                 particles += 1
         print time.ctime(), particles
         if particles > 0:
@@ -675,6 +680,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     innerMass1 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     innerMass2 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
 
+    cpus = multiprocessing.cpu_count() - 6
     chunkSize= (lastStep-beginStep)/(multiprocessing.cpu_count() - 6)
     print "using ", multiprocessing.cpu_count() - 6, " cpus"
     if chunkSize == 0:

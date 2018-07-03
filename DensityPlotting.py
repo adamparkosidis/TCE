@@ -373,7 +373,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
     pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
-    cbar = pynbody_sph.image(pyndata, resolution=2000,width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax)
+    cbar = pynbody_sph.image(pyndata, resolution=2000,width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax, cmap="magma")
     UnitlessArgs.current_plot = native_plot.gca()
     '''native_plot.xlim(xmax=2, xmin=-10)
     native_plot.ylim(ymax=6, ymin=-6)

@@ -15,7 +15,7 @@ matplotlib.use('Agg')
 from amuse.units import units, constants, nbody_system
 from amuse.units import *
 
-from amuse.lab import *
+#from amuse.lab import *
 from amuse.units.quantities import AdaptingVectorQuantity
 from amuse.datamodel import Particles, Particle
 from amuse.ext import sph_to_star
@@ -90,13 +90,12 @@ class SphGiant:
     def CalculateInnerSPH(self, relativeParticle):
         self.innerGas = Star(None, None)
         radius = CalculateVectorSize(CalculateSeparation(relativeParticle, self.core))
-        #print time.ctime(), "beginning inner gas calculation"
+        print time.ctime(), "beginning inner gas calculation"
         self.CalculateSphMassVelocityAndPositionInsideRadius(radius)
         self.innerGas.x , self.innerGas.y, self.innerGas.z = self.innerGas.position
-        #print time.ctime(), "calculated!"
+        print time.ctime(), "calculated!"
     def CalculateTotalGasMassInsideRadius(self, radius):
         innerMass = self.core.mass
-        i = 0
         for particle in self.gasParticles:
             separation = CalculateVectorSize(CalculateSeparation(particle, self.core))
             if separation < radius:
@@ -586,7 +585,9 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         innerMass1[i] , aOuters1[i], eOuters1[i], triple1Distances[i] = CalculateBinaryParameters(particle1, sphGiant)
         innerMass2[i] , aOuters2[i], eOuters2[i], triple2Distances[i] = CalculateBinaryParameters(particle2, sphGiant)
 
+        print time.ctime(), "temperature_density_plotting of step ", i
         temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
+        print time.ctime(), "finished temperature plotting of step: ", i
         if toPlot:
             PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
             PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)

@@ -1,4 +1,5 @@
 import os
+import time
 import os.path
 import sys
 import threading
@@ -89,9 +90,10 @@ class SphGiant:
     def CalculateInnerSPH(self, relativeParticle):
         self.innerGas = Star(None, None)
         radius = CalculateVectorSize(CalculateSeparation(relativeParticle, self.core))
+        #print time.ctime(), "beginning inner gas calculation"
         self.CalculateSphMassVelocityAndPositionInsideRadius(radius)
         self.innerGas.x , self.innerGas.y, self.innerGas.z = self.innerGas.position
-        print "calculated!"
+        #print time.ctime(), "calculated!"
     def CalculateTotalGasMassInsideRadius(self, radius):
         innerMass = self.core.mass
         i = 0
@@ -110,7 +112,10 @@ class SphGiant:
         positionAndMass = (self.core.x * cmass, self.core.y * cmass,self.core.z * cmass)
 
         particles = 0
+        i = 0
         for particle in self.gasParticles:
+            #print i
+            i += 1
             separation = CalculateVectorSize(CalculateSeparation(particle, self.core))
             if separation < radius:
                 pmass = particle.mass.value_in(units.MSun)
@@ -118,7 +123,7 @@ class SphGiant:
                 velocityAndMass += (particle.vx * pmass, particle.vy * pmass, particle.vz * pmass)
                 positionAndMass += (particle.x * pmass, particle.y * pmass, particle.z * pmass)
                 particles += 1
-        print particles
+        print time.ctime(), particles
         if particles > 0:
             totalMass=  self.innerGas.mass.value_in(units.MSun)
             self.innerGas.vxTot = velocityAndMass[0] / totalMass
@@ -508,7 +513,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                        toPlot = False, opposite= False):
 
     for i in [j - beginStep for j in chunk]:
-        print i
+        print time.ctime(), "step: ", i
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i + beginStep])
         dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i + beginStep])
 
@@ -558,6 +563,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                 separationTime = i * 1400/7000
 
         #all the three are connected
+        print time.ctime(), "beginning innerGas calculations of step ", i
         sphGiant.CalculateInnerSPH(innerBinary)
         innerMass[i] = sphGiant.innerGas.mass.value_in(units.MSun)
 
@@ -669,6 +675,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     innerMass2 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
 
     chunkSize= (lastStep-beginStep)/(multiprocessing.cpu_count() - 6)
+    print "using ", multiprocessing.cpu_count() - 6, " cpus"
     if chunkSize == 0:
         if lastStep - beginStep == 0:
             return

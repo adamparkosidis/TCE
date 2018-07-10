@@ -380,8 +380,8 @@ class Binary:
 
             stars.position = [0.0, 0.0, 0.0] | units.AU
             stars.velocity = [0.0, 0.0, 0.0] | units.km / units.s
-            stars[1].x = math.sin(self.semimajorAxis)
-            stars[1].y = math.cos(self.semimajorAxis)
+            stars[1].x = self.semimajorAxis * math.sin(self.angle)
+            stars[1].y = self.semimajorAxis * math.cos(self.angle)
             stars[1].vx = -math.cos(self.inclination)*GetRelativeVelocityAtApastron(
                 stars.total_mass(), self.semimajorAxis, self.eccentricity)
             stars[1].vz = math.sin(self.inclination)*GetRelativeVelocityAtApastron(

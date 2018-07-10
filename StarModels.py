@@ -370,13 +370,18 @@ class Binary:
             self.eccentricity = float(parser.get(configurationSection, "eccentricity"))
             self.radius = [float(parser.get(configurationSection, "radius1")) | units.AU,
                       float(parser.get(configurationSection, "radius2")) | units.AU]
+            if parser.has_option(configurationSection, "transposeAngle"):
+                self.angle = float(parser.get(configurationSection, "transposeAngle"))
+            else:
+                self.angle = 0.0
 
             stars = Particles(2)
             stars.mass = masses
 
             stars.position = [0.0, 0.0, 0.0] | units.AU
             stars.velocity = [0.0, 0.0, 0.0] | units.km / units.s
-            stars[1].y = self.semimajorAxis
+            stars[1].x = math.sin(self.semimajorAxis)
+            stars[1].y = math.cos(self.semimajorAxis)
             stars[1].vx = -math.cos(self.inclination)*GetRelativeVelocityAtApastron(
                 stars.total_mass(), self.semimajorAxis, self.eccentricity)
             stars[1].vz = math.sin(self.inclination)*GetRelativeVelocityAtApastron(

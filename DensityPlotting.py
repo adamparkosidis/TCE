@@ -534,19 +534,17 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         print "center of mass position: ", (sphGiant.position * sphGiant.mass + innerBinary.position * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
         print "center of mass velocity: ", (sphGiant.v * sphGiant.mass + innerBinary.v * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
 
-        return
-
         aInner = CalculateSemiMajor(innerBinary.velocityDifference,innerBinary.separation, innerBinary.mass)
         eInner = CalculateEccentricity(particle1,particle2)
 
-        if CalculateVectorSize(innerBinary.separation) < min(particle1.radius, particle2.radius):
+        if CalculateVectorSize(innerBinary.separation) < particle1.radius+ particle2.radius:
             print "merger between the inner binary!" , innerBinary.separation.as_quantity_in(units.RSun) , i * 1400/7000.0
 
-        if CalculateVectorSize(CalculateSeparation(sphGiant.core,particle1)) < sphGiant.core.radius:
+        if CalculateVectorSize(CalculateSeparation(sphGiant.core,particle1)) < sphGiant.core.radius + particle1.radius:
             print "merger between particle1 and the giant!" , i * 1400/7000.0
             #break
 
-        if CalculateVectorSize(CalculateSeparation(sphGiant.core, particle2)) < min(sphGiant.core.radius, particle2.radius):
+        if CalculateVectorSize(CalculateSeparation(sphGiant.core, particle2)) < sphGiant.core.radius+ particle2.radius:
             print "merger between particle 2 and the giant!" , i * 1400/7000.0
             #break
         #check if the binry is breaking up
@@ -720,7 +718,6 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     newInnerMass = AdaptingVectorQuantity()
     newInnerMass1 = AdaptingVectorQuantity()
     newInnerMass2 = AdaptingVectorQuantity()
-    return
 
     for j in xrange(len(binaryDistances)-1):
         newBinaryDistances.append(float(binaryDistances[j]) | units.RSun)

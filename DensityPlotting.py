@@ -47,7 +47,7 @@ class Star:
         self.x = (particle1.x* particle1.mass + particle2.x * particle2.mass)/(particle1.mass + particle2.mass)
         self.y = (particle1.y * particle1.mass + particle2.y * particle2.mass)/(particle1.mass + particle2.mass)
         self.z = (particle1.z * particle1.mass + particle2.z * particle2.mass)/(particle1.mass + particle2.mass)
-        self.position =(self.x, self.y, self.z)
+        self.position =(self.x.value_in(units.AU), self.y.value_in(units.AU), self.z.value_in(units.AU)) | units.AU
         self.mass  = particle1.mass + particle2.mass
         self.velocityDifference = CalculateVelocityDifference(particle1,particle2)
         self.separation = CalculateSeparation(particle1,particle2)
@@ -84,8 +84,8 @@ class SphGiant:
         self.vx, self.vy, self.vz = (self.gas.v * self.gas.mass + (self.core.vx, self.core.vy, self.core.vz) * self.core.mass) / self.mass
         print "3: ", (self.gas.v * self.gas.mass + (self.core.vx, self.core.vy, self.core.vz) * self.core.mass) / self.mass
         #self.vx, self.vy, self.vz =  self.core.vx, self.core.vy, self.core.vz
-        self.v = (self.vx, self.vy, self.vz)
-        self.position = (self.x,self.y,self.z)
+        self.v = (self.vx.value_in(units.m / units.s), self.vy.value_in(units.m / units.s), self.vz.value_in(units.m / units.s)) | (units.m / units.s)
+        self.position = (self.x.value_in(units.AU),self.y.value_in(units.AU),self.z.value_in(units.AU)) | units.AU
         self.radius = self.gasParticles.total_radius()
 
     def CalculateInnerSPH(self, relativeParticle):
@@ -525,13 +525,16 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
 
         #binary = Particles(2,pickle.load(open(os.path.join(os.getcwd(),savingDir,"binary.p"),"rb")))
         binary = LoadBinaries(dm_particles_file, opposite= opposite)
-        #print binary
 
         particle1 , particle2 = binary[0] , binary[1]
 
         innerBinary = Star(particle1,particle2)
         triple1 = Star(particle1, sphGiant)
         triple2 = Star(particle2, sphGiant)
+        print "center of mass position: ", (sphGiant.position * sphGiant.mass + innerBinary.position * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
+        print "center of mass velocity: ", (sphGiant.v * sphGiant.mass + innerBinary.v * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
+
+        return
 
         aInner = CalculateSemiMajor(innerBinary.velocityDifference,innerBinary.separation, innerBinary.mass)
         eInner = CalculateEccentricity(particle1,particle2)
@@ -717,6 +720,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     newInnerMass = AdaptingVectorQuantity()
     newInnerMass1 = AdaptingVectorQuantity()
     newInnerMass2 = AdaptingVectorQuantity()
+    return
 
     for j in xrange(len(binaryDistances)-1):
         newBinaryDistances.append(float(binaryDistances[j]) | units.RSun)

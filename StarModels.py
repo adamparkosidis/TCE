@@ -395,7 +395,7 @@ class Binary:
         self.velocity = self.stars.center_of_mass_velocity()
         self.vx, self.vy, self.vz = self.velocity
         self.position = self.stars.center_of_mass()
-        self.x, self.y, self.z = self.position
+        self.x, self.y, self.z = self.position #TODO: check this
 
     def LoadBinary(self, particles):
 

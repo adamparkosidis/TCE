@@ -512,7 +512,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             pass
 
 def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vmax, beginStep,
-                       binaryDistances, triple1Distances, triple2Distances,
+                       binaryDistances, tripleDistances, triple1Distances, triple2Distances,
                        aInners, aOuters, aOuters1, aOuters2,
                        eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, separationStep,
                        toPlot = False, opposite= False):
@@ -598,7 +598,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         inclination = CalculateInclination(tripleVelocityDifference, tripleSeparation, innerBinary.velocityDifference, innerBinary.separation)
 
         binaryDistances[i] = CalculateVectorSize(innerBinary.separation).value_in(units.RSun)
-
+        tripleDistances[i] = CalculateVectorSize(tripleSeparation).value_in(units.RSun)
         aInners[i] = aInner.value_in(units.AU)
         aOuters[i] = aOuter.value_in(units.AU)
         eInners[i] = eInner
@@ -681,6 +681,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     print lastStep
 
     binaryDistances = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    tripleDistances = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     triple1Distances = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     triple2Distances = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     aInners = multiprocessing.Array('f', [0.0 for i in range(beginStep, lastStep)])
@@ -715,7 +716,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     print chunks
     for chunk in chunks:
         processes.append(multiprocessing.Process(target= AnalyzeTripleChunk,args=(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vmax, beginStep,
-                       binaryDistances, triple1Distances, triple2Distances,
+                       binaryDistances, tripleDistances, triple1Distances, triple2Distances,
                        aInners, aOuters, aOuters1, aOuters2,
                        eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, separationStep, toPlot, opposite, )))
     for p in processes:
@@ -724,6 +725,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         p.join()
 
     newBinaryDistances = AdaptingVectorQuantity()
+    newTripleDistances = AdaptingVectorQuantity()
     newTriple1Distances = AdaptingVectorQuantity()
     newTriple2Distances = AdaptingVectorQuantity()
     newAInners = AdaptingVectorQuantity()
@@ -736,6 +738,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
 
     for j in xrange(len(binaryDistances)-1):
         newBinaryDistances.append(float(binaryDistances[j]) | units.RSun)
+        newTripleDistances.append(float(tripleDistances[j]) | units.RSun)
         newTriple1Distances.append(float(triple1Distances[j]) | units.RSun)
         newTriple2Distances.append(float(triple2Distances[j]) | units.RSun)
         newAInners.append(float(aInners[j]) | units.AU)
@@ -747,7 +750,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         newInnerMass2.append(float(innerMass2[j]) | units.MSun)
     separationStep = int(separationStep)
 
-    PlotBinaryDistance([(newBinaryDistances, "InnerBinaryDistances"), (newTriple1Distances, "triple1Distances"),
+    PlotBinaryDistance([(newBinaryDistances, "InnerBinaryDistances"), (newTripleDistances, "tripleDistances"), (newTriple1Distances, "triple1Distances"),
                         (newTriple2Distances, "triple2Distances")], outputDir + "/graphs", beginStep)
     PlotAdaptiveQuantities([(newAInners,"aInners"),(newAOuters, "aOuters")], outputDir+"/graphs")
     PlotAdaptiveQuantities([(newAOuters1, "aOuters1"), (newAOuters2, "aOuters2")], outputDir+ "/graphs", separationStep)

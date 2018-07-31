@@ -1,5 +1,6 @@
 import pickle
 import os
+import sys
 
 from amuse.units import units
 from amuse.units.units import *
@@ -44,7 +45,6 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     starCore.position -= diffPosition
     starEnvelope.velocity -= diffVelocity
     starCore.velocity -= diffVelocity
-
 
     return starEnvelope, starCore, binary, binary.semimajorAxis, sphMetaData
 
@@ -129,4 +129,8 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
     print "****************** Simulation Completed ******************"
 
 if __name__ == "__main__":
-    Start(takeSavedState="Mesa")
+    args = sys.argv
+    if len(args) > 1:
+        Start(savedVersionPath=args[1],takeSavedState=args[2], step=int(args[3]), configurationFile=args[1] + "/PassyConfiguration.ini")
+    else:
+        Start(takeSavedState="Evolve", step=1625)

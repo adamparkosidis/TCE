@@ -369,12 +369,12 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
         return
     figure = pyplot.figure(figsize=(18,18))
     #width = 0.08 * sphGiant.position.lengths_squared().amax().sqrt()
-    width = 5.0 * sphGiant.position.lengths_squared().amax().sqrt()
+    #width = 5.0 * sphGiant.position.lengths_squared().amax().sqrt()
+    width = 4.0 | units.AU
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
     pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
-    #cbar = pynbody_sph.sideon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax, cmap="magma")
-    cbar = pynbody_sph.sideon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax, cmap="hot")
+    cbar = pynbody_sph.image(pyndata, resolution=2000,width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax, cmap="hot", title = str(i * 0.2) + " days")
     UnitlessArgs.current_plot = native_plot.gca()
     '''native_plot.xlim(xmax=2, xmin=-10)
     native_plot.ylim(ymax=6, ymin=-6)
@@ -382,7 +382,6 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
     native_plot.xlabel('x[AU]')
     native_plot.ylabel('y[AU]')
     #pyplot.xlim(-5,-2)
-    pynbody_column_density_plot(sphGiant, resolution=2000, width=50|units.RSun,vmin= vmin, vmax= vmax,cmap= "hot", fill_nan=True, fill_val=1e25)
     if core.mass != 0 | units.MSun:
         print core.x.as_quantity_in(units.AU), core.y.as_quantity_in(units.AU)
         scatter(core.x, core.y, c="r")
@@ -410,7 +409,7 @@ def PlotVelocity(sphGiant,core,binary,step, outputDir, vmin, vmax):
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
     pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
-    pynbody_sph.velocity_image(pyndata, width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax)
+    pynbody_sph.velocity_image(pyndata, width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax, title = str(i * 0.2) + " days")
     UnitlessArgs.current_plot = native_plot.gca()
     #print core.mass
     #if core.mass != 0 |units.MSun:

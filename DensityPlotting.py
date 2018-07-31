@@ -529,10 +529,25 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         particle1 , particle2 = binary[0] , binary[1]
 
         innerBinary = Star(particle1,particle2)
+
+        #change the position and velocity of center of mass to 0
+        centerOfMassPosition = (sphGiant.position * sphGiant.mass + innerBinary.position * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
+        centerOfMassVelocity = (sphGiant.v * sphGiant.mass + innerBinary.v * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
+        print "center of mass position: ", centerOfMassPosition
+        print "center of mass velocity: ", centerOfMassVelocity
+
+        sphGiant.position -= centerOfMassPosition
+        sphGiant.velocity-=centerOfMassVelocity
+        innerBinary.position -= centerOfMassPosition
+        innerBinary.velocity-=centerOfMassVelocity
+        particle1.position -=centerOfMassPosition
+        particle1.velocity-=centerOfMassVelocity
+        particle2.position -= centerOfMassPosition
+        particle2.velocity-=centerOfMassVelocity
+
+
         triple1 = Star(particle1, sphGiant)
         triple2 = Star(particle2, sphGiant)
-        print "center of mass position: ", (sphGiant.position * sphGiant.mass + innerBinary.position * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
-        print "center of mass velocity: ", (sphGiant.v * sphGiant.mass + innerBinary.v * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
 
         aInner = CalculateSemiMajor(innerBinary.velocityDifference,innerBinary.separation, innerBinary.mass)
         eInner = CalculateEccentricity(particle1,particle2)

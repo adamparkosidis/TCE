@@ -111,7 +111,6 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
     elif takeSavedState == "Evolve":
         starEnvelope, starCore, binary, semmimajor,sphMetaData = \
             StarModels.TakeBinarySavedState(savedVersionPath + "/evolution", configurationFile, step) 
-        print starCore.radius, starEnvelope.velocity, binary.velocity
     else:
         if takeSavedState == "Mesa":
             starEnvelope, starCore, binary, semmimajor, sphMetaData = CreateBinarySystem(configurationFile, savedVersionPath, takeSavedMesa= True)

@@ -84,8 +84,8 @@ class SphGiant:
         self.vx, self.vy, self.vz = (self.gas.v * self.gas.mass + (self.core.vx, self.core.vy, self.core.vz) * self.core.mass) / self.mass
         print "3: ", (self.gas.v * self.gas.mass + (self.core.vx, self.core.vy, self.core.vz) * self.core.mass) / self.mass
         #self.vx, self.vy, self.vz =  self.core.vx, self.core.vy, self.core.vz
-        self.v = (self.vx.value_in(units.m / units.s), self.vy.value_in(units.m / units.s), self.vz.value_in(units.m / units.s)) | (units.m / units.s)
-        self.position = (self.x.value_in(units.AU),self.y.value_in(units.AU),self.z.value_in(units.AU)) | units.AU
+        self.v = [self.vx.value_in(units.m / units.s), self.vy.value_in(units.m / units.s), self.vz.value_in(units.m / units.s)] | (units.m / units.s)
+        self.position = [self.x.value_in(units.AU),self.y.value_in(units.AU),self.z.value_in(units.AU)] | units.AU
         self.radius = self.gasParticles.total_radius()
 
     def CalculateInnerSPH(self, relativeParticle):
@@ -537,16 +537,6 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         print "center of mass position: ", centerOfMassPosition
         print "center of mass velocity: ", centerOfMassVelocity
 
-        sphGiant.position -= centerOfMassPosition
-        sphGiant.velocity-=centerOfMassVelocity
-        innerBinary.position -= centerOfMassPosition
-        innerBinary.velocity-=centerOfMassVelocity
-        particle1.position -=centerOfMassPosition
-        particle1.velocity-=centerOfMassVelocity
-        particle2.position -= centerOfMassPosition
-        particle2.velocity-=centerOfMassVelocity
-
-
         triple1 = Star(particle1, sphGiant)
         triple2 = Star(particle2, sphGiant)
 
@@ -611,6 +601,14 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
         print time.ctime(), "finished temperature plotting of step: ", i
         if toPlot:
+            sphGiant.gasParticles.position -= centerOfMassPosition
+            sphGiant.gasParticles.velocity -= centerOfMassVelocity
+            sphGiant.core.position -= centerOfMassPosition
+            sphGiant.core.velocity -= centerOfMassVelocity
+            binary[0].position -= centerOfMassPosition
+            binary[0].velocity  -= centerOfMassVelocity
+            binary[1].position -= centerOfMassPosition
+            binary[1].velocity  -= centerOfMassVelocity
             PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
             PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
 

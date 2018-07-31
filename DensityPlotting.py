@@ -373,7 +373,8 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
     pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
-    cbar = pynbody_sph.sideon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax, cmap="magma")
+    #cbar = pynbody_sph.sideon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax, cmap="magma")
+    cbar = pynbody_sph.sideon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax, cmap="hot")
     UnitlessArgs.current_plot = native_plot.gca()
     '''native_plot.xlim(xmax=2, xmin=-10)
     native_plot.ylim(ymax=6, ymin=-6)
@@ -513,7 +514,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vmax, beginStep,
                        binaryDistances, triple1Distances, triple2Distances,
                        aInners, aOuters, aOuters1, aOuters2,
-                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, separationTime,
+                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, separationStep,
                        toPlot = False, opposite= False):
 
     for i in [j - beginStep for j in chunk]:
@@ -552,14 +553,14 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         aInner = CalculateSemiMajor(innerBinary.velocityDifference,innerBinary.separation, innerBinary.mass)
         eInner = CalculateEccentricity(particle1,particle2)
 
-        if CalculateVectorSize(innerBinary.separation) < particle1.radius+ particle2.radius:
+        if CalculateVectorSize(innerBinary.separation) <= particle1.radius+ particle2.radius:
             print "merger between the inner binary!" , innerBinary.separation.as_quantity_in(units.RSun) , i * 1400/7000.0
 
-        if CalculateVectorSize(CalculateSeparation(sphGiant.core,particle1)) < sphGiant.core.radius + particle1.radius:
+        if CalculateVectorSize(CalculateSeparation(sphGiant.core,particle1)) <= sphGiant.core.radius + particle1.radius:
             print "merger between particle1 and the giant!" , i * 1400/7000.0
             #break
 
-        if CalculateVectorSize(CalculateSeparation(sphGiant.core, particle2)) < sphGiant.core.radius+ particle2.radius:
+        if CalculateVectorSize(CalculateSeparation(sphGiant.core, particle2)) <= sphGiant.core.radius+ particle2.radius:
             print "merger between particle 2 and the giant!" , i * 1400/7000.0
             #break
         #check if the binry is breaking up
@@ -567,20 +568,20 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             print "binary is breaking up", innerBinary.specificEnergy , i * 1400/7000.0
 
         #check if the couple particle1 + giant are breaking up
-        if triple1.specificEnergy > 0 | (units.m **2 / units.s **2):
-            print "triple1 is breaking up", triple1.specificEnergy , i * 1400/7000.0
-            if separationTime == 0:
-                separationTime = i * 1400/7000
-            #check if the couple particle2 + giant are also breaking up
-            if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
-                print "triple2 is also breaking up", triple2.specificEnergy , i * 1400/7000.0
-                #break
+            if triple1.specificEnergy > 0 | (units.m **2 / units.s **2):
+                print "triple1 is breaking up", triple1.specificEnergy , i * 1400/7000.0
 
-        #check if the couple particle2 + giant are breaking up
-        if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
-            print "triple2 is breaking up", triple2.specificEnergy, i * 1400/7000.0
-            if separationTime == 0:
-                separationTime = i * 1400/7000
+                #check if the couple particle2 + giant are also breaking up
+                if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
+                    print "triple2 is also breaking up", triple2.specificEnergy , i * 1400/7000.0
+                    #break
+
+            #check if the couple particle2 + giant are breaking up
+            if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
+                print "triple2 is breaking up", triple2.specificEnergy, i * 1400/7000.0
+
+            if separationStep == 0:
+                separationStep = i
 
         #all the three are connected
         print time.ctime(), "beginning innerGas calculations of step ", i
@@ -621,7 +622,6 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                 pass
 
 def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False, plotDust=True, dustRadius=700.0|units.RSun):
-    separationTime = 0
     if lastStep == 0 : # no boundary on last step
         lastStep = len(gasFiles)
     print lastStep
@@ -675,7 +675,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
 
 
 def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False, opposite= False):
-    separationTime = multiprocessing.Value('f')
+    separationStep = multiprocessing.Value('f')
     if lastStep == 0 : # no boundary on last step
         lastStep = len(dmFiles)
     print lastStep
@@ -717,7 +717,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         processes.append(multiprocessing.Process(target= AnalyzeTripleChunk,args=(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vmax, beginStep,
                        binaryDistances, triple1Distances, triple2Distances,
                        aInners, aOuters, aOuters1, aOuters2,
-                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, separationTime, toPlot, opposite, )))
+                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, separationStep, toPlot, opposite, )))
     for p in processes:
         p.start()
     for p in processes:
@@ -745,13 +745,14 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         newInnerMass.append(float(innerMass[j]) | units.MSun)
         newInnerMass1.append(float(innerMass1[j]) | units.MSun)
         newInnerMass2.append(float(innerMass2[j]) | units.MSun)
+    separationStep = int(separationStep)
 
     PlotBinaryDistance([(newBinaryDistances, "InnerBinaryDistances"), (newTriple1Distances, "triple1Distances"),
                         (newTriple2Distances, "triple2Distances")], outputDir + "/graphs", beginStep)
     PlotAdaptiveQuantities([(newAInners,"aInners"),(newAOuters, "aOuters")], outputDir+"/graphs")
-    PlotAdaptiveQuantities([(newAOuters1, "aOuters1"), (newAOuters2, "aOuters2")], outputDir+ "/graphs", separationTime)
+    PlotAdaptiveQuantities([(newAOuters1, "aOuters1"), (newAOuters2, "aOuters2")], outputDir+ "/graphs", separationStep)
     PlotEccentricity([(eInners, "eInners"), (eOuters, "eOuters")], outputDir + "/graphs", beginStep)
-    PlotEccentricity([(eOuters1, "eOuters1"), (eOuters2, "eOuters2")],outputDir + "/graphs", separationTime)
+    PlotEccentricity([(eOuters1, "eOuters1"), (eOuters2, "eOuters2")],outputDir + "/graphs", separationStep)
     Plot1Axe(inclinations,"inclinations", outputDir+"/graphs", beginTime=beginStep)
     PlotAdaptiveQuantities([(innerMass, "InnerMass"), (innerMass1, "InnerMass1"), (innerMass2, "InnerMass2")], outputDir + "/graphs", beginStep)
 

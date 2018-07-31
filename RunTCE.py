@@ -60,7 +60,8 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     starCore.position -= diffPosition
     starEnvelope.velocity -= diffVelocity
     starCore.velocity -= diffVelocity
-
+    dmStars[-1].position = starCore.position
+    dmStars[-1].velocity = starCore.velocity
     sphMetaData = StarModels.SphMetaData(sphStar)
 
     #saved state

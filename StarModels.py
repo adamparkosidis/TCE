@@ -136,9 +136,10 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
         starMass = starEnvelope.total_mass() + starCore.mass
         giant.mass = starMass
         vx, vy, vz = starEnvelope.center_of_mass_velocity()
-        starEnvelopeV = (vx.value_in(units.m/units.s), vy.value_in(units.m/units.s), vz.value_in(units.m/units.s))|units.m/units.s
+        starEnvelopeV = (vx, vy, vz)
         giant.velocity = (starEnvelopeV * starEnvelope.center_of_mass()+
                           (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass
+        print "giant velocity: ",giant.velocity
 
     else:
         starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
@@ -168,7 +169,7 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
 
         giant.mass = starMass
         vx, vy, vz = starEnvelope.center_of_mass_velocity()
-        starEnvelopeV =  (vx.value_in(units.m/units.s), vy.value_in(units.m/units.s), vz.value_in(units.m/units.s))|units.m/units.s
+        starEnvelopeV =  (vx, vy, vz)
         if ((starEnvelopeV * starEnvelope.center_of_mass()+
                           (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass != giant.velocity):
             print "different velocity of giant", (starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass() +

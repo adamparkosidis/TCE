@@ -137,7 +137,7 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
         giant.mass = starMass
         vx, vy, vz = starEnvelope.center_of_mass_velocity()
         starEnvelopeV = (vx.value_in(units.m/units.s), vy.value_in(units.m/units.s), vz.value_in(units.m/units.s))|units.m/units.s
-        giant.velocity = (starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass() +
+        giant.velocity = (starEnvelopeV * starEnvelope.center_of_mass()+
                           (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass
 
     else:
@@ -169,7 +169,7 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
         giant.mass = starMass
         vx, vy, vz = starEnvelope.center_of_mass_velocity()
         starEnvelopeV =  (vx.value_in(units.m/units.s), vy.value_in(units.m/units.s), vz.value_in(units.m/units.s))|units.m/units.s
-        if ((starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass() +
+        if ((starEnvelopeV * starEnvelope.center_of_mass()+
                           (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass != giant.velocity):
             print "different velocity of giant", (starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass() +
                           (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass - giant.velocity

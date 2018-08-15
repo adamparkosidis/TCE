@@ -206,6 +206,46 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
     sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
     print innerBinary.stars
     print starCore
+    return starMass, starEnvelope, starCore, innerBinary, tripleSemmimajor, sphMetaData
+
+ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
+    '''
+    :param savedVersionPath: the path to where you have your saved state
+    :return: the saved system
+    '''
+    print "using saved state file - {0}".format(savedVersionPath)
+    if step > -1:
+        starEnvelope = LoadGas(savedVersionPath+"/gas_{0}.amuse".format(step))
+        load = LoadDm(savedVersionPath + "/dm_{0}.amuse".format(step))
+        print load
+        starCore=load[0]
+        starMass = starEnvelope.total_mass() + starCore.mass
+        binary = Binary(particles=Particles(2, particles=[load[0], load[1]]))
+        sphMetaData = pickle.load(open(savedVersionPath + "/../metaData.p", "rb"))
+    else:
+        starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
+        load = LoadDm(savedVersionPath + "/dm.amuse")
+        print load
+        binary = Binary(configurationFile, configurationSection="Binary")
+        binary.stars.radius = binary.radius
+        starCore=load[0]
+        starMass = starEnvelope.total_mass() + starCore.mass
+         #changing according to before relaxation
+        diffPosition = starCore.position - binary.stars[0].position
+        diffVelocity = (starCore.velocity*starCore.mass + starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass())/ starMass
+        starEnvelope.position -= diffPosition
+        starCore.position -= diffPosition
+        starEnvelope.velocity -= diffVelocity
+        starCore.velocity -= diffVelocity
+         #changing the mass to the one after relaxation
+        binary.stars[0].mass = starMass
+        vx, vy, vz = starEnvelope.center_of_mass_velocity()
+        starEnvelopeV = (vx.value_in(units.m/units.s), vy.value_in(units.m/units.s), vz.value_in(units.m/units.s))|units.m/units.s
+        print "center of mass velocity: ", starEnvelopeV * starEnvelope.total_mass() / starMass + (starCore.vx,starCore.vy,starCore.vz)*starCore.mass / starMass
+        binary.stars[0].velocity = (starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass() +
+                          (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass
+         print "(giant, star): ", binary.stars    
+        sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
     return starEnvelope, starCore, binary, binary.semimajorAxis, sphMetaData
 
 def SaveState(savedVersionPath, starMass, starEnvelope, dms, tripleSemmimajor, sphMetaData):

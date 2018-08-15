@@ -136,9 +136,10 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
         starMass = starEnvelope.total_mass() + starCore.mass
         giant.mass = starMass
         vx, vy, vz = starEnvelope.center_of_mass_velocity()
-        starEnvelopeV = (vx.value_in(units.m/units.s), vy.value_in(units.m/units.s), vz.value_in(units.m/units.s))|units.m/units.s
-        giant.velocity = (starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass() +
+        starEnvelopeV = (vx,vy,vz)
+        giant.velocity = (starEnvelopeV * starEnvelope.total_mass() +
                           (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass
+        print "giant velocity: ", giant.velocity
 
     else:
         starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
@@ -168,14 +169,14 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
 
         giant.mass = starMass
         vx, vy, vz = starEnvelope.center_of_mass_velocity()
-        starEnvelopeV =  (vx.value_in(units.m/units.s), vy.value_in(units.m/units.s), vz.value_in(units.m/units.s))|units.m/units.s
+        starEnvelopeV =  (vx,vy,vz)
         print starEnvelopeV
         print giant.velocity
-        if ((starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass() +
+        if ((starEnvelopeV * starEnvelope.total_mass() +
                           (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass != giant.velocity ):
             print "different velocity of giant", (starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass() +
                           (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass - giant.velocity
-        giant.velocity = (starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass() +
+        giant.velocity = (starEnvelopeV * starEnvelope.total_mass() +
                           (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass
 
         if opposite: #0 star of the inner binary is the giant, not the core

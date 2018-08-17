@@ -117,13 +117,13 @@ def SaveDm(savingPath,dms):
     write_set_to_file(dms,savingPath, 'amuse')
 
 def GiantSPHCenterOfMassPosition(sphEnvelope, sphCore):
-    return (sphEnvelope.center_of_mass() * sphEnvelope.mass + sphCore.position * sphCore.mass) / (sphCore.mass + sphEnvelope.mass)
+    return (sphEnvelope.center_of_mass() * sphEnvelope..total_mass() + sphCore.position * sphCore.mass) / (sphCore.mass + sphEnvelope..total_mass())
 
 def GiantSPHCenterOfMassVelocity(sphEnvelope, sphCore):
     vx, vy, vz = sphEnvelope.center_of_mass_velocity()
     starEnvelopeV = (vx, vy, vz)
     return (starEnvelopeV * sphEnvelope.total_mass() +
-                      (sphCore.vx, sphCore.vy, sphCore.vz) * sphCore.mass) / (sphCore.mass + sphEnvelope.mass)
+                      (sphCore.vx, sphCore.vy, sphCore.vz) * sphCore.mass) / (sphCore.mass + sphEnvelope..total_mass())
 
 def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposite=False):
     '''

@@ -195,7 +195,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     #    sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[0]*2) #sink radius is the particle radius * 2
 
     currentSecond = time.time()
-
+    coupledSystem.time = currentTime
     print "starting SPH " + adding
     print coupledSystem.dm_particles
     print "evolving from step ", step + 1

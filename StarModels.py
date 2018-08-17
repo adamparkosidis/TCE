@@ -153,6 +153,10 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
         innerBinary.stars.position += outerBinary.stars[1].position
         innerBinary.stars.velocity += outerBinary.stars[1].velocity
 
+        # the inner binary's center of mass is the second star of the outer binary. so move the center of mass to that place.
+        innerBinary.stars.position += outerBinary.stars[1].position
+        innerBinary.stars.velocity += outerBinary.stars[1].velocity
+
         giant.position = outerBinary.stars[0].position
         giant.velocity = outerBinary.stars[0].velocity
 

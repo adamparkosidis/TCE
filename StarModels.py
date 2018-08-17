@@ -116,6 +116,14 @@ def SaveGas(savingPath,gas):
 def SaveDm(savingPath,dms):
     write_set_to_file(dms,savingPath, 'amuse')
 
+def GiantSPHCenterOfMassPosition(sphEnvelope, sphCore):
+    return (sphEnvelope.center_of_mass() * sphEnvelope.mass + sphCore.position * sphCore.mass) / (sphCore.mass + sphEnvelope.mass)
+
+def GiantSPHCenterOfMassVelocity(sphEnvelope, sphCore):
+    vx, vy, vz = sphEnvelope.center_of_mass_velocity()
+    starEnvelopeV = (vx, vy, vz)
+    return (starEnvelopeV * sphEnvelope.total_mass() +
+                      (sphCore.vx, sphCore.vy, sphCore.vz) * sphCore.mass) / (sphCore.mass + sphEnvelope.mass)
 
 def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposite=False):
     '''
@@ -125,6 +133,7 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
     '''
     print "using saved state file - {0}".format(savedVersionPath) , "config file: ", configurationFile
     giant = CreatePointStar(configurationFile,configurationSection="MainStar")
+    outerBinary = Binary(configurationFile, configurationSection="OuterBinary")
     if step > -1:
         starEnvelope= LoadGas(savedVersionPath + "/gas_{0}.amuse".format(step))
         load= LoadDm(savedVersionPath + "/dm_{0}.amuse".format(step))
@@ -135,17 +144,14 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
         innerBinary = Binary(particles=Particles(2, particles=[load[0], load[1]]))
         starMass = starEnvelope.total_mass() + starCore.mass
         giant.mass = starMass
-        vx, vy, vz = starEnvelope.center_of_mass_velocity()
-        starEnvelopeV = (vx, vy, vz)
-        giant.velocity = (starEnvelopeV * starEnvelope.total_mass() +
-                          (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass
+        giant.velocity = GiantSPHCenterOfMassVelocity(starEnvelope, starCore)
+        giant.position = GiantSPHCenterOfMassPosition(starEnvelope, starCore)
 
     else:
         starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
         load = LoadDm(savedVersionPath + "/dm.amuse")
         starCore=load[0]
         innerBinary = Binary(configurationFile, configurationSection="InnerBinary")
-        outerBinary = Binary(configurationFile, configurationSection="OuterBinary")
 
         starMass = starEnvelope.total_mass() + starCore.mass
         # the inner binary's center of mass is the second star of the outer binary. so move the center of mass to that place.
@@ -154,23 +160,24 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
 
         giant.position = outerBinary.stars[0].position
         giant.velocity = outerBinary.stars[0].velocity
-        
+
+        triple = innerBinary.stars
+        giantInSet = triple.add_particle(giant)
+        innerBinary.stars = triple - giantInSet
+
+        triple.position -= giantInSet.position
+        triple.velocity -= giantInSet.velocity
+
         #moving the main star back to the center
-        centerOfMassPos = (starCore.position*starCore.mass + starEnvelope.center_of_mass() * starEnvelope.total_mass())/ giant.mass
+        centerOfMassPos = GiantSPHCenterOfMassPosition(starEnvelope, starCore)
 
         #changing according to before relaxation, in case of an old state
         diffPosition = centerOfMassPos - giant.position
-        diffVelocity = (starCore.velocity*starCore.mass + starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass())/ starMass
+        diffVelocity = GiantSPHCenterOfMassVelocity(starEnvelope, starCore)
         starEnvelope.position -= diffPosition
         starCore.position -= diffPosition
         starEnvelope.velocity -= diffVelocity
         starCore.velocity -= diffVelocity
-
-        giant.mass = starMass
-        vx, vy, vz = starEnvelope.center_of_mass_velocity()
-        starEnvelopeV = (vx, vy, vz)
-        giant.velocity = (starEnvelopeV * starEnvelope.total_mass() +
-                          (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass
 
         if opposite: #0 star of the inner binary is the giant, not the core
             innerBinary.stars[0].mass = starMass
@@ -181,27 +188,11 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
             sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
             return starMass, starEnvelope, starCore, innerBinary, outerBinary, sphMetaData
 
-        else:
-            triple = innerBinary.stars
-            giantInSet = triple.add_particle(giant)
-            innerBinary.stars = triple - giantInSet
-            tripleSemmimajor = outerBinary.semimajorAxis
-
-            triple.position -= giantInSet.position
-            triple.velocity -= giantInSet.velocity
-
-
-    if step > -1:
-        tripleVelocityDifference = BinaryCalculations.CalculateVelocityDifference(innerBinary, giant)
-        tripleSeparation = BinaryCalculations.CalculateSeparation(innerBinary, giant)
-        tripleSemmimajor = BinaryCalculations.CalculateSemiMajor(tripleVelocityDifference, tripleSeparation,
-                                                             starMass + innerBinary.stars.total_mass())
-
     sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
     print innerBinary.stars
     print starCore
     
-    return starMass, starEnvelope, starCore, innerBinary, tripleSemmimajor, sphMetaData
+    return starMass, starEnvelope, starCore, innerBinary, outerBinary.semimajorAxis, sphMetaData
 
 def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
     '''

@@ -198,9 +198,10 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
 
     print "starting SPH " + adding
     print "evolving from step ", step + 1
+    print "beggining time: ", currentTime.as_quantity_in(units.day)
     if step ==-1:
         StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse", gas)
-        StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse".format(step+1), dm)
+        StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse", dm)
         print "pre state saved - {0}".format(savedVersionPath) + "/" + adding
     
     while currentTime < endTime:

@@ -248,7 +248,7 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
         print "center of mass velocity: ", starEnvelopeV * starEnvelope.total_mass() / starMass + (starCore.vx,starCore.vy,starCore.vz)*starCore.mass / starMass
         binary.stars[0].velocity = (starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass() +
                           (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass
-         print "(giant, star): ", binary.stars    
+        print "(giant, star): ", binary.stars
         sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
     return starEnvelope, starCore, binary, binary.semimajorAxis, sphMetaData
 

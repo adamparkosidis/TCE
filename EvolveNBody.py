@@ -199,7 +199,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     print "starting SPH " + adding
     print coupledSystem.dm_particles
     print "evolving from step ", step + 1
-    print "beggining time: ", coupledSystem.get_time()tru
+    print "beggining time: ", coupledSystem.get_time()
     if step ==-1:
         StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse", gas)
         StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse", dm)

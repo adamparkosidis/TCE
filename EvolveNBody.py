@@ -175,9 +175,12 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
             hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(2*10), numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
         else:
             hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(10), numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
+
+        hydroSystem.time = currentTime
         if not relax or takeCompanionInRelaxation:
             print "\nSetting up {0} to simulate triple system".format(dynamicsCode.__name__)
             binarySystem = DynamicsForBinarySystem(dynamicsCode, semmiMajor, stars.stars, outputDirectory=outputDirectory + "/dynamics")
+            binarySystem.time = currentTime
 
             print "\nSetting up Bridge to simulate triple system"
             coupledSystem = CoupledSystem(hydroSystem, binarySystem, endTime, timeSteps, currentTime, relax=relax, numberOfWorkers=numberOfWorkers, outputDirectory=outputDirectory + "/coupled")

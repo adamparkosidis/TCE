@@ -409,7 +409,7 @@ def PlotVelocity(sphGiant,core,binary,step, outputDir, vmin, vmax):
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
     pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
-    pynbody_sph.velocity_image(pyndata, width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax, title = str(i * 0.2) + " days")
+    pynbody_sph.velocity_image(pyndata, width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax, title = str(step * 0.2) + " days")
     UnitlessArgs.current_plot = native_plot.gca()
     #print core.mass
     #if core.mass != 0 |units.MSun:

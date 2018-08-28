@@ -120,10 +120,7 @@ def GiantSPHCenterOfMassPosition(sphEnvelope, sphCore):
     return (sphEnvelope.center_of_mass() * sphEnvelope.total_mass() + sphCore.position * sphCore.mass) / (sphCore.mass + sphEnvelope.total_mass())
 
 def GiantSPHCenterOfMassVelocity(sphEnvelope, sphCore):
-    vx, vy, vz = sphEnvelope.center_of_mass_velocity()
-    starEnvelopeV = (vx, vy, vz)
-    return (starEnvelopeV * sphEnvelope.total_mass() +
-                      (sphCore.vx, sphCore.vy, sphCore.vz) * sphCore.mass) / (sphCore.mass + sphEnvelope.total_mass())
+    return (sphCore.velocity*sphCore.mass + sphEnvelope.center_of_mass_velocity() * sphEnvelope.total_mass())/ (sphEnvelope.total_mass() + sphCore.mass)
 
 def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposite=False):
     '''
@@ -173,7 +170,7 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
 
         #changing according to before relaxation, in case of an old state
         diffPosition = centerOfMassPos - giant.position
-        diffVelocity = GiantSPHCenterOfMassVelocity(starEnvelope, starCore)
+        diffVelocity = GiantSPHCenterOfMassVelocity(starEnvelope, starCore) - giantInSet.velocity
         starEnvelope.position -= diffPosition
         starCore.position -= diffPosition
         starEnvelope.velocity -= diffVelocity

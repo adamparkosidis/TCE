@@ -169,13 +169,17 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
         centerOfMassPos = GiantSPHCenterOfMassPosition(starEnvelope, starCore)
 
         #changing according to before relaxation, in case of an old state
-        diffPosition = centerOfMassPos - giant.position
+        diffPosition = centerOfMassPos - giantInSet.position
         diffVelocity = GiantSPHCenterOfMassVelocity(starEnvelope, starCore) - giantInSet.velocity
+
         starEnvelope.position -= diffPosition
         starCore.position -= diffPosition
         starEnvelope.velocity -= diffVelocity
         starCore.velocity -= diffVelocity
-
+        print "binary position :", innerBinary.stars.center_of_mass()
+        print"new center of mass position: ", (GiantSPHCenterOfMassPosition(starEnvelope, starCore)).as_quantity_in(units.AU)
+        print "new core position: ", starCore.position.as_quantity_in(units.AU)
+        print (GiantSPHCenterOfMassPosition(starEnvelope, starCore) - innerBinary.stars.center_of_mass()).as_quantity_in(units.AU)
         if opposite: #0 star of the inner binary is the giant, not the core
             innerBinary.stars[0].mass = starMass
             innerBinary.stars.velocity += giant.velocity

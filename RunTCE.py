@@ -50,7 +50,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                               numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=10)
     starCore = dmStars[-1]
     #starCore.radius = sphStar.core_particle.radius
-
+    print starCore
     #moving the main star back to the center
     centerOfMassPos = (starCore.position*starCore.mass + starEnvelope.center_of_mass() * starEnvelope.total_mass())/ giant.mass
     centerOfMassV = (starCore.velocity*starCore.mass + starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass())/ giant.mass
@@ -62,6 +62,8 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     starCore.velocity -= diffVelocity
     dmStars[-1].position = starCore.position
     dmStars[-1].velocity = starCore.velocity
+    print diffPosition
+    print starCore
     sphMetaData = StarModels.SphMetaData(sphStar)
 
     #saved state
@@ -107,7 +109,7 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
     EvolveNBody.Run(totalMass= starMass + binary.stars.total_mass(),
                     semmiMajor= tripleSemmimajor, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=binary,
-                    endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
+                    endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= 7 , step= step,
                     savedVersionPath=savedVersionPath, saveAfterMinute= 0)
 
     print "****************** Simulation Completed ******************"

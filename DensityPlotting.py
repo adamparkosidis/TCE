@@ -678,7 +678,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
 
 
 def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False, opposite= False,  axesOriginInInnerBinaryCenterOfMass= False):
-    separationStep = multiprocessing.Value('f')
+    separationStep = multiprocessing.Value('i')
     if lastStep == 0 : # no boundary on last step
         lastStep = len(dmFiles)
     print lastStep
@@ -751,7 +751,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         newInnerMass.append(float(innerMass[j]) | units.MSun)
         newInnerMass1.append(float(innerMass1[j]) | units.MSun)
         newInnerMass2.append(float(innerMass2[j]) | units.MSun)
-    separationStep = int(separationStep)
+    separationStep = int(separationStep.value)
 
     PlotBinaryDistance([(newBinaryDistances, "InnerBinaryDistances"), (newTripleDistances, "tripleDistances"), (newTriple1Distances, "triple1Distances"),
                         (newTriple2Distances, "triple2Distances")], outputDir + "/graphs", beginStep)

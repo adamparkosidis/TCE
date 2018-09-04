@@ -845,7 +845,7 @@ def compare(st1, st2):
 def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0,1e16,1e34, 1]):
     savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, axesOriginInInnerBinaryCenterOfMass, opposite = GetArgs(args)
     print "plotting to " +  outputDir + " plot- " + str(plot) +  " from " +  savingDir +" begin step = " , beginStep , \
-        " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare
+        " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare, "axes at the origin? ", axesOriginInInnerBinaryCenterOfMass, "opossite? ", opposite
     try:
         os.makedirs(outputDir)
     except(OSError):

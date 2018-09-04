@@ -797,16 +797,16 @@ def GetArgs(args):
     else:
         plot = False
     if len(args) >8:
+        axesOriginInInnerBinaryCenterOfMass = bool(int(args[8]))
+    else:
+        axesOriginInInnerBinaryCenterOfMass = False
+    if len(args) >9:
         opposite = True
     else:
         opposite = False
-    if len(args) >9:
-        axesOriginInInnerBinaryCenterOfMass = True
-    else:
-        axesOriginInInnerBinaryCenterOfMass = False
 
     outputDir = savingDir + "/pics"
-    return savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, opposite, axesOriginInInnerBinaryCenterOfMass
+    return savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, axesOriginInInnerBinaryCenterOfMass, opposite
 
 def InitializeSnapshots(savingDir, toCompare=False):
     '''
@@ -843,7 +843,7 @@ def compare(st1, st2):
 
 
 def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0,1e16,1e34, 1]):
-    savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, opposite, axesOriginInInnerBinaryCenterOfMass = GetArgs(args)
+    savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, axesOriginInInnerBinaryCenterOfMass, opposite = GetArgs(args)
     print "plotting to " +  outputDir + " plot- " + str(plot) +  " from " +  savingDir +" begin step = " , beginStep , \
         " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare
     try:

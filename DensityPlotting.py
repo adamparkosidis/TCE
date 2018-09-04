@@ -612,7 +612,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             binary[1].position -= centerOfMassPosition
             binary[1].velocity  -= centerOfMassVelocity
             if axesOriginInInnerBinaryCenterOfMass:
-                PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax, width= 30.0 * 3.0 | units.RSun)
+                PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin=5e29, vmax= vmax, width= 30.0 * 3.0 | units.RSun)
             else:
                 PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax, width= 4.0 | units.AU)
             PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)

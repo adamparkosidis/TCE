@@ -43,7 +43,7 @@ class Star:
         self.vx = (particle1.vx* particle1.mass + particle2.vx * particle2.mass)/(particle1.mass + particle2.mass)
         self.vy = (particle1.vy* particle1.mass + particle2.vy * particle2.mass)/(particle1.mass + particle2.mass)
         self.vz = (particle1.vz* particle1.mass + particle2.vz * particle2.mass)/(particle1.mass + particle2.mass)
-        self.v = CalculateVectorSize((self.vx,self.vy,self.vz))
+        self.velocity =(self.vx.value_in(units.m / units.s), self.vy.value_in(units.m / units.s), self.vz.value_in(units.m / units.s)) | units.m / units.s
         self.x = (particle1.x* particle1.mass + particle2.x * particle2.mass)/(particle1.mass + particle2.mass)
         self.y = (particle1.y * particle1.mass + particle2.y * particle2.mass)/(particle1.mass + particle2.mass)
         self.z = (particle1.z * particle1.mass + particle2.z * particle2.mass)/(particle1.mass + particle2.mass)
@@ -363,14 +363,14 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False, plotDust
 
 
 
-def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, dustRadius=700 | units.RSun):
+def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, dustRadius=700 | units.RSun, width = 4.0 | units.AU):
     if not HAS_PYNBODY:
         print "problem plotting"
         return
     figure = pyplot.figure(figsize=(18,18))
     #width = 0.08 * sphGiant.position.lengths_squared().amax().sqrt()
     #width = 5.0 * sphGiant.position.lengths_squared().amax().sqrt()
-    width = 4.0 | units.AU
+    #width = 4.0 | units.AU
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
     pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
@@ -514,7 +514,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                        binaryDistances, tripleDistances, triple1Distances, triple2Distances,
                        aInners, aOuters, aOuters1, aOuters2,
                        eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, separationStep,
-                       toPlot = False, opposite= False):
+                       toPlot = False, opposite= False, axesOriginInInnerBinaryCenterOfMass= False):
 
     for i in [j - beginStep for j in chunk]:
         print time.ctime(), "step: ", i
@@ -532,7 +532,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
 
         #change the position and velocity of center of mass to 0
         centerOfMassPosition = (sphGiant.position * sphGiant.mass + innerBinary.position * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
-        centerOfMassVelocity = (sphGiant.v * sphGiant.mass + innerBinary.v * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
+        centerOfMassVelocity = (sphGiant.v * sphGiant.mass + innerBinary.velocity * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
         print "center of mass position: ", centerOfMassPosition
         print "center of mass velocity: ", centerOfMassVelocity
 
@@ -600,6 +600,9 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
         print time.ctime(), "finished temperature plotting of step: ", i
         if toPlot:
+            if axesOriginInInnerBinaryCenterOfMass:
+                centerOfMassPosition = innerBinary.position
+                centerOfMassVelocity = innerBinary.velocity
             sphGiant.gasParticles.position -= centerOfMassPosition
             sphGiant.gasParticles.velocity -= centerOfMassVelocity
             sphGiant.core.position -= centerOfMassPosition
@@ -608,7 +611,10 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             binary[0].velocity  -= centerOfMassVelocity
             binary[1].position -= centerOfMassPosition
             binary[1].velocity  -= centerOfMassVelocity
-            PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
+            if axesOriginInInnerBinaryCenterOfMass:
+                PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax, width= 30.0 * 3.0 | units.RSun)
+            else:
+                PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax, width= 4.0 | units.AU)
             PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
 
         #close opened handles
@@ -671,7 +677,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
 
 
 
-def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False, opposite= False):
+def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False, opposite= False,  axesOriginInInnerBinaryCenterOfMass= False):
     separationStep = multiprocessing.Value('f')
     if lastStep == 0 : # no boundary on last step
         lastStep = len(dmFiles)
@@ -715,7 +721,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         processes.append(multiprocessing.Process(target= AnalyzeTripleChunk,args=(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vmax, beginStep,
                        binaryDistances, tripleDistances, triple1Distances, triple2Distances,
                        aInners, aOuters, aOuters1, aOuters2,
-                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, separationStep, toPlot, opposite, )))
+                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, separationStep, toPlot, opposite, axesOriginInInnerBinaryCenterOfMass,)))
     for p in processes:
         p.start()
     for p in processes:
@@ -794,8 +800,13 @@ def GetArgs(args):
         opposite = True
     else:
         opposite = False
+    if len(args) >9:
+        axesOriginInInnerBinaryCenterOfMass = True
+    else:
+        axesOriginInInnerBinaryCenterOfMass = False
+
     outputDir = savingDir + "/pics"
-    return savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, opposite
+    return savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, opposite, axesOriginInInnerBinaryCenterOfMass
 
 def InitializeSnapshots(savingDir, toCompare=False):
     '''
@@ -832,7 +843,7 @@ def compare(st1, st2):
 
 
 def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0,1e16,1e34, 1]):
-    savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, opposite = GetArgs(args)
+    savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, opposite, axesOriginInInnerBinaryCenterOfMass = GetArgs(args)
     print "plotting to " +  outputDir + " plot- " + str(plot) +  " from " +  savingDir +" begin step = " , beginStep , \
         " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare
     try:
@@ -857,7 +868,7 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
         print "analyzing binary"
         AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, plot, plotDust=False)
     elif numberOfCompanion ==3: #triple
-        AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, plot, opposite)
+        AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, plot, opposite, axesOriginInInnerBinaryCenterOfMass)
 
 if __name__ == "__main__":
     for arg in sys.argv:

@@ -384,7 +384,9 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
     #pyplot.xlim(-5,-2)
     if core.mass != 0 | units.MSun:
         print core.x.as_quantity_in(units.AU), core.y.as_quantity_in(units.AU)
-        scatter(core.x, core.y, c="r")
+        if core.x >= -1* width / 2.0 and core.x <= width/ 2.0 and core.y >= -1 * width/ 2.0 and core.y <= width / 2.0:
+            #both coordinates are inside the boundaries- otherwise dont plot it
+            scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
     print binary.x.as_quantity_in(units.AU), binary.y.as_quantity_in(units.AU)
     #pyplot.xlim(-930, -350)

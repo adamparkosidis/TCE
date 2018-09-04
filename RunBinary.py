@@ -130,6 +130,6 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
 if __name__ == "__main__":
     args = sys.argv
     if len(args) > 1:
-        Start(savedVersionPath=args[1],takeSavedState=args[2], step=int(args[3]), configurationFile=args[1] + "/PassyConfiguration.ini")
+        Start(savedVersionPath=args[1],takeSavedState=args[2], step=int(args[3]), configurationFile=args[1] + "/BinaryConfiguration.ini")
     else:
         Start(takeSavedState="Evolve", step=1625)

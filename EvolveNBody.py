@@ -62,7 +62,7 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
         system.parameters.eps_is_h_flag = True
     else:
         system.parameters.gadget_output_directory = outputDirectory
-    system.parameters.begin_time = beginTime
+    #system.parameters.begin_time = beginTime
     system.parameters.time_limit_cpu = 7200000000 | units.s
     core.radius = core_radius * 20
     print "core radius:",core.radius.as_string_in(units.RSun), core.radius
@@ -159,6 +159,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
 
     timeStep = endTime / timeSteps
     currentTime = 0.0 | units.Myr
+    currentSimulationTime = currentTime
 
     if step!= -1:
         currentTime = step * timeStep
@@ -176,7 +177,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
         else:
             hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(10), numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
 
-        hydroSystem.time = currentTime
+        #hydroSystem.time = currentTime
         if not relax or takeCompanionInRelaxation:
             print "\nSetting up {0} to simulate triple system".format(dynamicsCode.__name__)
             binarySystem = DynamicsForBinarySystem(dynamicsCode, semmiMajor, stars.stars, outputDirectory=outputDirectory + "/dynamics")
@@ -198,11 +199,12 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     #    sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[0]*2) #sink radius is the particle radius * 2
 
     currentSecond = time.time()
-    coupledSystem.time = currentTime
+    #coupledSystem.time = currentTime
+    coupledSystem.commit_parameters()
     print "starting SPH " + adding
     print coupledSystem.dm_particles
     print "evolving from step ", step + 1
-    print "beggining time: ", coupledSystem.time
+    print "beggining time: ", coupledSystem.time + currentTime
     if step ==-1:
         StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse", gas)
         StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse", dm)
@@ -243,9 +245,10 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
             secondBinaryCOM = secondBinary.center_of_mass()
             secondBinaryOldSep = BinaryCalculations.CalculateVectorSize(secondBinaryCOM - Particles(particles=[coupledSystem.dm_particles[0]]).center_of_mass())
 
-        coupledSystem.evolve_model(currentTime + timeStep)
+        coupledSystem.evolve_model(currentSimulationTime + timeStep)
         print "   Evolved to:", (currentTime + timeStep).as_quantity_in(units.day)
         currentTime += timeStep
+        currentSimulationTime += timeStep
         if (time.time() - currentSecond) > saveAfterMinute * 60:
             if savedVersionPath != "":
                 StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step), coupledSystem.gas_particles)
@@ -319,6 +322,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
 
     timeStep = endTime / timeSteps
     currentTime = 0.0 | units.Myr
+    currentSimulationTime = currentTime
 
     if step != -1:
         currentTime = step * timeStep
@@ -373,9 +377,10 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
         #else:
         #    sinks.accrete(coupledSystem.gas_particles)
 
-        coupledSystem.evolve_model(currentTime + timeStep)
+        coupledSystem.evolve_model(currentSimulationTime + timeStep)
         print "   Evolved to:", (currentTime + timeStep).as_quantity_in(units.day)
         currentTime += timeStep
+        currentSimulationTime += timeStep
         if (time.time() - currentSecond) > saveAfterMinute * 60:
             if savedVersionPath != "":
                 StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step+1), coupledSystem.gas_particles)

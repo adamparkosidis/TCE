@@ -478,6 +478,12 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             print "merger between companion and the giant! step: ", i + beginStep
             #break
 
+        for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
+            try:
+                f.close()
+            except:
+                pass
+            
         if isBinary:
             #semmimajor = CalculateSemiMajor(CalculateVelocityDifference(companion, sphGiant.core), CalculateSeparation(companion, sphGiant.core),companion.mass + sphGiant.core.mass).as_quantity_in(units.AU)
             #CalculateEccentricity(companion, sphGiant.core)
@@ -571,7 +577,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
                 print "triple2 is breaking up", triple2.specificEnergy, i * 1400/7000.0
 
-            if separationStep == 0:
+            if separationStep == 0 || separationStep > i:
                 separationStep = i
 
         #all the three are connected

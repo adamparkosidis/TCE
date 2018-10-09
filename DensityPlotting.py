@@ -577,8 +577,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
                 print "triple2 is breaking up", triple2.specificEnergy, i * 1400/7000.0
 
-            if separationStep == 0 || separationStep > i:
-                separationStep = i
+            separationStep=0
 
         #all the three are connected
         print time.ctime(), "beginning innerGas calculations of step ", i

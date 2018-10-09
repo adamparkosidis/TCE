@@ -200,7 +200,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
 
     currentSecond = time.time()
     #coupledSystem.time = currentTime
-    coupledSystem.commit_parameters()
+    #coupledSystem.commit_parameters()
     print "starting SPH " + adding
     print coupledSystem.dm_particles
     print "evolving from step ", step + 1

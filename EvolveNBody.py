@@ -80,6 +80,7 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     print system.parameters.gas_epsilon
     print system.parameters.timestep
     print system.parameters.begin_time
+    print system.parameters.time_max
     print "output directory: ", system.parameters.gadget_output_directory
     return system
 
@@ -376,7 +377,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
             particles.velocity = relaxingVFactor * (particles.velocity - particles.center_of_mass_velocity()) + centerOfMassV
         #else:
         #    sinks.accrete(coupledSystem.gas_particles)
-
+        print "system time: ", coupledSystem.get_time()
         coupledSystem.evolve_model(currentSimulationTime + timeStep)
         print "   Evolved to:", (currentTime + timeStep).as_quantity_in(units.day)
         currentTime += timeStep

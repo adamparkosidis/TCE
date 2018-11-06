@@ -41,10 +41,7 @@ def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary, outputDirectory="/
     return system
 
 def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius, numberOfWorkers = 1, outputDirectory=""):
-    if sphCode.__name__ =="Gadget2":
-        unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*1000*2)
-    else:
-        unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*1000)
+    unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*100)
     print "preparing the system with ",numberOfWorkers, " workers"
     if outputDirectory == "":
         outputDirectory = "code_output"
@@ -64,7 +61,6 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
         system.parameters.gadget_output_directory = outputDirectory
     #system.parameters.begin_time = beginTime
     system.parameters.time_limit_cpu = 7200000000 | units.s
-    core.radius = core_radius * 20
     print "core radius:",core.radius.as_string_in(units.RSun), core.radius
     system.dm_particles.add_particle(core)
     print "core added to hydro"
@@ -97,6 +93,7 @@ def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = 
     print "kicker code intialized"
     epsilonSquared = (hydroSystem.dm_particles.radius[0]/ 2.8)**2
     kickerCode.parameters.epsilon_squared = epsilonSquared
+    print epsilonSquared
     kickFromBinary = CalculateFieldForCodesUsingReinitialize(kickerCode, (binarySystem,))
     print "creating bridge"
     coupledSystem = Bridge(timestep=(t_end / (2 * n_steps)), verbose=False, use_threading= not relax)
@@ -171,12 +168,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec))
         os.makedirs(outputDirectory)
-        if step == -1 and relax:# the radius of the core is now 10 times the real one becuase of epsilon = 10r_c
-            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
-        elif sphCode.__name__ =="Gadget2":# if its not the first step we shouldn't multiply by 20 again...
-            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(2*10), numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
-        else:
-            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(10), numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
+        hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
 
         #hydroSystem.time = currentTime
         if not relax or takeCompanionInRelaxation:
@@ -201,7 +193,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
 
     currentSecond = time.time()
     #coupledSystem.time = currentTime
-    #coupledSystem.commit_parameters()
+    print "starting SPH " + adding
     print "starting SPH " + adding
     print coupledSystem.dm_particles
     print "evolving from step ", step + 1
@@ -284,7 +276,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
 
     Args:
         totalMass: total sph star mass
-        semmiMajor: semmimajor of the binary
+        semmiMajor: semmimajor of the binary, there is no use here
         sphEnvelope: gas
         sphCore: core
         stars: the binary
@@ -334,12 +326,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec))
         os.makedirs(outputDirectory)
-        if step == -1 and relax:
-            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
-        elif sphCode.__name__ =="Gadget2": # if its not the first step we shouldn't multiply by 20 again...
-            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(2*10), numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
-        else:
-            hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius/(10), numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
+        hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
         if not relax or takeCompanionInRelaxation:
             hydroSystem.dm_particles.add_particle(stars.stars[-1])
             coupledSystem = hydroSystem

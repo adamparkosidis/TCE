@@ -331,8 +331,9 @@ class GifWriter:
 
         # Iterate over images
         prev = ims[0]
+        i = -1
         for im in ims[1:]:
-
+            i += 1
             # Get difference, sum over colors
             diff = np.abs(im-prev)
             if diff.ndim==3:
@@ -340,6 +341,10 @@ class GifWriter:
             # Get begin and end for both dimensions
             X = np.argwhere(diff.sum(0))
             Y = np.argwhere(diff.sum(1))
+            print "-----------------------"
+            print i
+            print diff
+            print "x: ",X
             # Get rect coordinates
             if X.size and Y.size:
                 x0, x1 = X[0], X[-1]+1
@@ -349,6 +354,7 @@ class GifWriter:
                 y0, y1 = 0, 2
 
             # Cut out and store
+            print y0, y1, x0, x1 
             im2 = im[y0:y1,x0:x1]
             prev = im
             ims2.append(im2)

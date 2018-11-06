@@ -65,7 +65,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     print diffPosition
     print starCore
     sphMetaData = StarModels.SphMetaData(sphStar)
-
+    
     #saved state
     StarModels.SaveState(savedPath, starEnvelope.total_mass() + starCore.mass, starEnvelope, dmStars, outerBinary.semimajorAxis, sphMetaData)
 

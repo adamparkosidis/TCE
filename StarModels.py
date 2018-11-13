@@ -110,10 +110,14 @@ def LoadDm(savedDm):
     return dms
 
 def SaveGas(savingPath,gas):
-     write_set_to_file(gas, savingPath, format='amuse')
+    if os.path.exists(savingPath):
+        os.remove(savingPath)
+    write_set_to_file(gas, savingPath, format='amuse')
 
 
 def SaveDm(savingPath,dms):
+    if os.path.exists(savingPath):
+        os.remove(savingPath)
     write_set_to_file(dms,savingPath, 'amuse')
 
 def GiantSPHCenterOfMassPosition(sphEnvelope, sphCore):

@@ -65,6 +65,7 @@ class SphStar:
             self.gas_particles.velocity += pointStar.velocity
             self.core_particle.position += pointStar.position
             self.core_particle.velocity += pointStar.velocity
+            print "core:" ,self.core_particle
 
 
 

@@ -40,6 +40,20 @@ def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary, outputDirectory="/
     system.particles.add_particles(binary)
     return system
 
+def FindSmallestCell(gas):
+        smallestRadius = gas.total_radius()
+        for gasParticle in gas:
+            if gasParticle.radius < smallestRadius:
+                smallestRadius = gasParticle.radius
+        return smallestRadius
+
+def FindLowestNumberOfNeighbours(gas):
+        numberOfNeighbours = len(gas)
+        for gasParticle in gas:
+            if gasParticle.num_neighbours < numberOfNeighbours:
+                numberOfNeighbours = gasParticle.num_neighbours
+        return numberOfNeighbours
+
 def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius, numberOfWorkers = 1, outputDirectory=""):
     unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*100)
     print "preparing the system with ",numberOfWorkers, " workers"
@@ -168,7 +182,11 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec))
         os.makedirs(outputDirectory)
-        hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
+        if relax:
+            coreParticleRadius = sphCore.radius * 20.0
+        else:
+            coreParticleRadius = sphCore.radius
+        hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, coreParticleRadius, numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
 
         #hydroSystem.time = currentTime
         if not relax or takeCompanionInRelaxation:

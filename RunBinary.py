@@ -31,7 +31,7 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                     semmiMajor= binary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
                                              stars=binary, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
-                                              numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=5, takeCompanionInRelaxation= False)
+                                              numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=5, takeCompanionInRelaxation= True)
     starCore = dmStars[0]
     starCore.radius = sphStar.core_particle.radius
 

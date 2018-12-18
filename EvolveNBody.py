@@ -183,7 +183,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
                             str(time.localtime().tm_sec))
         os.makedirs(outputDirectory)
         if relax:
-            coreParticleRadius = sphCore.radius * 20.0
+            coreParticleRadius = sphCore.radius * 10.0 * (250.0 * 1000.0 / len(sphEnvelope)) # will be 10 for 250K, 5 for 500K and less for better resolution
         else:
             coreParticleRadius = sphCore.radius
         hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, coreParticleRadius, numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
@@ -344,7 +344,11 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec))
         os.makedirs(outputDirectory)
-        hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, sphCore.radius, numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
+        if relax:
+            coreParticleRadius = sphCore.radius * 10.0 * (250.0 * 1000.0 / len(sphEnvelope)) # will be 10 for 250K, 5 for 500K and less for better resolution
+        else:
+            coreParticleRadius = sphCore.radius
+        hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, coreParticleRadius, numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
         if not relax or takeCompanionInRelaxation:
             hydroSystem.dm_particles.add_particle(stars.stars[-1])
             coupledSystem = hydroSystem

@@ -224,8 +224,8 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
         starMass = starEnvelope.total_mass() + starCore.mass
 
         #changing according to before relaxation
-        diffPosition = starCore.position - binary.stars[0].position
-        diffVelocity = (starCore.velocity*starCore.mass + starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass())/ starMass
+        diffPosition = GiantSPHCenterOfMassPosition(starEnvelope,starCore) - binary.stars[0].position
+        diffVelocity = GiantSPHCenterOfMassVelocity(starEnvelope,starCore) - binary.stars[0].velocity
         starEnvelope.position -= diffPosition
         starCore.position -= diffPosition
         starEnvelope.velocity -= diffVelocity
@@ -233,14 +233,10 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
 
         #changing the mass to the one after relaxation
         binary.stars[0].mass = starMass
-        vx, vy, vz = starEnvelope.center_of_mass_velocity()
-        starEnvelopeV = (vx, vy, vz)
-        print starEnvelopeV * starEnvelope.total_mass() / starMass + (starCore.vx,starCore.vy,starCore.vz)*starCore.mass / starMass
-        binary.stars[0].velocity = (starEnvelopeV * starEnvelope.total_mass() +
-                          (starCore.vx, starCore.vy, starCore.vz) * starCore.mass) / starMass
-
-
-        print "(giant, star): ", binary.stars    
+        print "giant expected velocity: ", binary.stars[0].velocity
+        binary.stars[0].velocity = GiantSPHCenterOfMassVelocity(starEnvelope,starCore)
+        print "giant actual velocity:", binary.stars[0].velocity
+        print "(giant, star): ", binary.stars
         sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
     return starEnvelope, starCore, binary, binary.semimajorAxis, sphMetaData
 

@@ -9,6 +9,7 @@ from amuse.ext.star_to_sph import pickle_stellar_model
 from amuse.datamodel import Particles
 from amuse.io import read_set_from_file
 import StarModels
+from StarModels import GiantSPHCenterOfMassVelocity, GiantSPHCenterOfMassPosition
 import EvolveNBody
 
 
@@ -35,16 +36,19 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     starCore.radius = sphStar.core_particle.radius
 
     sphMetaData = StarModels.SphMetaData(sphStar)
-    #save state after relaxation
-    StarModels.SaveState(savedPath, starEnvelope.total_mass() + starCore.mass, starEnvelope, dmStars, binary.semimajorAxis, sphMetaData)
+
 
     #moving the main star back to the center
-    diffPosition = starCore.position - giant.position
-    diffVelocity = (starCore.velocity*starCore.mass + starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass())/ giant.mass
+    diffPosition = GiantSPHCenterOfMassPosition(starEnvelope, starCore) - giant.position
+    diffVelocity = GiantSPHCenterOfMassVelocity(starEnvelope, starCore) - giant.velocity
     starEnvelope.position -= diffPosition
     starCore.position -= diffPosition
     starEnvelope.velocity -= diffVelocity
     starCore.velocity -= diffVelocity
+
+    #save state after relaxation
+    StarModels.SaveState(savedPath, starEnvelope.total_mass() + starCore.mass, starEnvelope, dmStars, binary.semimajorAxis, sphMetaData)
+
 
     return starEnvelope, starCore, binary, binary.semimajorAxis, sphMetaData
 

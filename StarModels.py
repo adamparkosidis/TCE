@@ -223,8 +223,8 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
         starCore=load[0]
         starMass = starEnvelope.total_mass() + starCore.mass
 
-        binary.position -= binary.stars[0].position
-        binary.velocity -= binary.stars[0].velocity
+        binary.stars.position -= binary.stars[0].position
+        binary.stars.velocity -= binary.stars[0].velocity
 
         #changing according to before relaxation
         diffPosition = GiantSPHCenterOfMassPosition(starEnvelope,starCore) - binary.stars[0].position

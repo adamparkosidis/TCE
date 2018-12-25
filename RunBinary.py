@@ -22,7 +22,12 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     binary = StarModels.Binary(configurationFile, configurationSection="Binary")
     binary.stars.radius = binary.radius
     giant = binary.stars[0]
+
+    #put the giant in the center
+    binary.position -= giant.position
+    binary.velocity -= giant.velocity
     print "giant: ", giant
+
     #create the sph giant
     sphStar = StarModels.SphStar(giant, configurationFile,configurationSection="MainStar",
                                 savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)

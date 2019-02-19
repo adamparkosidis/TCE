@@ -9,7 +9,7 @@ from amuse.datamodel import Particle
 from amuse.ext import orbital_elements
 from amuse.plot import plot, native_plot, sph_particles_plot
 
-import EvolveNBody, BinaryCalculations, StarFromMesaCSV
+import EvolveNBody, BinaryCalculations, StarFromMesaCSVFile
 
 
 def CreatePointStar(configurationFile="", configurationSection=""):
@@ -53,7 +53,7 @@ class SphStar:
             if takeSavedMesa:
                 print "taking save state from: ", savedMesaStarPath + "/" + MESA.__name__
                 if savedMesaStarPath.split('.')[-1] == "csv":
-                    mesaStar = StarFromMesaCSV.GetStar(savedMesaStarPath)
+                    mesaStar = StarFromMesaCSVFile.GetStar(savedMesaStarPath)
                     self.sphStar = convert_stellar_model_to_SPH(mesaStar, self.sphParticles, do_relax = False, with_core_particle=True,
                                                     target_core_mass = mesaStar.core_mass, base_grid_options=dict(type="fcc"))
                 else:

@@ -55,7 +55,7 @@ def FindLowestNumberOfNeighbours(gas):
         return numberOfNeighbours
 
 def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius, numberOfWorkers = 1, outputDirectory=""):
-    unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*1000)
+    unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*100)
     print "preparing the system with ",numberOfWorkers, " workers"
     if outputDirectory == "":
         outputDirectory = "code_output"

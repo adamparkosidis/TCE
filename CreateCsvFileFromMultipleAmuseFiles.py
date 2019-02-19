@@ -95,6 +95,8 @@ if __name__ == "__main__":
         numberOfSnapshots = len(snapshots) / 2
     else:
         numberOfSnapshots = args.last
+    if args.time_step is None:
+        args.time_step = 0.2 | units.day
     for n in xrange(args.first, numberOfSnapshots + 1):
         csvData += GetValuesOfBinaryParticle(GetBinaryStateFromFile(args.source_dir, str(n))) + ", " + GetTimeOfFile(n, args.time_step | units.day)\
                    + "\r\n"

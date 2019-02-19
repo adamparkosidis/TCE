@@ -24,7 +24,7 @@ def main(args):
                                "--mail-type=ALL --mail-user=hilaglanz@gmail.com" \
                                "mpiexec -n 1 /usr/local/astro/amuse/11.2/./amuse-new.sh " + args.FILETORUN + " " + \
                                jobOutputs + " " + args.SNAPSHOTS_DIR + " " + str(i) + " " + str(i+chunkSize) + " " + \
-                               args.V_MIN + " " + args.V_MAX + " " + args.PLOT
+                               args.V_MIN + " " + args.V_MAX + " " + str(args.PLOT)
         process = subprocess.Popen(submitionBashCommand, stdout= subprocess.PIPE)
         output, error = process.communicate()
 

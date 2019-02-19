@@ -1,4 +1,6 @@
 import os, io
+import gc
+import h5py
 import argparse
 from amuse.io import  read_set_from_file
 from amuse.units import units
@@ -100,6 +102,9 @@ if __name__ == "__main__":
     for n in xrange(args.first, numberOfSnapshots + 1):
         csvData += GetValuesOfBinaryParticle(GetBinaryStateFromFile(args.source_dir, str(n))) + ", " + GetTimeOfFile(n, args.time_step | units.day)\
                    + "\r\n"
+        for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
+            try:
+                f.close()
 
     file = open(args.source_dir + "/resultCSV.csv", mode="w")
     file.write(csvData)

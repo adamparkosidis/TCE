@@ -105,6 +105,8 @@ if __name__ == "__main__":
         for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
             try:
                 f.close()
+            except:
+                pass
 
     file = open(args.source_dir + "/resultCSV.csv", mode="w")
     file.write(csvData)

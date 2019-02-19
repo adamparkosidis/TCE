@@ -1,4 +1,4 @@
-import os, io
+import os, io, glob
 import gc
 import h5py
 import argparse
@@ -93,10 +93,11 @@ if __name__ == "__main__":
     csvData = GetHeadersOfBinaryParticles(firstBinary) + ",time" + "\r\n"
 
     if args.last == 0:
-        snapshots = os.listdir(args.source_dir)
-        numberOfSnapshots = len(snapshots) / 2
+        snapshots = glob.glob(args.source_dir + "/dm*.amuse")
+        numberOfSnapshots = len(snapshots)
     else:
         numberOfSnapshots = args.last
+    print numberOfSnapshots
     if args.time_step is None:
         args.time_step = 0.2 | units.day
     for n in xrange(args.first, numberOfSnapshots):

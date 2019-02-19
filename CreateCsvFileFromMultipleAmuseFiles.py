@@ -88,9 +88,14 @@ if __name__ == "__main__":
     parser = InitParser()
     args = parser.parse_args()
     firstBinary = GetBinaryStateFromFile(args.source_dir, str(args.first))
-    csvData= GetHeadersOfBinaryParticles(firstBinary) + ",time" + "\r\n"
+    csvData = GetHeadersOfBinaryParticles(firstBinary) + ",time" + "\r\n"
 
-    for n in xrange(args.first, args.last + 1):
+    if args.last == 0:
+        snapshots = os.listdir(args.source_dir)
+        numberOfSnapshots = len(snapshots) / 2
+    else:
+        numberOfSnapshots = args.last
+    for n in xrange(args.first, numberOfSnapshots + 1):
         csvData += GetValuesOfBinaryParticle(GetBinaryStateFromFile(args.source_dir, str(n))) + ", " + GetTimeOfFile(n, args.time_step | units.day)\
                    + "\r\n"
 

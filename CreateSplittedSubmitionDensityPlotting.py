@@ -12,8 +12,11 @@ def main(args):
 
     for i in xrange(args.BEGIN_STEP,args.LAST_STEP,chunkSize):
         jobName = "density" + args.RADII + str(i)
+        innerDir = args.INNER_DIR
+        if innerDir is None:
+            innerDir = ""
         jobOutputs = os.path.join(args.SIMULATIONS_DIR, args.RADII, str(args.GIANT_MASS)+"MSun",str(args.PHASE)+"Phase",
-                                  str(args.INNER_SEPARATION)+"RSun",str(args.INCLINATION)+"inclin", args.INNER_DIR)
+                                  str(args.INNER_SEPARATION)+"RSun",str(args.INCLINATION)+"inclin", innerDir)
         jobOutput = os.path.join(jobOutputs,jobName + ".out.txt")
         jobError = os.path.join(jobOutputs,jobName + ".err.txt")
         submitionBashCommand = "sbatch -n 18 -N 1 --mem-per-cpu=10G -J " + jobName +\

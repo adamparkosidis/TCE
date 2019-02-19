@@ -99,7 +99,7 @@ if __name__ == "__main__":
         numberOfSnapshots = args.last
     if args.time_step is None:
         args.time_step = 0.2 | units.day
-    for n in xrange(args.first, numberOfSnapshots + 1):
+    for n in xrange(args.first, numberOfSnapshots):
         csvData += GetValuesOfBinaryParticle(GetBinaryStateFromFile(args.source_dir, str(n))) + ", " + GetTimeOfFile(n, args.time_step | units.day)\
                    + "\r\n"
         for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:

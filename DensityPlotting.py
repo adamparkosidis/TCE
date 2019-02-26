@@ -40,15 +40,19 @@ class Star:
             self.mass = 0.0 | units.kg
 
     def Star(self,particle1,particle2):
-        self.vx = (particle1.vx* particle1.mass + particle2.vx * particle2.mass)/(particle1.mass + particle2.mass)
-        self.vy = (particle1.vy* particle1.mass + particle2.vy * particle2.mass)/(particle1.mass + particle2.mass)
-        self.vz = (particle1.vz* particle1.mass + particle2.vz * particle2.mass)/(particle1.mass + particle2.mass)
-        self.velocity =(self.vx.value_in(units.m / units.s), self.vy.value_in(units.m / units.s), self.vz.value_in(units.m / units.s)) | units.m / units.s
-        self.x = (particle1.x* particle1.mass + particle2.x * particle2.mass)/(particle1.mass + particle2.mass)
-        self.y = (particle1.y * particle1.mass + particle2.y * particle2.mass)/(particle1.mass + particle2.mass)
-        self.z = (particle1.z * particle1.mass + particle2.z * particle2.mass)/(particle1.mass + particle2.mass)
-        self.position =(self.x.value_in(units.AU), self.y.value_in(units.AU), self.z.value_in(units.AU)) | units.AU
-        self.mass  = particle1.mass + particle2.mass
+        particles = Particles()
+        particles.add_particle(particle1)
+        particles.add_particle(particle2)
+        self.velocity = particles.center_of_mass_velocity()
+        self.vx = self.velocity[0]
+        self.vy = self.velocity[1]
+        self.vz = self.velocity[2]
+        self.position = particles.center_of_mass()
+        self.x = self.position[0]
+        self.y = self.position[1]
+        self.z = self.position[2]
+
+        self.mass  = particles.total_mass()
         self.velocityDifference = CalculateVelocityDifference(particle1,particle2)
         self.separation = CalculateSeparation(particle1,particle2)
         self.specificEnergy = CalculateSpecificEnergy(self.velocityDifference,self.separation,particle1,particle2)
@@ -74,18 +78,24 @@ class SphGiant:
         self.gas.mass = self.gasParticles.total_mass()
         self.gas.position = self.gasParticles.center_of_mass()
         self.gas.x , self.gas.y, self.gas.z = self.gasParticles.center_of_mass()
-        self.gas.vx, self.gas.vy, self.gas.vz = self.gasParticles.center_of_mass_velocity()
-        self.gas.v = (self.gas.vx, self.gas.vy, self.gas.vz)
+        self.gas.velocity = self.gasParticles.center_of_mass_velocity()
+        #self.gas.vx, self.gas.vy, self.gas.vz = self.gasParticles.center_of_mass_velocity()
+        self.gas.v = self.gas.velocity
+        totalGiant = Particles()
+        totalGiant.add_particles(self.gasParticles)
+        totalGiant.add_particle(self.core)
+        self.position = totalGiant.center_of_mass()
+        self.velocity = totalGiant.center_of_mass_velocity()
         #print "gas position: ", self.gas.position, " core position: ", self.core.position
         self.mass = self.gas.mass + self.core.mass
         #print "core mass: ",self.core.mass.as_quantity_in(units.MSun)," gas mass: ", self.gas.mass.as_quantity_in(units.MSun), " total star mass: ", self.mass.as_quantity_in(units.MSun)
-        self.x , self.y, self.z = (self.gas.position * self.gas.mass + self.core.position * self.core.mass) / self.mass
-        #self.x , self.y, self.z = self.core.position
-        self.vx, self.vy, self.vz = (self.gas.v * self.gas.mass + (self.core.vx, self.core.vy, self.core.vz) * self.core.mass) / self.mass
-        print "3: ", (self.gas.v * self.gas.mass + (self.core.vx, self.core.vy, self.core.vz) * self.core.mass) / self.mass
+        #self.x , self.y, self.z = totalGiant.center_of_mass()
+        self.x , self.y, self.z = self.position
+        self.vx, self.vy, self.vz = self.velocity
+        #print "3: ", (self.gas.v * self.gas.mass + (self.core.vx, self.core.vy, self.core.vz) * self.core.mass) / self.mass
         #self.vx, self.vy, self.vz =  self.core.vx, self.core.vy, self.core.vz
-        self.v = [self.vx.value_in(units.m / units.s), self.vy.value_in(units.m / units.s), self.vz.value_in(units.m / units.s)] | (units.m / units.s)
-        self.position = [self.x.value_in(units.AU),self.y.value_in(units.AU),self.z.value_in(units.AU)] | units.AU
+        #self.v = [self.vx.value_in(units.m / units.s), self.vy.value_in(units.m / units.s), self.vz.value_in(units.m / units.s)] | (units.m / units.s)
+        self.v = self.velocity
         self.radius = self.gasParticles.total_radius()
 
     def CalculateInnerSPH(self, relativeParticle):
@@ -397,12 +407,10 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
     native_plot.ylabel('y[AU]')
     #pyplot.xlim(-5,-2)
     if core.mass != 0 | units.MSun:
-        print core.x.as_quantity_in(units.AU), core.y.as_quantity_in(units.AU)
         if core.x >= -1* width / 2.0 and core.x <= width/ 2.0 and core.y >= -1 * width/ 2.0 and core.y <= width / 2.0:
             #both coordinates are inside the boundaries- otherwise dont plot it
             scatter(core.x, core.y, c="r")
     scatter(binary.x, binary.y, c="w")
-    print binary.x.as_quantity_in(units.AU), binary.y.as_quantity_in(units.AU)
     #pyplot.xlim(-930, -350)
     #pyplot.ylim(-190,390)
     if plotDust:
@@ -475,21 +483,25 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
         #binaryDistances = AdaptingVectorQuantity()
         #eccentricities = []
         sphGiant = SphGiant(gas_particles_file, dm_particles_file, opposite=True)
-
+        sphPointStar = Particle()
+        sphPointStar.position = sphGiant.position
+        sphPointStar.velocity = sphGiant.velocity
+        sphPointStar.mass = sphGiant.mass
+        sphPointStar.radius = sphGiant.radius
         try:
             binary = LoadBinaries(dm_particles_file)
             companion = binary[1]
         except: #no binary
             binary = []
-            companion = sphGiant
+            companion = sphPointStar
         #print binary
         if len(binary) > 1:
             isBinary= True
-            binary = Star(companion, sphGiant)
+            binary = Star(companion, sphPointStar)
         else:
             isBinary=False
-            binary = Star(sphGiant, sphGiant)
-        #print binary.position, binary.vx,binary.vy,binary.vz
+            binary = Star(sphPointStar, sphPointStar)
+        print binary.position, binary.vx,binary.vy,binary.vz
         if CalculateVectorSize(CalculateSeparation(sphGiant.core,companion)) < min(sphGiant.core.radius,companion.radius):
             print "merger between companion and the giant! step: ", i + beginStep
             #break
@@ -499,7 +511,6 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
                 f.close()
             except:
                 pass
-
         print CalculateVectorSize(sphGiant.v).as_quantity_in(units.m / units.s)
         #print [CalculateVectorSize(part.velocity).as_quantity_in(units.m / units.s) for part in sphGiant.gasParticles]
         if isBinary:

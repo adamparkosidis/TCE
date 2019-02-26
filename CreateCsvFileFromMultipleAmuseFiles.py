@@ -30,11 +30,11 @@ def GetValuesOfObject(object, finiteChar=""):
     return csvValues
 
 def GetValuesOfParticle(particle):
-    return particle.ax.as_string_in(units.m / units.s**2) + "," + particle.ay.as_string_in(units.m / units.s**2) + "," + particle.az.as_string_in(units.m / units.s**2) \
-           + "," + particle.epsilon.as_string_in(units.m) + "," + particle.mass.as_string_in(units.kg) + "," \
-    + particle.radius.as_string_in(units.m) + "," + particle.vx.as_string_in(units.m / units.s) + "," + \
-           particle.vy.as_string_in(units.m / units.s) + "," + particle.vz.as_string_in(units.m / units.s) + "," + \
-    particle.x.as_string_in(units.m) + "," + particle.y.as_string_in(units.m) + "," + particle.z.as_string_in(units.m)
+    return str(particle.ax.value_in(units.m / units.s**2)) + "," + str(particle.ay.value_in(units.m / units.s**2)) + "," + str(particle.az.value_in(units.m / units.s**2)) \
+           + "," + str(particle.epsilon.value_in(units.m)) + "," + str(particle.mass.value_in(units.g)) + "," \
+    + str(particle.radius.value_in(units.m)) + "," + str(particle.vx.value_in(units.m / units.s)) + "," + \
+           str(particle.vy.value_in(units.m / units.s)) + "," + str(particle.vz.value_in(units.m / units.s)) + "," + \
+    str(particle.x.value_in(units.m)) + "," + str(particle.y.value_in(units.m)) + "," + str(particle.z.value_in(units.m))
 
 def GetHeadersOfBinaryObject(binary):
     headersOfFirst = GetHeadresFromObject(binary[0], "1")
@@ -100,8 +100,9 @@ if __name__ == "__main__":
     print numberOfSnapshots
     if args.time_step is None:
         args.time_step = 0.2 | units.day
+    args.time_step = args.time_step.as_quantity_in(units.s)
     for n in xrange(args.first, numberOfSnapshots):
-        csvData += GetValuesOfBinaryParticle(GetBinaryStateFromFile(args.source_dir, str(n))) + ", " + GetTimeOfFile(n, args.time_step | units.day)\
+        csvData += GetValuesOfBinaryParticle(GetBinaryStateFromFile(args.source_dir, str(n))) + ", " + GetTimeOfFile(n, args.time_step)\
                    + "\r\n"
         for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
             try:

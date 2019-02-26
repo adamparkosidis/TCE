@@ -19,7 +19,7 @@ def GetHeadresFromObject(object, finiteChar=""):
 def GetHeadersOfParticle(particle, finiteChar=""):
     return "ax" + finiteChar + ",ay" + finiteChar + ",az" + finiteChar + ",epsilon" + finiteChar + ",mass" + \
            finiteChar + ",radius" + finiteChar + ",vx" + finiteChar + ",vy" + finiteChar + ",vz" + finiteChar + \
-           ",x" + finiteChar + ",y" + finiteChar + ",z"
+           ",x" + finiteChar + ",y" + finiteChar + ",z" + finiteChar
 
 def GetValuesOfObject(object, finiteChar=""):
     csvValues = ""

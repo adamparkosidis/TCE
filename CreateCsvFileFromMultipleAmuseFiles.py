@@ -99,10 +99,10 @@ if __name__ == "__main__":
         numberOfSnapshots = args.last
     print numberOfSnapshots
     if args.time_step is None:
-        args.time_step = 0.2 | units.day
-    args.time_step = args.time_step.as_quantity_in(units.s)
+        args.time_step = 0.2
+    args.time_step = (args.time_step | units.day).as_quantity_in(units.s)
     for n in xrange(args.first, numberOfSnapshots):
-        csvData += GetValuesOfBinaryParticle(GetBinaryStateFromFile(args.source_dir, str(n))) + ", " + GetTimeOfFile(n, args.time_step) + "\r\n"
+        csvData += GetValuesOfBinaryParticle(GetBinaryStateFromFile(args.source_dir, str(n))) + ", " + GetTimeOfFile(n, args.time_step) + '\r\n'
         for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
             try:
                 f.close()

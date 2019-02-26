@@ -148,6 +148,20 @@ class SphGiant:
                 leavingParticles += 1
         return leavingParticles
 
+    def FindSmallestCell(self):
+        smallestRadius = self.gasParticles.total_radius()
+        for gasParticle in self.gasParticles:
+            if gasParticle.radius < smallestRadius:
+                smallestRadius = gasParticle.radius
+        return smallestRadius
+
+    def FindLowestNumberOfNeighbours(self):
+        numberOfNeighbours = len(self.gasParticles)
+        for gasParticle in self.gasParticles:
+            if gasParticle.num_neighbours < numberOfNeighbours:
+                numberOfNeighbours = gasParticle.num_neighbours
+        return numberOfNeighbours
+
 def LoadBinaries(file, opposite= False):
     load = read_set_from_file(file, format='amuse')
     #print load
@@ -421,9 +435,10 @@ def PlotVelocity(sphGiant,core,binary,step, outputDir, vmin, vmax):
     pyplot.savefig(outputDir + "/velocity/velocity_plotting_{0}.jpg".format(step), transparent=False)
     pyplot.close()
 
-def Plot1Axe(x, fileName, outputDir, timeStep= 1400.0/7000.0, beginTime = 0):
+def Plot1Axe(x, fileName, outputDir, timeStep= 1400.0/7000.0, beginStep = 0):
     if len(x) == 0:
         return
+    beginTime = beginStep * timeStep
     timeLine = [beginTime + time * timeStep for time in xrange(len(x))] | units.day
 
     textFile = open(outputDir + '/' + fileName + 'time_' + str(beginTime) + "_to_" + str(beginTime + (len(x) - 1.0) * timeStep) + 'days.txt', 'w')
@@ -435,20 +450,20 @@ def Plot1Axe(x, fileName, outputDir, timeStep= 1400.0/7000.0, beginTime = 0):
     xlabel('time[days]')
     native_plot.savefig(outputDir + '/' + fileName + 'time_' + str(beginTime) + "_to_" + str(beginTime + (len(x) - 1.0) * timeStep) + 'days.jpg')
 
-def PlotAdaptiveQuantities(arrayOfValueAndNamePairs, outputDir, beginTime = 0, timeStep= 1400.0/7000.0):
+def PlotAdaptiveQuantities(arrayOfValueAndNamePairs, outputDir, beginStep = 0, timeStep= 1400.0/7000.0):
     for a in arrayOfValueAndNamePairs:
         if a[0]:
-            Plot1Axe(a[0], a[1], outputDir, timeStep, beginTime)
+            Plot1Axe(a[0], a[1], outputDir, timeStep, beginStep)
 
-def PlotEccentricity(eccentricities, outputDir, beginTime = 0, timeStep= 1400.0/7000.0):
+def PlotEccentricity(eccentricities, outputDir, beginStep = 0, timeStep= 1400.0/7000.0):
     for e in eccentricities:
         if e[0] != []:
-            Plot1Axe(e[0], e[1], outputDir, timeStep, beginTime)
+            Plot1Axe(e[0], e[1], outputDir, timeStep, beginStep)
 
-def PlotBinaryDistance(distances, outputDir, beginTime = 0, timeStep= 1400.0/7000.0):
+def PlotBinaryDistance(distances, outputDir, beginStep = 0, timeStep= 1400.0/7000.0):
     for d in distances:
         if d[0]:
-            Plot1Axe(d[0], d[1], outputDir, timeStep, beginTime)
+            Plot1Axe(d[0], d[1], outputDir, timeStep, beginStep)
 
 def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, beginStep, binaryDistances,semmimajors,eccentricities, innerMass, toPlot = False, plotDust=False, dustRadius= 700.0 | units.RSun):
     for i in [j - beginStep for j in chunk]:
@@ -460,6 +475,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
         #binaryDistances = AdaptingVectorQuantity()
         #eccentricities = []
         sphGiant = SphGiant(gas_particles_file, dm_particles_file, opposite=True)
+
         try:
             binary = LoadBinaries(dm_particles_file)
             companion = binary[1]
@@ -483,7 +499,9 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
                 f.close()
             except:
                 pass
-            
+
+        print CalculateVectorSize(sphGiant.v).as_quantity_in(units.m / units.s)
+        #print [CalculateVectorSize(part.velocity).as_quantity_in(units.m / units.s) for part in sphGiant.gasParticles]
         if isBinary:
             #semmimajor = CalculateSemiMajor(CalculateVelocityDifference(companion, sphGiant.core), CalculateSeparation(companion, sphGiant.core),companion.mass + sphGiant.core.mass).as_quantity_in(units.AU)
             #CalculateEccentricity(companion, sphGiant.core)
@@ -530,12 +548,15 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i + beginStep])
 
         sphGiant = SphGiant(gas_particles_file, dm_particles_file, opposite= opposite)
-
+        print sphGiant.core
+        print "neigbbours:", sphGiant.FindLowestNumberOfNeighbours()
+        print "smallest cell radius: ", sphGiant.FindSmallestCell()
         #binary = Particles(2,pickle.load(open(os.path.join(os.getcwd(),savingDir,"binary.p"),"rb")))
         binary = LoadBinaries(dm_particles_file, opposite= opposite)
 
         particle1 , particle2 = binary[0] , binary[1]
-
+        print particle1
+        print particle2
         innerBinary = Star(particle1,particle2)
 
         #change the position and velocity of center of mass to 0
@@ -578,6 +599,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                 print "triple2 is breaking up", triple2.specificEnergy, i * 1400/7000.0
 
             separationStep=0
+
+            separationStep = 0
 
         #all the three are connected
         print time.ctime(), "beginning innerGas calculations of step ", i
@@ -766,7 +789,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     PlotAdaptiveQuantities([(newAOuters1, "aOuters1"), (newAOuters2, "aOuters2")], outputDir+ "/graphs", separationStep)
     PlotEccentricity([(eInners, "eInners"), (eOuters, "eOuters")], outputDir + "/graphs", beginStep)
     PlotEccentricity([(eOuters1, "eOuters1"), (eOuters2, "eOuters2")],outputDir + "/graphs", separationStep)
-    Plot1Axe(inclinations,"inclinations", outputDir+"/graphs", beginTime=beginStep)
+    Plot1Axe(inclinations,"inclinations", outputDir+"/graphs", beginStep=beginStep)
     PlotAdaptiveQuantities([(innerMass, "InnerMass"), (innerMass1, "InnerMass1"), (innerMass2, "InnerMass2")], outputDir + "/graphs", beginStep)
 
 def GetArgs(args):

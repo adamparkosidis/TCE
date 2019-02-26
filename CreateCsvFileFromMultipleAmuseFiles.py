@@ -73,7 +73,7 @@ def GetValuesOfBinaryParticle(binary):
     return values
 
 def GetTimeOfFile(fileNumber, defaultTimeStep = 0.2 | units.day):
-    return (fileNumber * defaultTimeStep).as_string_in(units.day)
+    return (fileNumber * defaultTimeStep)
 
 def GetBinaryStateFromFile(directoryPath, fileNumber):
     return read_set_from_file(os.path.join(directoryPath, "dm_" + fileNumber + ".amuse"), format='amuse')

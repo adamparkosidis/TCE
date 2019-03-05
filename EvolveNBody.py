@@ -206,6 +206,8 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     centerOfMassRadius = coupledSystem.particles.center_of_mass()
     centerOfMassV = coupledSystem.particles.center_of_mass_velocity()
 
+    print "initial com: ", centerOfMassRadius
+    print "initial com v: ", centerOfMassV
     #if not relax:
     #    sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[0]*2) #sink radius is the particle radius * 2
 
@@ -225,9 +227,13 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
         step += 1
         particles = coupledSystem.particles
         if relax:
+            print "com: ", particles.center_of_mass()
             particles.position += (centerOfMassRadius - particles.center_of_mass())
+            print "com: ", particles.center_of_mass()
+            print "com v: ", particles.center_of_mass_velocity()
             relaxingVFactor = (step * 1.0 / timeSteps)
             particles.velocity = relaxingVFactor * (particles.velocity - particles.center_of_mass_velocity()) + centerOfMassV
+            print "com v: ", particles.center_of_mass_velocity()
         else:
             # check if there is a merger - don't continue
             if BinaryCalculations.CalculateVectorSize(BinaryCalculations.CalculateSeparation(coupledSystem.dm_particles[0], coupledSystem.dm_particles[1])) <= \
@@ -363,6 +369,8 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
     centerOfMassRadius = coupledSystem.particles.center_of_mass()
     centerOfMassV = coupledSystem.particles.center_of_mass_velocity()
 
+    print "initial com: ", centerOfMassRadius
+    print "initial com v: ", centerOfMassV
     #if not relax:#sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[-1]*2)
     #    sinks = new_sink_particles(coupledSystem.dm_particles[-1:], sink_radius= stars.radius[-1]*2)
 
@@ -381,9 +389,13 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
         step += 1
         particles = coupledSystem.particles
         if relax:
+            print "com: ",  particles.center_of_mass()
+            print "com v: ", particles.center_of_mass_velocity()
             particles.position = particles.position + (centerOfMassRadius - particles.center_of_mass())
             relaxingVFactor = (step / timeSteps)
             particles.velocity = relaxingVFactor * (particles.velocity - particles.center_of_mass_velocity()) + centerOfMassV
+            print "com: ",  particles.center_of_mass()
+            print "com v: ", particles.center_of_mass_velocity()
         #else:
         #    sinks.accrete(coupledSystem.gas_particles)
         print "system time: ", coupledSystem.get_time()

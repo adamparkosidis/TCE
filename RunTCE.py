@@ -9,6 +9,7 @@ from amuse.datamodel import Particles
 from amuse.io import read_set_from_file
 import StarModels
 import EvolveNBody
+from StarModels import GiantSPHCenterOfMassPosition, GiantSPHCenterOfMassVelocity
 
 
 def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, takeSavedMesa = False):
@@ -42,24 +43,26 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
     sphStar = StarModels.SphStar(giantInSet,configurationFile,configurationSection="MainStar",
                                 savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
+    print sphStar.core_particle
+
     print "Now having the sph star and the binaries, ready for relaxing"
     starEnvelope, dmStars = EvolveNBody.Run(totalMass= giantInSet.mass + innerBinary.stars.total_mass(),
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
                                              stars=innerBinary, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
-                                              numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=10)
+                                              numberOfWorkers= 2, savedVersionPath=savedPath, saveAfterMinute=10)
     starCore = dmStars[-1]
     #starCore.radius = sphStar.core_particle.radius
     print starCore
-    #moving the main star back to the center
-    centerOfMassPos = (starCore.position*starCore.mass + starEnvelope.center_of_mass() * starEnvelope.total_mass())/ giant.mass
-    centerOfMassV = (starCore.velocity*starCore.mass + starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass())/ giant.mass
-    diffPosition = centerOfMassPos - giantInSet.position
-    diffVelocity = centerOfMassV -giantInSet.velocity
+    print "moving the main star back to the center"
+    diffPosition = GiantSPHCenterOfMassPosition(starEnvelope, starCore) - giantInSet.position
+    #diffVelocity = GiantSPHCenterOfMassVelocity(starEnvelope, starCore) -giantInSet.velocity
     starEnvelope.position -= diffPosition
     starCore.position -= diffPosition
-    starEnvelope.velocity -= diffVelocity
-    starCore.velocity -= diffVelocity
+    '''starEnvelope.velocity -= diffVelocity
+    starCore.velocity -= diffVelocity'''
+    starEnvelope.velocity = giantInSet.velocity
+    starCore.velocity = giantInSet.velocity
     dmStars[-1].position = starCore.position
     dmStars[-1].velocity = starCore.velocity
     print diffPosition
@@ -75,7 +78,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
 
 
-def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savings/TCE/0511_1/8MSun/0Phase/3RSun/5inclin", takeSavedState = "False", step = -1, configurationFile = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savings/TCE/0511_1/8MSun/0Phase/3RSun/5inclin/TCEConfiguration.ini"):
+def Start(savedVersionPath = "/home/hilaglanz/Documents/80265", takeSavedState = "False", step = -1, configurationFile = "/home/hilaglanz/Documents/80265/TCEConfiguration.ini"):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -118,5 +121,5 @@ if __name__ == "__main__":
     if len(args) > 1:
         Start(savedVersionPath=args[1],takeSavedState=args[2], step=int(args[3]), configurationFile=args[1] + "/TCEConfiguration.ini")
     else:
-        Start(takeSavedState="Evolve", step=1625)
+        Start(takeSavedState="No", step=-1)
 

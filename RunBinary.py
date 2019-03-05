@@ -47,12 +47,17 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
     #moving the main star back to the center
     diffPosition = GiantSPHCenterOfMassPosition(starEnvelope, starCore) - giant.position
-    diffVelocity = GiantSPHCenterOfMassVelocity(starEnvelope, starCore) - giant.velocity
+    print "diff position: ", diffPosition
     starEnvelope.position -= diffPosition
     starCore.position -= diffPosition
+    print "changing position ", GiantSPHCenterOfMassPosition(starEnvelope, starCore)
+    '''
+    diffVelocity = GiantSPHCenterOfMassVelocity(starEnvelope, starCore) - giant.velocity
     starEnvelope.velocity -= diffVelocity
     starCore.velocity -= diffVelocity
-
+    '''
+    starEnvelope.velocity = giant.velocity
+    starCore.velocity = giant.velocity
     #save state after relaxation
     StarModels.SaveState(savedPath, starEnvelope.total_mass() + starCore.mass, starEnvelope, dmStars, binary.semimajorAxis, sphMetaData)
 

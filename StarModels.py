@@ -64,13 +64,22 @@ class SphStar:
                 mesaStar = self.EvolveStarWithStellarCode(MESA, savedMesaStarPath)
                 self.sphStar = convert_stellar_model_to_SPH(mesaStar, self.sphParticles, do_relax = False, with_core_particle=True,
                                                     target_core_mass = mesaStar.core_mass, base_grid_options=dict(type="fcc"))
+
             self.gas_particles = self.sphStar.gas_particles
             self.core_particle = self.sphStar.core_particle
+            self.particles = Particles()
+            self.gas_particles = self.particles.add_particles(self.gas_particles)
+            self.core_particle = self.particles.add_particle(self.core_particle)
+            #the core is at the center of axes and not the center of mass move to COM position so the giant's position is the com
+            self.particles.move_to_center()
             self.gas_particles.position += pointStar.position
             self.gas_particles.velocity += pointStar.velocity
             self.core_particle.position += pointStar.position
             self.core_particle.velocity += pointStar.velocity
+
             print "core:" ,self.core_particle
+            print "sph center of mass: ", self.particles.center_of_mass()
+            print "sph center of mass velocity: ", self.particles.center_of_mass_velocity()
 
 
 
@@ -184,10 +193,11 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
 
         starEnvelope.position -= diffPosition
         starCore.position -= diffPosition
-        starEnvelope.velocity -= diffVelocity
-        starCore.velocity -= diffVelocity
+        starEnvelope.velocity = giantInSet.velocity
+        starCore.velocity = giantInSet.velocity
+
         print "binary position :", innerBinary.stars.center_of_mass()
-        print"new center of mass position: ", (GiantSPHCenterOfMassPosition(starEnvelope, starCore)).as_quantity_in(units.AU)
+        print"new sph center of mass position: ", (GiantSPHCenterOfMassPosition(starEnvelope, starCore)).as_quantity_in(units.AU)
         print "new core position: ", starCore.position.as_quantity_in(units.AU)
         print (GiantSPHCenterOfMassPosition(starEnvelope, starCore) - innerBinary.stars.center_of_mass()).as_quantity_in(units.AU)
         if opposite: #0 star of the inner binary is the giant, not the core
@@ -224,10 +234,14 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
         starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
         load = LoadDm(savedVersionPath + "/dm.amuse")
         print load
+
         binary = Binary(configurationFile, configurationSection="Binary")
         binary.stars.radius = binary.radius
         starCore=load[0]
         starMass = starEnvelope.total_mass() + starCore.mass
+
+        print "sph com: ", GiantSPHCenterOfMassPosition(starEnvelope,starCore)
+        print "sph velocity: ", GiantSPHCenterOfMassVelocity(starEnvelope,starCore)
 
         binary.stars.position -= binary.stars[0].position
         binary.stars.velocity -= binary.stars[0].velocity
@@ -235,18 +249,25 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
         print "binary loaded: ", binary.stars
         #changing according to before relaxation
         diffPosition = GiantSPHCenterOfMassPosition(starEnvelope,starCore) - binary.stars[0].position
-        diffVelocity = GiantSPHCenterOfMassVelocity(starEnvelope,starCore) - binary.stars[0].velocity
+        #diffVelocity = GiantSPHCenterOfMassVelocity(starEnvelope,starCore) - binary.stars[0].velocity
+
         starEnvelope.position -= diffPosition
         starCore.position -= diffPosition
+        '''
         starEnvelope.velocity -= diffVelocity
         starCore.velocity -= diffVelocity
-
-        #changing the mass to the one after relaxation
-        binary.stars[0].mass = starMass
         print "giant expected velocity: ", binary.stars[0].velocity
         binary.stars[0].velocity = GiantSPHCenterOfMassVelocity(starEnvelope,starCore)
         print "giant actual velocity:", binary.stars[0].velocity
+        '''
+        starEnvelope.velocity = binary.stars[0].velocity
+        starCore.velocity = binary.stars[0].velocity
+        #changing the mass to the one after relaxation
+        binary.stars[0].mass = starMass
         print "(giant, star): ", binary.stars
+        print "sph com: ", GiantSPHCenterOfMassPosition(starEnvelope,starCore)
+        print "core: ", starCore.position
+        print "sph velocity: ", GiantSPHCenterOfMassVelocity(starEnvelope,starCore)
         sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
     return starEnvelope, starCore, binary, binary.semimajorAxis, sphMetaData
 

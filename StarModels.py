@@ -218,6 +218,7 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
         starCore=load[0]
         starMass = starEnvelope.total_mass() + starCore.mass
         binary = Binary(particles=Particles(2, particles=[load[0], load[1]]))
+        print "binary loaded: ", binary.stars
         sphMetaData = pickle.load(open(savedVersionPath + "/../metaData.p", "rb"))
     else:
         starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
@@ -231,6 +232,7 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
         binary.stars.position -= binary.stars[0].position
         binary.stars.velocity -= binary.stars[0].velocity
 
+        print "binary loaded: ", binary.stars
         #changing according to before relaxation
         diffPosition = GiantSPHCenterOfMassPosition(starEnvelope,starCore) - binary.stars[0].position
         diffVelocity = GiantSPHCenterOfMassVelocity(starEnvelope,starCore) - binary.stars[0].velocity

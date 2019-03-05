@@ -28,7 +28,7 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     binary.stars.velocity -= giant.velocity
 
     giant = binary.stars[0]
-    print "giant: ", giant
+    print "binary: ", binary.stars
 
     #create the sph giant
     sphStar = StarModels.SphStar(giant, configurationFile,configurationSection="MainStar",

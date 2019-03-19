@@ -512,6 +512,12 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             except:
                 pass
         print CalculateVectorSize(sphGiant.v).as_quantity_in(units.m / units.s)
+        parts = Particles()
+        parts.add_particle(sphGiant.core)
+        parts.add_particles(sphGiant.gasParticles)
+
+        print "com: ", parts.center_of_mass(),  i
+        print "com v: ", parts.center_of_mass_velocity(), i
         #print [CalculateVectorSize(part.velocity).as_quantity_in(units.m / units.s) for part in sphGiant.gasParticles]
         if isBinary:
             #semmimajor = CalculateSemiMajor(CalculateVelocityDifference(companion, sphGiant.core), CalculateSeparation(companion, sphGiant.core),companion.mass + sphGiant.core.mass).as_quantity_in(units.AU)

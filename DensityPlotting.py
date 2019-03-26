@@ -42,7 +42,12 @@ class Star:
     def Star(self,particle1,particle2):
         particles = Particles()
         particles.add_particle(particle1)
-        particles.add_particle(particle2)
+        part2 = Particle()
+        part2.mass = particle2.mass
+        part2.position = particle2.position
+        part2.velocity = particle2.velocity
+        part2.radius = particle2.radius
+        particles.add_particle(part2)
         self.velocity = particles.center_of_mass_velocity()
         self.vx = self.velocity[0]
         self.vy = self.velocity[1]
@@ -59,7 +64,7 @@ class Star:
 
 class SphGiant:
     def __init__(self, gas_particles_file, dm_particles_file, opposite= False):
-        self = Particle()
+
         self.gasParticles = read_set_from_file(gas_particles_file, format='amuse')
         if dm_particles_file is not None:
             dms = read_set_from_file(dm_particles_file, format='amuse')

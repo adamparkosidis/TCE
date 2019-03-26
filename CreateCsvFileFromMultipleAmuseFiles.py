@@ -36,41 +36,24 @@ def GetValuesOfParticle(particle):
            str(particle.vy.value_in(units.cm / units.s)) + "," + str(particle.vz.value_in(units.cm / units.s)) + "," + \
     str(particle.x.value_in(units.cm)) + "," + str(particle.y.value_in(units.cm)) + "," + str(particle.z.value_in(units.cm))
 
-def GetHeadersOfBinaryObject(binary):
-    headersOfFirst = GetHeadresFromObject(binary[0], "1")
-    headersOfSecond = GetHeadresFromObject(binary[1], "2")
-    headers = headersOfFirst
-    if len(headersOfFirst) > 0 and len(headersOfSecond) > 0:
-        headers += ","
-    headers += headersOfSecond
+def GetHeadersOfMultipleParticles(multipleObjects):
+    headers = ""
+    for i, obj in enumerate(multipleObjects):
+        objHeaders = GetHeadersOfParticle(obj, str(i + 1))
+        if len(headers) > 0 and len(objHeaders) > 0:
+           headers += ","
+        headers += objHeaders
     return headers
 
-def GetValuesOfBinaryObject(binary):
-    valuesOfFirst = GetValuesOfObject(binary[0], "1")
-    valuesOfSecond = GetValuesOfObject(binary[1], "2")
-    values = valuesOfFirst
-    if len(valuesOfFirst) > 0 and len(valuesOfSecond) > 0:
-        values += ","
-    values += valuesOfSecond
+def GetValuesOfMultipleParticles(multipleObjects):
+    values = ""
+    for i, obj in enumerate(multipleObjects):
+        objValues = GetValuesOfParticle(obj)
+        if len(values) > 0 and len(objValues) > 0 :
+            values += ","
+        values += objValues
     return values
 
-def GetHeadersOfBinaryParticles(binary):
-    headersOfFirst = GetHeadersOfParticle(binary[0], "1")
-    headersOfSecond = GetHeadersOfParticle(binary[1], "2")
-    headers = headersOfFirst
-    if len(headersOfFirst) > 0 and len(headersOfSecond) > 0:
-        headers += ","
-    headers += headersOfSecond
-    return headers
-
-def GetValuesOfBinaryParticle(binary):
-    valuesOfFirst = GetValuesOfParticle(binary[0])
-    valuesOfSecond = GetValuesOfParticle(binary[1])
-    values = valuesOfFirst
-    if len(valuesOfFirst) > 0 and len(valuesOfSecond) > 0:
-        values += ","
-    values += valuesOfSecond
-    return values
 
 def GetTimeOfFile(fileNumber, defaultTimeStep = 0.2 | units.day):
     return (fileNumber * defaultTimeStep)
@@ -90,7 +73,7 @@ if __name__ == "__main__":
     parser = InitParser()
     args = parser.parse_args()
     firstBinary = GetBinaryStateFromFile(args.source_dir, str(args.first))
-    csvData = GetHeadersOfBinaryParticles(firstBinary) + ",time" + "\r\n"
+    csvData = GetHeadersOfMultipleParticles(firstBinary) + ",time" + "\r\n"
 
     if args.last == 0:
         snapshots = glob.glob(args.source_dir + "/dm*.amuse")
@@ -102,7 +85,7 @@ if __name__ == "__main__":
         args.time_step = 0.2
     args.time_step = args.time_step | units.day
     for n in xrange(args.first, numberOfSnapshots):
-        csvData += GetValuesOfBinaryParticle(GetBinaryStateFromFile(args.source_dir, str(n))) + ", " + str(GetTimeOfFile(n, args.time_step).value_in(units.s)) + '\r\n'
+        csvData += GetValuesOfMultipleParticles(GetBinaryStateFromFile(args.source_dir, str(n))) + ", " + str(GetTimeOfFile(n, args.time_step).value_in(units.s)) + '\r\n'
         for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
             try:
                 f.close()

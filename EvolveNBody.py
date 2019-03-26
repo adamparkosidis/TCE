@@ -394,7 +394,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
             print "com: ",  particles.center_of_mass()
             print "com v: ", particles.center_of_mass_velocity()
 
-            if (particles.center_of_mass() !=  centerOfMassRadius):
+            if ((particles.center_of_mass() !=  centerOfMassRadius).all()):
                 particles.position = particles.position + (centerOfMassRadius - particles.center_of_mass())
             relaxingVFactor = (step / timeSteps)
             particles.velocity = relaxingVFactor * (particles.velocity - particles.center_of_mass_velocity()) + centerOfMassV

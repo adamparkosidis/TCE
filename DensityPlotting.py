@@ -179,16 +179,36 @@ class SphGiant:
                 numberOfNeighbours = gasParticle.num_neighbours
         return numberOfNeighbours
 
+
+
     def CalculateQuadropoleMoment(self):
-        Qxx = 0
-        Qxy = 0
-        Qxz = 0
-        Qyx = 0
-        Qyy = 0
-        Qyz = 0
-        Qzx = 0
-        Qzy = 0
-        Qzz = 0
+        Qxx = (self.core.mass * (self.core.ax*self.core.x + 2 * self.core.vx * self.core.vx +
+                                        self.core.x * self.core.ax - (2.0/3.0) * (self.core.ax * self.core.x +
+                                                                                      self.core.ay * self.core.y +
+                                                                                      self.core.az * self.core.z +
+                                                                                      CalculateVectorSize(self.core.v))))
+        Qxy = (self.core.mass * (self.core.ax * self.core.y + 2 * self.core.vx * self.core.vy +
+                                            self.core.x * self.core.ay))
+        Qxz = (self.core.mass * (self.core.ax * self.core.z + 2 * self.core.vx * self.core.vz +
+                                            self.core.x * self.core.az))
+        Qyx  = (self.core.mass * (self.core.ay * self.core.x + 2 * self.core.vy * self.core.vx +
+                                            self.core.y * self.core.ax))
+        Qyy = (self.core.mass * (self.core.ay*self.core.y + 2 * self.core.vy * self.core.vy +
+                                            self.core.y * self.core.ay - (2.0/3.0) * (self.core.ax * self.core.x +
+                                                                                          self.core.ay * self.core.y +
+                                                                                          self.core.az * self.core.z +
+                                                                                          CalculateVectorSize(self.core.v))))
+        Qyz = (self.core.mass * (self.core.ay * self.core.z + 2 * self.core.vy * self.core.vz +
+                                            self.core.y * self.core.az))
+        Qzx = (self.core.mass * (self.core.az * self.core.x + 2 * self.core.vz * self.core.vx +
+                                            self.core.z * self.core.ax))
+        Qzy = (self.core.mass * (self.core.az * self.core.y + 2 * self.core.vz * self.core.vy +
+                                            self.core.z * self.core.ay))
+        Qzz = (self.core.mass * (self.core.az * self.core.z + 2 * self.core.vz * self.core.vz +
+                                            self.core.z * self.core.az - (2.0/3.0) * (self.core.ax * self.core.x +
+                                                                                          self.core.ay * self.core.y +
+                                                                                          self.core.az * self.core.z +
+                                                                                          CalculateVectorSize(self.core.v))))
         for gasParticle in self.gasParticles:
             Qxx += (gasParticle.mass * (gasParticle.ax*gasParticle.x + 2 * gasParticle.vx * gasParticle.vx +
                                         gasParticle.x * gasParticle.ax - (2.0/3.0) * (gasParticle.ax * gasParticle.x +
@@ -218,6 +238,7 @@ class SphGiant:
                                                                                           gasParticle.az * gasParticle.z +
                                                                                           CalculateVectorSize(gasParticle.v))))
 
+
         return Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz
 
 def LoadBinaries(file, opposite= False):
@@ -229,6 +250,35 @@ def LoadBinaries(file, opposite= False):
         stars = Particles(2, particles= [load[1], load[2]])
     return stars
 
+def CalculateQuadropoleMomentOfParticle(particle):
+    Qxx = (particle.mass * (particle.ax*particle.x + 2 * particle.vx * particle.vx +
+                                    particle.x * particle.ax - (2.0/3.0) * (particle.ax * particle.x +
+                                                                                  particle.ay * particle.y +
+                                                                                  particle.az * particle.z +
+                                                                                  CalculateVectorSize(particle.v))))
+    Qxy = (particle.mass * (particle.ax * particle.y + 2 * particle.vx * particle.vy +
+                                    particle.x * particle.ay))
+    Qxz = (particle.mass * (particle.ax * particle.z + 2 * particle.vx * particle.vz +
+                                    particle.x * particle.az))
+    Qyx  = (particle.mass * (particle.ay * particle.x + 2 * particle.vy * particle.vx +
+                                    particle.y * particle.ax))
+    Qyy = (particle.mass * (particle.ay*particle.y + 2 * particle.vy * particle.vy +
+                                    particle.y * particle.ay - (2.0/3.0) * (particle.ax * particle.x +
+                                                                                  particle.ay * particle.y +
+                                                                                  particle.az * particle.z +
+                                                                                  CalculateVectorSize(particle.v))))
+    Qyz = (particle.mass * (particle.ay * particle.z + 2 * particle.vy * particle.vz +
+                                    particle.y * particle.az))
+    Qzx = (particle.mass * (particle.az * particle.x + 2 * particle.vz * particle.vx +
+                                    particle.z * particle.ax))
+    Qzy = (particle.mass * (particle.az * particle.y + 2 * particle.vz * particle.vy +
+                                    particle.z * particle.ay))
+    Qzz = (particle.mass * (particle.az * particle.z + 2 * particle.vz * particle.vz +
+                                    particle.z * particle.az - (2.0/3.0) * (particle.ax * particle.x +
+                                                                                  particle.ay * particle.y +
+                                                                                  particle.az * particle.z +
+                                                                                  CalculateVectorSize(particle.v))))
+    return Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz
 
 def GetPropertyAtRadius(mesaStarPropertyProfile, mesaStarRadiusProfile, radius):
     profileLength = len(mesaStarRadiusProfile)
@@ -606,6 +656,17 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
                 print "binary is breaking up", binary.specificEnergy, i
 
             Qxx[i],Qxy[i],Qxz[i],Qyx[i],Qyy[i],Qyz[i],Qzx[i],Qzy[i],Qzz[i] = sphGiant.CalculateQuadropoleMoment()
+            Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz = CalculateQuadropoleMomentOfParticle(companion) # add the companion to the calculation
+            Qxx[i] += Qxx
+            Qxy[i] += Qxy
+            Qxz[i] += Qxz
+            Qyx[i] += Qyx
+            Qyy[i] += Qyy
+            Qyz[i] += Qyz
+            Qzx[i] += Qzx
+            Qzy[i] += Qzy
+            Qzz[i] += Qzz
+
 
         #temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
 

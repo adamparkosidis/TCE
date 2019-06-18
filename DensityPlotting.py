@@ -179,6 +179,47 @@ class SphGiant:
                 numberOfNeighbours = gasParticle.num_neighbours
         return numberOfNeighbours
 
+    def CalculateQuadropoleMoment(self):
+        Qxx = 0
+        Qxy = 0
+        Qxz = 0
+        Qyx = 0
+        Qyy = 0
+        Qyz = 0
+        Qzx = 0
+        Qzy = 0
+        Qzz = 0
+        for gasParticle in self.gasParticles:
+            Qxx += (gasParticle.mass * (gasParticle.ax*gasParticle.x + 2 * gasParticle.vx * gasParticle.vx +
+                                        gasParticle.x * gasParticle.ax - (2.0/3.0) * (gasParticle.ax * gasParticle.x +
+                                                                                      gasParticle.ay * gasParticle.y +
+                                                                                      gasParticle.az * gasParticle.z +
+                                                                                      CalculateVectorSize(gasParticle.v))))
+            Qxy += (gasParticle.mass * (gasParticle.ax * gasParticle.y + 2 * gasParticle.vx * gasParticle.vy +
+                                            gasParticle.x * gasParticle.ay))
+            Qxz += (gasParticle.mass * (gasParticle.ax * gasParticle.z + 2 * gasParticle.vx * gasParticle.vz +
+                                            gasParticle.x * gasParticle.az))
+            Qyx  += (gasParticle.mass * (gasParticle.ay * gasParticle.x + 2 * gasParticle.vy * gasParticle.vx +
+                                            gasParticle.y * gasParticle.ax))
+            Qyy += (gasParticle.mass * (gasParticle.ay*gasParticle.y + 2 * gasParticle.vy * gasParticle.vy +
+                                            gasParticle.y * gasParticle.ay - (2.0/3.0) * (gasParticle.ax * gasParticle.x +
+                                                                                          gasParticle.ay * gasParticle.y +
+                                                                                          gasParticle.az * gasParticle.z +
+                                                                                          CalculateVectorSize(gasParticle.v))))
+            Qyz += (gasParticle.mass * (gasParticle.ay * gasParticle.z + 2 * gasParticle.vy * gasParticle.vz +
+                                            gasParticle.y * gasParticle.az))
+            Qzx += (gasParticle.mass * (gasParticle.az * gasParticle.x + 2 * gasParticle.vz * gasParticle.vx +
+                                            gasParticle.z * gasParticle.ax))
+            Qzy += (gasParticle.mass * (gasParticle.az * gasParticle.y + 2 * gasParticle.vz * gasParticle.vy +
+                                            gasParticle.z * gasParticle.ay))
+            Qzz += (gasParticle.mass * (gasParticle.az * gasParticle.z + 2 * gasParticle.vz * gasParticle.vz +
+                                            gasParticle.z * gasParticle.az - (2.0/3.0) * (gasParticle.ax * gasParticle.x +
+                                                                                          gasParticle.ay * gasParticle.y +
+                                                                                          gasParticle.az * gasParticle.z +
+                                                                                          CalculateVectorSize(gasParticle.v))))
+
+        return Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz
+
 def LoadBinaries(file, opposite= False):
     load = read_set_from_file(file, format='amuse')
     #print load
@@ -480,7 +521,23 @@ def PlotBinaryDistance(distances, outputDir, beginStep = 0, timeStep= 1400.0/700
         if d[0]:
             Plot1Axe(d[0], d[1], outputDir, timeStep, beginStep)
 
-def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, beginStep, binaryDistances,semmimajors,eccentricities, innerMass, toPlot = False, plotDust=False, dustRadius= 700.0 | units.RSun):
+def PlotQuadropole(Qxx,Qxy,Qxz,Qyx, Qyy,Qyz,Qzx,Qzy,Qzz, outputDir = 0, timeStep = 1400.0/70000.0, beginStep = 0):
+    if len(Qxx) == 0:
+        return
+    beginTime = beginStep * timeStep
+    timeLine = [beginTime + time * timeStep for time in xrange(len(Qxx))] | units.day
+
+    textFile = open(outputDir + '/quadropole_time_' + str(beginTime) + "_to_" + str(beginTime + (len(x) - 1.0) * timeStep) + 'days.txt', 'w')
+
+    textFile.write("Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz\r\n")
+    for i in xrange(0, len(Qxx)):
+        textFile.write(' ,'.join([Qxx[i], Qxy[i], Qxz[i], Qyx[i], Qyy[i], Qyz[i], Qzx[i], Qzy[i], Qzz[i]]))
+        textFile.write('\r\n')
+    textFile.close()
+
+def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, beginStep, binaryDistances,semmimajors,eccentricities, innerMass,
+                       Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
+                       toPlot = False, plotDust=False, dustRadius= 700.0 | units.RSun):
     for i in [j - beginStep for j in chunk]:
         #print "step #",i
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i + beginStep])
@@ -548,6 +605,8 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             if newBinarySpecificEnergy > 0 | (units.m **2 / units.s **2):
                 print "binary is breaking up", binary.specificEnergy, i
 
+            Qxx[i],Qxy[i],Qxz[i],Qyx[i],Qyy[i],Qyz[i],Qzx[i],Qzy[i],Qzz[i] = sphGiant.CalculateQuadropoleMoment()
+
         #temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
 
         if toPlot:
@@ -573,14 +632,12 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
 
         sphGiant = SphGiant(gas_particles_file, dm_particles_file, opposite= opposite)
         print sphGiant.core
-        print "neigbbours:", sphGiant.FindLowestNumberOfNeighbours()
-        print "smallest cell radius: ", sphGiant.FindSmallestCell()
+        #print "neigbbours:", sphGiant.FindLowestNumberOfNeighbours()
+        #print "smallest cell radius: ", sphGiant.FindSmallestCell()
         #binary = Particles(2,pickle.load(open(os.path.join(os.getcwd(),savingDir,"binary.p"),"rb")))
         binary = LoadBinaries(dm_particles_file, opposite= opposite)
 
         particle1 , particle2 = binary[0] , binary[1]
-        print particle1
-        print particle2
         innerBinary = Star(particle1,particle2)
 
         #change the position and velocity of center of mass to 0
@@ -686,7 +743,16 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     semmimajors = multiprocessing.Array('f', [0.0 for i in range(beginStep, lastStep)])
     eccentricities = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     innerMass = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
-    
+    Qxx = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
+    Qxy = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
+    Qxz = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
+    Qyx = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
+    Qyy = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
+    Qyz = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
+    Qzx = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
+    Qzy = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
+    Qzz = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
+
     chunkSize = (lastStep - beginStep) / 8
     #chunkSize= (lastStep-beginStep)/(multiprocessing.cpu_count()-6)
     if chunkSize == 0:
@@ -728,7 +794,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     PlotAdaptiveQuantities([(newSemmimajors ,"aInners")], outputDir+"/graphs", beginStep)
     PlotEccentricity([(eccentricities, "eInners")], outputDir + "/graphs", beginStep)
     PlotAdaptiveQuantities([(innerMass, "InnerMass")], outputDir + "/graphs", beginStep)
-
+    PlotQuadropole(Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,outputDir+"/graphs",0.02,beginStep)
 
 
 def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False, opposite= False,  axesOriginInInnerBinaryCenterOfMass= False):

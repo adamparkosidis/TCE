@@ -18,7 +18,7 @@ def GetHeadresFromObject(object, finiteChar=""):
 
 def GetHeadersOfParticle(particle, finiteChar=""):
     return "mass" + finiteChar + ",radius" + finiteChar + ",vx" + finiteChar + ",vy" + finiteChar + ",vz" + finiteChar + \
-           ",x" + finiteChar + ",y" + finiteChar + ",z" + finiteChar
+           ",x" + finiteChar + ",y" + finiteChar + ",z" + finiteChar +",ax" + finiteChar + ",ay" + finiteChar + ",az" + finiteChar
     '''return "ax" + finiteChar + ",ay" + finiteChar + ",az" + finiteChar + ",epsilon" + finiteChar + ",mass" + \
            finiteChar + ",radius" + finiteChar + ",vx" + finiteChar + ",vy" + finiteChar + ",vz" + finiteChar + \
            ",x" + finiteChar + ",y" + finiteChar + ",z" + finiteChar'''
@@ -35,7 +35,9 @@ def GetValuesOfParticle(particle):
     return str(particle.mass.value_in(units.g)) + "," \
     + str(particle.radius.value_in(units.cm)) + "," + str(particle.vx.value_in(units.cm / units.s)) + "," + \
            str(particle.vy.value_in(units.cm / units.s)) + "," + str(particle.vz.value_in(units.cm / units.s)) + "," + \
-    str(particle.x.value_in(units.cm)) + "," + str(particle.y.value_in(units.cm)) + "," + str(particle.z.value_in(units.cm))
+    str(particle.x.value_in(units.cm)) + "," + str(particle.y.value_in(units.cm)) + "," + str(particle.z.value_in(units.cm))+ \
+    ", " +str(particle.ax.value_in(units.cm / units.s**2)) + "," + str(particle.ay.value_in(units.cm / units.s**2)) + "," \
+    + str(particle.az.value_in(units.cm / units.s**2))
     '''
     return str(particle.ax.value_in(units.cm / units.s**2)) + "," + str(particle.ay.value_in(units.cm / units.s**2)) + "," + str(particle.az.value_in(units.cm / units.s**2)) \
            + "," + str(particle.epsilon.value_in(units.cm)) + "," + str(particle.mass.value_in(units.g)) + "," \

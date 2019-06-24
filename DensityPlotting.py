@@ -282,7 +282,7 @@ def CalculateQuadropoleMomentOfParticle(particle):
                                                                                   particle.ay * particle.y +
                                                                                   particle.az * particle.z +
                                                                                   CalculateVectorSize(particle.velocity)**2))).value_in(units.m**2 * units.kg * units.s**-2)
-    return Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz
+    return float(Qxx),float(Qxy),float(Qxz),float(Qyx),float(Qyy),float(Qyz),float(Qzx),float(Qzy),float(Qzz)
 
 def GetPropertyAtRadius(mesaStarPropertyProfile, mesaStarRadiusProfile, radius):
     profileLength = len(mesaStarRadiusProfile)
@@ -659,17 +659,18 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             if newBinarySpecificEnergy > 0 | (units.m **2 / units.s **2):
                 print "binary is breaking up", binary.specificEnergy, i
 
-            Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz = CalculateQuadropoleMomentOfParticle(companion) # add the companion to the calculation
             Qxx[i],Qxy[i],Qxz[i],Qyx[i],Qyy[i],Qyz[i],Qzx[i],Qzy[i],Qzz[i] = sphGiant.CalculateQuadropoleMoment()
-            Qxx[i] += Qxx
-            Qxy[i] += Qxy
-            Qxz[i] += Qxz
-            Qyx[i] += Qyx
-            Qyy[i] += Qyy
-            Qyz[i] += Qyz
-            Qzx[i] += Qzx
-            Qzy[i] += Qzy
-            Qzz[i] += Qzz
+            Qxx_p,Qxy_p,Qxz_p,Qyx_p,Qyy_p,Qyz_p,Qzx_p,Qzy_p,Qzz_p = CalculateQuadropoleMomentOfParticle(companion) # add the companion to the calculation
+            Qxx[i] += Qxx_p
+            Qxy[i] += Qxy_p
+            Qxz[i] += Qxz_p
+            Qyx[i] += Qyx_p
+            Qyy[i] += Qyy_p
+            Qyz[i] += Qyz_p
+            Qzx[i] += Qzx_p
+            Qzy[i] += Qzy_p
+            Qzz[i] += Qzz_p
+
 
 
         #temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)

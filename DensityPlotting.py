@@ -186,7 +186,7 @@ class SphGiant:
                                         self.core.x * self.core.ax - (2.0/3.0) * (self.core.ax * self.core.x +
                                                                                       self.core.ay * self.core.y +
                                                                                       self.core.az * self.core.z +
-                                                                                      CalculateVectorSize(self.core.v))))
+                                                                                      CalculateVectorSize(self.core.velocity)**2)))
         Qxy = (self.core.mass * (self.core.ax * self.core.y + 2 * self.core.vx * self.core.vy +
                                             self.core.x * self.core.ay))
         Qxz = (self.core.mass * (self.core.ax * self.core.z + 2 * self.core.vx * self.core.vz +
@@ -197,7 +197,7 @@ class SphGiant:
                                             self.core.y * self.core.ay - (2.0/3.0) * (self.core.ax * self.core.x +
                                                                                           self.core.ay * self.core.y +
                                                                                           self.core.az * self.core.z +
-                                                                                          CalculateVectorSize(self.core.v))))
+                                                                                          CalculateVectorSize(self.core.velocity)**2)))
         Qyz = (self.core.mass * (self.core.ay * self.core.z + 2 * self.core.vy * self.core.vz +
                                             self.core.y * self.core.az))
         Qzx = (self.core.mass * (self.core.az * self.core.x + 2 * self.core.vz * self.core.vx +
@@ -208,13 +208,13 @@ class SphGiant:
                                             self.core.z * self.core.az - (2.0/3.0) * (self.core.ax * self.core.x +
                                                                                           self.core.ay * self.core.y +
                                                                                           self.core.az * self.core.z +
-                                                                                          CalculateVectorSize(self.core.v))))
+                                                                                          CalculateVectorSize(self.core.velocity)**2)))
         for gasParticle in self.gasParticles:
             Qxx += (gasParticle.mass * (gasParticle.ax*gasParticle.x + 2 * gasParticle.vx * gasParticle.vx +
                                         gasParticle.x * gasParticle.ax - (2.0/3.0) * (gasParticle.ax * gasParticle.x +
                                                                                       gasParticle.ay * gasParticle.y +
                                                                                       gasParticle.az * gasParticle.z +
-                                                                                      CalculateVectorSize(gasParticle.v))))
+                                                                                      CalculateVectorSize(gasParticle.velocity)**2)))
             Qxy += (gasParticle.mass * (gasParticle.ax * gasParticle.y + 2 * gasParticle.vx * gasParticle.vy +
                                             gasParticle.x * gasParticle.ay))
             Qxz += (gasParticle.mass * (gasParticle.ax * gasParticle.z + 2 * gasParticle.vx * gasParticle.vz +
@@ -225,7 +225,7 @@ class SphGiant:
                                             gasParticle.y * gasParticle.ay - (2.0/3.0) * (gasParticle.ax * gasParticle.x +
                                                                                           gasParticle.ay * gasParticle.y +
                                                                                           gasParticle.az * gasParticle.z +
-                                                                                          CalculateVectorSize(gasParticle.v))))
+                                                                                          CalculateVectorSize(gasParticle.velocity)**2)))
             Qyz += (gasParticle.mass * (gasParticle.ay * gasParticle.z + 2 * gasParticle.vy * gasParticle.vz +
                                             gasParticle.y * gasParticle.az))
             Qzx += (gasParticle.mass * (gasParticle.az * gasParticle.x + 2 * gasParticle.vz * gasParticle.vx +
@@ -236,10 +236,14 @@ class SphGiant:
                                             gasParticle.z * gasParticle.az - (2.0/3.0) * (gasParticle.ax * gasParticle.x +
                                                                                           gasParticle.ay * gasParticle.y +
                                                                                           gasParticle.az * gasParticle.z +
-                                                                                          CalculateVectorSize(gasParticle.v))))
+                                                                                          CalculateVectorSize(gasParticle.velocity)**2)))
 
 
-        return Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz
+        return Qxx.value_in(units.m**2 * units.kg * units.s**-2),Qxy.value_in(units.m**2 * units.kg * units.s**-2),\
+               Qxz.value_in(units.m**2 * units.kg * units.s**-2),Qyx.value_in(units.m**2 * units.kg * units.s**-2),\
+               Qyy.value_in(units.m**2 * units.kg * units.s**-2),Qyz.value_in(units.m**2 * units.kg * units.s**-2),\
+               Qzx.value_in(units.m**2 * units.kg * units.s**-2),Qzy.value_in(units.m**2 * units.kg * units.s**-2),\
+               Qzz.value_in(units.m**2 * units.kg * units.s**-2)
 
 def LoadBinaries(file, opposite= False):
     load = read_set_from_file(file, format='amuse')
@@ -255,29 +259,29 @@ def CalculateQuadropoleMomentOfParticle(particle):
                                     particle.x * particle.ax - (2.0/3.0) * (particle.ax * particle.x +
                                                                                   particle.ay * particle.y +
                                                                                   particle.az * particle.z +
-                                                                                  CalculateVectorSize(particle.v))))
+                                                                                  CalculateVectorSize(particle.velocity)**2))).value_in(units.m**2 * units.kg * units.s**-2)
     Qxy = (particle.mass * (particle.ax * particle.y + 2 * particle.vx * particle.vy +
-                                    particle.x * particle.ay))
+                                    particle.x * particle.ay)).value_in(units.m**2 * units.kg * units.s**-2)
     Qxz = (particle.mass * (particle.ax * particle.z + 2 * particle.vx * particle.vz +
-                                    particle.x * particle.az))
+                                    particle.x * particle.az)).value_in(units.m**2 * units.kg * units.s**-2)
     Qyx  = (particle.mass * (particle.ay * particle.x + 2 * particle.vy * particle.vx +
-                                    particle.y * particle.ax))
+                                    particle.y * particle.ax)).value_in(units.m**2 * units.kg * units.s**-2)
     Qyy = (particle.mass * (particle.ay*particle.y + 2 * particle.vy * particle.vy +
                                     particle.y * particle.ay - (2.0/3.0) * (particle.ax * particle.x +
                                                                                   particle.ay * particle.y +
                                                                                   particle.az * particle.z +
-                                                                                  CalculateVectorSize(particle.v))))
+                                                                                  CalculateVectorSize(particle.velocity)**2))).value_in(units.m**2 * units.kg * units.s**-2)
     Qyz = (particle.mass * (particle.ay * particle.z + 2 * particle.vy * particle.vz +
-                                    particle.y * particle.az))
+                                    particle.y * particle.az)).value_in(units.m**2 * units.kg * units.s**-2)
     Qzx = (particle.mass * (particle.az * particle.x + 2 * particle.vz * particle.vx +
-                                    particle.z * particle.ax))
+                                    particle.z * particle.ax)).value_in(units.m**2 * units.kg * units.s**-2)
     Qzy = (particle.mass * (particle.az * particle.y + 2 * particle.vz * particle.vy +
-                                    particle.z * particle.ay))
+                                    particle.z * particle.ay)).value_in(units.m**2 * units.kg * units.s**-2)
     Qzz = (particle.mass * (particle.az * particle.z + 2 * particle.vz * particle.vz +
                                     particle.z * particle.az - (2.0/3.0) * (particle.ax * particle.x +
                                                                                   particle.ay * particle.y +
                                                                                   particle.az * particle.z +
-                                                                                  CalculateVectorSize(particle.v))))
+                                                                                  CalculateVectorSize(particle.velocity)**2))).value_in(units.m**2 * units.kg * units.s**-2)
     return Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz
 
 def GetPropertyAtRadius(mesaStarPropertyProfile, mesaStarRadiusProfile, radius):
@@ -577,11 +581,11 @@ def PlotQuadropole(Qxx,Qxy,Qxz,Qyx, Qyy,Qyz,Qzx,Qzy,Qzz, outputDir = 0, timeStep
     beginTime = beginStep * timeStep
     timeLine = [beginTime + time * timeStep for time in xrange(len(Qxx))] | units.day
 
-    textFile = open(outputDir + '/quadropole_time_' + str(beginTime) + "_to_" + str(beginTime + (len(x) - 1.0) * timeStep) + 'days.txt', 'w')
+    textFile = open(outputDir + '/quadropole_time_' + str(beginTime) + "_to_" + str(beginTime + (len(Qxx) - 1.0) * timeStep) + 'days.txt', 'w')
 
     textFile.write("Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz\r\n")
     for i in xrange(0, len(Qxx)):
-        textFile.write(' ,'.join([Qxx[i], Qxy[i], Qxz[i], Qyx[i], Qyy[i], Qyz[i], Qzx[i], Qzy[i], Qzz[i]]))
+        textFile.write(' ,'.join([str(Qxx[i]), str(Qxy[i]), str(Qxz[i]), str(Qyx[i]), str(Qyy[i]), str(Qyz[i]), str(Qzx[i]), str(Qzy[i]), str(Qzz[i])]))
         textFile.write('\r\n')
     textFile.close()
 
@@ -655,8 +659,8 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             if newBinarySpecificEnergy > 0 | (units.m **2 / units.s **2):
                 print "binary is breaking up", binary.specificEnergy, i
 
-            Qxx[i],Qxy[i],Qxz[i],Qyx[i],Qyy[i],Qyz[i],Qzx[i],Qzy[i],Qzz[i] = sphGiant.CalculateQuadropoleMoment()
             Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz = CalculateQuadropoleMomentOfParticle(companion) # add the companion to the calculation
+            Qxx[i],Qxy[i],Qxz[i],Qyx[i],Qyy[i],Qyz[i],Qzx[i],Qzy[i],Qzz[i] = sphGiant.CalculateQuadropoleMoment()
             Qxx[i] += Qxx
             Qxy[i] += Qxy
             Qxz[i] += Qxz
@@ -835,7 +839,8 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         processes.append(multiprocessing.Process(target= AnalyzeBinaryChunk,args=(savingDir,gasFiles,dmFiles,outputDir,
                                                                                   chunk, vmin, vmax, beginStep,
                                                                                   binaryDistances, semmimajors,
-                                                                                  eccentricities, innerMass, toPlot,
+                                                                                  eccentricities, innerMass, Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
+                                                                                  toPlot,
                                                                                   plotDust,dustRadius,)))
         #pool.map()
     for p in processes:

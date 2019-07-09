@@ -411,12 +411,12 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False, plotDust
         figure = pyplot.figure(figsize = (8, 10))
         pyplot.subplot(1, 1, 1)
         ax = pyplot.gca()
-        plotT = semilogy(data["radius"][:-1000], data["temperature"][:-1000], 'r-', label = r'$T(r)$', linewidth=3.0)
+        plotT = semilogy(data["radius"], data["temperature"], 'r-', label = r'$T(r)$', linewidth=3.0)
         xlabel('Radius', fontsize=24.0)
         ylabel('Temperature', fontsize= 24.0)
         ax.twinx()
         #plotrho = semilogy(data["radius"][:-1000], data["density"][:-1000].as_quantity_in(units.g * units.cm **-3), 'g-', label = r'$\rho(r)$', linewidth=3.0)
-        plotrho = semilogy(data["radius"][:-1000], data["density"][:-1000].as_quantity_in(units.g * units.cm **-3), 'g-', label = r'$\rho(r)$', linewidth=3.0)
+        plotrho = semilogy(data["radius"], data["density"].as_quantity_in(units.g * units.cm **-3), 'g-', label = r'$\rho(r)$', linewidth=3.0)
         plots = plotT + plotrho
         labels = [one_plot.get_label() for one_plot in plots]
         ax.legend(plots, labels, loc=3)
@@ -585,7 +585,9 @@ def PlotQuadropole(Qxx,Qxy,Qxz,Qyx, Qyy,Qyz,Qzx,Qzy,Qzz, outputDir = 0, timeStep
 
     textFile.write("Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz\r\n")
     for i in xrange(0, len(Qxx)):
-        textFile.write(' ,'.join([str(Qxx[i]), str(Qxy[i]), str(Qxz[i]), str(Qyx[i]), str(Qyy[i]), str(Qyz[i]), str(Qzx[i]), str(Qzy[i]), str(Qzz[i])]))
+        textFile.write(' ,'.join([str(Qxx[i] * 10**40), str(Qxy[i] * 10**40), str(Qxz[i] * 10**40),
+                                  str(Qyx[i] * 10**40), str(Qyy[i] * 10**40), str(Qyz[i] * 10**40),
+                                  str(Qzx[i] * 10**40), str(Qzy[i] * 10**40), str(Qzz[i] * 10**40)]))
         textFile.write('\r\n')
     textFile.close()
 
@@ -659,21 +661,23 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             if newBinarySpecificEnergy > 0 | (units.m **2 / units.s **2):
                 print "binary is breaking up", binary.specificEnergy, i
 
-            Qxx[i],Qxy[i],Qxz[i],Qyx[i],Qyy[i],Qyz[i],Qzx[i],Qzy[i],Qzz[i] = sphGiant.CalculateQuadropoleMoment()
+            Qxx_g,Qxy_g,Qxz_g,Qyx_g,Qyy_g,Qyz_g,Qzx_g,Qzy_g,Qzz_g = sphGiant.CalculateQuadropoleMoment()
             Qxx_p,Qxy_p,Qxz_p,Qyx_p,Qyy_p,Qyz_p,Qzx_p,Qzy_p,Qzz_p = CalculateQuadropoleMomentOfParticle(companion) # add the companion to the calculation
-            Qxx[i] += Qxx_p
-            Qxy[i] += Qxy_p
-            Qxz[i] += Qxz_p
-            Qyx[i] += Qyx_p
-            Qyy[i] += Qyy_p
-            Qyz[i] += Qyz_p
-            Qzx[i] += Qzx_p
-            Qzy[i] += Qzy_p
-            Qzz[i] += Qzz_p
+            print Qxx_p, Qxx[i]+Qxx_p+Qxx_g
+            Qxx[i] = (Qxx[i]+Qxx_p+Qxx_g)/(10**40)
+            print Qxx[i]
+            Qxy[i] += (Qxy_p + Qxy_g)/(10**40)
+            Qxz[i] += (Qxz_p + Qxz_g)/(10**40)
+            Qyx[i] += (Qyx_p + Qyz_g)/(10**40)
+            Qyy[i] += (Qyy_p + Qyy_g)/(10**40)
+            Qyz[i] += (Qyz_p + Qyz_g)/(10**40)
+            Qzx[i] += (Qzx_p + Qzx_g)/(10**40)
+            Qzy[i] += (Qzy_p + Qzy_g)/(10**40)
+            Qzz[i] += (Qzz_p + Qzz_g)/(10**40)
 
 
 
-        #temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
+        temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
 
         if toPlot:
             PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep , outputDir, vmin, vmax, plotDust= plotDust, dustRadius=dustRadius)
@@ -800,7 +804,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                 f.close()
             except:
                 pass
-
+from ctypes import *
 def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False, plotDust=True, dustRadius=700.0|units.RSun):
     if lastStep == 0 : # no boundary on last step
         lastStep = len(gasFiles)
@@ -809,7 +813,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     semmimajors = multiprocessing.Array('f', [0.0 for i in range(beginStep, lastStep)])
     eccentricities = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     innerMass = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
-    Qxx = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
+    Qxx = multiprocessing.Array(c_float, [0.0 for i in range(beginStep,lastStep)])
     Qxy = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
     Qxz = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
     Qyx = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
@@ -852,6 +856,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     newBinaryDistances = AdaptingVectorQuantity()
     newSemmimajors = AdaptingVectorQuantity()
     newInnerMass = AdaptingVectorQuantity()
+
     for j in xrange(len(binaryDistances) - 1):
         newBinaryDistances.append(float(binaryDistances[j]) | units.RSun)
         newSemmimajors.append(float(semmimajors[j]) | units.AU)

@@ -85,7 +85,7 @@ if __name__ == "__main__":
 
     if args.last == 0:
         snapshots = glob.glob(args.source_dir + "/dm*.amuse")
-        numberOfSnapshots = len(snapshots)
+        numberOfSnapshots = len(snapshots) - 1
     else:
         numberOfSnapshots = args.last
     print numberOfSnapshots

@@ -489,7 +489,7 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False, plotDust
 
 
 
-def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, dustRadius=700 | units.RSun, width = 4.0 | units.AU):
+def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, dustRadius=700 | units.RSun, width = 4.0 | units.AU, side_on = False):
     if not HAS_PYNBODY:
         print "problem plotting"
         return
@@ -500,24 +500,37 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
     pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
-    cbar = pynbody_sph.image(pyndata, resolution=2000,width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax, cmap="hot", title = str(i * 0.2) + " days")
-    UnitlessArgs.current_plot = native_plot.gca()
-    '''native_plot.xlim(xmax=2, xmin=-10)
-    native_plot.ylim(ymax=6, ymin=-6)
-    native_plot.xticks([-10,-8,-6,-4,-2,0,2],[-6,-4,-2,0,2,4,6])'''
-    native_plot.xlabel('x[AU]')
-    native_plot.ylabel('y[AU]')
-    #pyplot.xlim(-5,-2)
-    if core.mass != 0 | units.MSun:
-        if core.x >= -1* width / 2.0 and core.x <= width/ 2.0 and core.y >= -1 * width/ 2.0 and core.y <= width / 2.0:
-            #both coordinates are inside the boundaries- otherwise dont plot it
-            scatter(core.x, core.y, c="r")
-    scatter(binary.x, binary.y, c="w")
-    #pyplot.xlim(-930, -350)
-    #pyplot.ylim(-190,390)
-    if plotDust:
-        circle_with_radius(core.x, core.y,dustRadius, fill=False, color='white', linestyle= 'dashed', linewidth=3.0)
+    if not side_on:
+        cbar = pynbody_sph.image(pyndata, resolution=2000,width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax, cmap="hot", title = str(i * 0.2) + " days")
+        UnitlessArgs.current_plot = native_plot.gca()
+        '''native_plot.xlim(xmax=2, xmin=-10)
+        native_plot.ylim(ymax=6, ymin=-6)
+        native_plot.xticks([-10,-8,-6,-4,-2,0,2],[-6,-4,-2,0,2,4,6])'''
+        native_plot.ylabel('y[AU]')
+        #pyplot.xlim(-5,-2)
+        if core.mass != 0 | units.MSun:
+            if core.x >= -1* width / 2.0 and core.x <= width/ 2.0 and core.y >= -1 * width/ 2.0 and core.y <= width / 2.0:
+                #both coordinates are inside the boundaries- otherwise dont plot it
+                scatter(core.x, core.y, c="r")
+        scatter(binary.x, binary.y, c="w")
+        #pyplot.xlim(-930, -350)
+        #pyplot.ylim(-190,390)
+        if plotDust:
+            circle_with_radius(core.x, core.y,dustRadius, fill=False, color='white', linestyle= 'dashed', linewidth=3.0)
+    else:
+        outputDir += "/side_on"
+        cbar = pynbody_sph.sideon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax, cmap="hot", title = str(i * 0.2) + " days")
+        UnitlessArgs.current_plot = native_plot.gca()
+        native_plot.ylabel('z[AU]')
+        if core.mass != 0 | units.MSun:
+            if core.x >= -1* width / 2.0 and core.x <= width/ 2.0 and core.z >= -1 * width/ 2.0 and core.z <= width / 2.0:
+                #both coordinates are inside the boundaries- otherwise dont plot it
+                scatter(core.x, core.z, c="r")
+        scatter(binary.x, binary.z, c="w")
+        if plotDust:
+            circle_with_radius(core.x, core.z,dustRadius, fill=False, color='white', linestyle= 'dashed', linewidth=3.0)
     #native_plot.colorbar(fontsize=20.0)
+    native_plot.xlabel('x[AU]')
     matplotlib.rcParams.update({'font.size': 36, 'font.family': 'Serif'})
     #pyplot.rc('text', usetex=True)
     #cbar.ax.set_yticklabels(cbar
@@ -636,7 +649,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
         parts.add_particle(sphGiant.core)
         parts.add_particles(sphGiant.gasParticles)
 
-        print "com: ", parts.center_of_mass(),  i
+        print "com: ", parts.center_of_mass(),  i + beginStep
         print "com v: ", parts.center_of_mass_velocity(), i
         #print [CalculateVectorSize(part.velocity).as_quantity_in(units.m / units.s) for part in sphGiant.gasParticles]
         if isBinary:
@@ -659,7 +672,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 
             #check if the binary is breaking up
             if newBinarySpecificEnergy > 0 | (units.m **2 / units.s **2):
-                print "binary is breaking up", binary.specificEnergy, i
+                print "binary is breaking up", binary.specificEnergy, i + beginStep
 
             Qxx_g,Qxy_g,Qxz_g,Qyx_g,Qyy_g,Qyz_g,Qzx_g,Qzy_g,Qzz_g = sphGiant.CalculateQuadropoleMoment()
             Qxx_p,Qxy_p,Qxz_p,Qyx_p,Qyy_p,Qyz_p,Qzx_p,Qzy_p,Qzz_p = CalculateQuadropoleMomentOfParticle(companion) # add the companion to the calculation
@@ -681,6 +694,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 
         if toPlot:
             PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep , outputDir, vmin, vmax, plotDust= plotDust, dustRadius=dustRadius)
+            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep , outputDir, vmin, vmax, plotDust= plotDust, dustRadius=dustRadius, side_on=True)
             PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep, outputDir, vmin, vmax)
 
     for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
@@ -794,8 +808,10 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             binary[1].velocity  -= centerOfMassVelocity
             if axesOriginInInnerBinaryCenterOfMass:
                 PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin=5e29, vmax= 1e35, width= 30.0 * 3.0 | units.RSun)
+                PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin=5e29, vmax= 1e35, width= 30.0 * 3.0 | units.RSun, side_on=True)
             else:
                 PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax, width= 4.0 | units.AU)
+                PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax, width= 4.0 | units.AU, side_on=True)
             PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
 
         #close opened handles
@@ -1040,6 +1056,10 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
         " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare, "axes at the origin? ", axesOriginInInnerBinaryCenterOfMass, "opossite? ", opposite
     try:
         os.makedirs(outputDir)
+    except(OSError):
+        pass
+    try:
+        os.makedirs(outputDir + "/side_on")
     except(OSError):
         pass
     try:

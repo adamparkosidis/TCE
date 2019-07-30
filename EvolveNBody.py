@@ -72,6 +72,7 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
         system.parameters.timestep = t_end / n_steps
         system.parameters.eps_is_h_flag = True
     else:
+        system.parameters.time_step = t_end / n_steps
         system.parameters.gadget_output_directory = outputDirectory
     #system.parameters.begin_time = beginTime
     system.parameters.time_limit_cpu = 7200000000 | units.s
@@ -185,7 +186,10 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
         if relax:
             coreParticleRadius = sphCore.radius * 20.0 * (250.0 * 1000.0 / len(sphEnvelope)) # will be 20 for 250K, 10 for 500K and less for better resolution
         else:
-            coreParticleRadius = sphCore.epsilon
+            try:
+                coreParticleRadius = sphCore.epsilon
+            except:
+                coreParticleRadius = sphCore.radius
         hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, coreParticleRadius, numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
 
         #hydroSystem.time = currentTime
@@ -228,7 +232,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
         particles = coupledSystem.particles
         if relax:
             print "com: ", particles.center_of_mass()
-            if (particles.center_of_mass() !=  centerOfMassRadius):
+            if (particles.center_of_mass() !=  centerOfMassRadius).all():
                 particles.position += (centerOfMassRadius - particles.center_of_mass())
             print "com: ", particles.center_of_mass()
             print "com v: ", particles.center_of_mass_velocity()
@@ -264,8 +268,8 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
             secondBinaryOldSep = BinaryCalculations.CalculateVectorSize(secondBinaryCOM - Particles(particles=[coupledSystem.dm_particles[0]]).center_of_mass())
 
         coupledSystem.evolve_model(currentSimulationTime + timeStep)
-        print "   Evolved to:", (currentTime + timeStep).as_quantity_in(units.day), coupledSystem.get_time().as_quantity_in(units.day)
-        print "time step is - ", coupledSystem.get_time_step()
+        print "   Evolved to:", (currentTime + timeStep).as_quantity_in(units.day)
+        #print "time step is - ", coupledSystem.get_time_step()
         currentTime += timeStep
         currentSimulationTime += timeStep
         if (time.time() - currentSecond) > saveAfterMinute * 60:

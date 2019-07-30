@@ -67,7 +67,11 @@ def GetTimeOfFile(fileNumber, defaultTimeStep = 0.2 | units.day):
     return (fileNumber * defaultTimeStep)
 
 def GetBinaryStateFromFile(directoryPath, fileNumber):
-    return read_set_from_file(os.path.join(directoryPath, "dm_" + fileNumber + ".amuse"), format='amuse')
+    try:
+        return read_set_from_file(os.path.join(directoryPath, "dm_" + fileNumber + ".amuse"), format='amuse')
+    except:
+        if fileNumber == 0:
+            return read_set_from_file(os.path.join(directoryPath, "dm_00.amuse"), format='amuse')
 
 def InitParser():
     parser = argparse.ArgumentParser(description='')

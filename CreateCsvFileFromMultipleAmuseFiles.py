@@ -70,9 +70,10 @@ def GetBinaryStateFromFile(directoryPath, fileNumber):
     try:
         return read_set_from_file(os.path.join(directoryPath, "dm_" + fileNumber + ".amuse"), format='amuse')
     except Exception as ex:
-        if fileNumber == 0:
+        if fileNumber == 0 or fileNumber =='0':
             return read_set_from_file(os.path.join(directoryPath, "dm_00.amuse"), format='amuse')
-        else: raise Exception(ex)
+        else:
+            raise Exception(ex)
 
 def InitParser():
     parser = argparse.ArgumentParser(description='')

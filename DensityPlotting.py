@@ -219,7 +219,7 @@ class SphGiant:
                                             gasParticle.x * gasParticle.ay))
             Qxz += (gasParticle.mass * (gasParticle.ax * gasParticle.z + 2 * gasParticle.vx * gasParticle.vz +
                                             gasParticle.x * gasParticle.az))
-            Qyx  += (gasParticle.mass * (gasParticle.ay * gasParticle.x + 2 * gasParticle.vy * gasParticle.vx +
+            Qyx += (gasParticle.mass * (gasParticle.ay * gasParticle.x + 2 * gasParticle.vy * gasParticle.vx +
                                             gasParticle.y * gasParticle.ax))
             Qyy += (gasParticle.mass * (gasParticle.ay*gasParticle.y + 2 * gasParticle.vy * gasParticle.vy +
                                             gasParticle.y * gasParticle.ay - (2.0/3.0) * (gasParticle.ax * gasParticle.x +
@@ -489,7 +489,7 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False, plotDust
 
 
 
-def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, dustRadius=700 | units.RSun, width = 4.0 | units.AU, side_on = False):
+def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, dustRadius=700 | units.RSun, width = 4.0 | units.AU, side_on = False, timeStep = 0.2):
     if not HAS_PYNBODY:
         print "problem plotting"
         return
@@ -501,7 +501,8 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
     pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
     if not side_on:
-        cbar = pynbody_sph.image(pyndata, resolution=2000,width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax, cmap="hot", title = str(i * 0.2) + " days")
+        cbar = pynbody_sph.image(pyndata, resolution=2000,width=width.value_in(length_unit), units='m_p cm^-2',
+                                 vmin= vmin, vmax= vmax, cmap="hot", title = str(i * timeStep) + " days")
         UnitlessArgs.current_plot = native_plot.gca()
         '''native_plot.xlim(xmax=2, xmin=-10)
         native_plot.ylim(ymax=6, ymin=-6)
@@ -539,7 +540,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
     pyplot.savefig(outputDir + "/plotting_{0}.jpg".format(i), transparent=False)
     pyplot.close()
 
-def PlotVelocity(sphGiant,core,binary,step, outputDir, vmin, vmax):
+def PlotVelocity(sphGiant,core,binary,step, outputDir, vmin, vmax, timeStep = 0.2):
     if not HAS_PYNBODY:
         print HAS_PYNBODY
         print "problem plotting"
@@ -548,7 +549,8 @@ def PlotVelocity(sphGiant,core,binary,step, outputDir, vmin, vmax):
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
     pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
-    pynbody_sph.velocity_image(pyndata, width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax, title = str(step * 0.2) + " days")
+    pynbody_sph.velocity_image(pyndata, width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax,
+                               title = str(step * timeStep) + " days")
     UnitlessArgs.current_plot = native_plot.gca()
     #print core.mass
     #if core.mass != 0 |units.MSun:
@@ -606,7 +608,7 @@ def PlotQuadropole(Qxx,Qxy,Qxz,Qyx, Qyy,Qyz,Qzx,Qzy,Qzz, outputDir = 0, timeStep
 
 def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, beginStep, binaryDistances,semmimajors,eccentricities, innerMass,
                        Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
-                       toPlot = False, plotDust=False, dustRadius= 340.0 | units.RSun):
+                       toPlot = False, plotDust=False, dustRadius= 340.0 | units.RSun, timeStep=0.2):
     for i in [j - beginStep for j in chunk]:
         #print "step #",i
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i + beginStep])
@@ -693,9 +695,9 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
         temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
 
         if toPlot:
-            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep , outputDir, vmin, vmax, plotDust= plotDust, dustRadius=dustRadius)
-            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep , outputDir, vmin, vmax, plotDust= plotDust, dustRadius=dustRadius, side_on=True)
-            PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep, outputDir, vmin, vmax)
+            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep , outputDir, vmin, vmax, plotDust= plotDust, dustRadius=dustRadius, timeStep=timeStep)
+            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep , outputDir, vmin, vmax, plotDust= plotDust, dustRadius=dustRadius, side_on=True, timeStep=timeStep)
+            PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep, outputDir, vmin, vmax, timeStep=timeStep)
 
     for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
         try:
@@ -707,7 +709,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                        binaryDistances, tripleDistances, triple1Distances, triple2Distances,
                        aInners, aOuters, aOuters1, aOuters2,
                        eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, separationStep,
-                       toPlot = False, opposite= False, axesOriginInInnerBinaryCenterOfMass= False):
+                       toPlot = False, opposite= False, axesOriginInInnerBinaryCenterOfMass= False, timeStep=0.2):
 
     for i in [j - beginStep for j in chunk]:
         print time.ctime(), "step: ", i
@@ -737,31 +739,31 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         eInner = CalculateEccentricity(particle1,particle2)
 
         if CalculateVectorSize(innerBinary.separation) <= particle1.radius+ particle2.radius:
-            print "merger between the inner binary!" , innerBinary.separation.as_quantity_in(units.RSun) , i * 1400/7000.0
+            print "merger between the inner binary!" , innerBinary.separation.as_quantity_in(units.RSun) , i * timeStep
 
         if CalculateVectorSize(CalculateSeparation(sphGiant.core,particle1)) <= sphGiant.core.radius + particle1.radius:
-            print "merger between particle1 and the giant!" , i * 1400/7000.0
+            print "merger between particle1 and the giant!" , i * timeStep
             #break
 
         if CalculateVectorSize(CalculateSeparation(sphGiant.core, particle2)) <= sphGiant.core.radius+ particle2.radius:
-            print "merger between particle 2 and the giant!" , i * 1400/7000.0
+            print "merger between particle 2 and the giant!" , i * timeStep
             #break
         #check if the binry is breaking up
         if innerBinary.specificEnergy > 0 | (units.m **2 / units.s **2):
-            print "binary is breaking up", innerBinary.specificEnergy , i * 1400/7000.0
+            print "binary is breaking up", innerBinary.specificEnergy , i * timeStep
 
         #check if the couple particle1 + giant are breaking up
             if triple1.specificEnergy > 0 | (units.m **2 / units.s **2):
-                print "triple1 is breaking up", triple1.specificEnergy , i * 1400/7000.0
+                print "triple1 is breaking up", triple1.specificEnergy , i * timeStep
 
                 #check if the couple particle2 + giant are also breaking up
                 if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
-                    print "triple2 is also breaking up", triple2.specificEnergy , i * 1400/7000.0
+                    print "triple2 is also breaking up", triple2.specificEnergy , i * timeStep
                     #break
 
             #check if the couple particle2 + giant are breaking up
             if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
-                print "triple2 is breaking up", triple2.specificEnergy, i * 1400/7000.0
+                print "triple2 is breaking up", triple2.specificEnergy, i * timeStep
 
             separationStep=0
 
@@ -807,11 +809,11 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             binary[1].position -= centerOfMassPosition
             binary[1].velocity  -= centerOfMassVelocity
             if axesOriginInInnerBinaryCenterOfMass:
-                PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin=5e29, vmax= 1e35, width= 30.0 * 3.0 | units.RSun)
-                PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin=5e29, vmax= 1e35, width= 30.0 * 3.0 | units.RSun, side_on=True)
+                PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin=5e29, vmax= 1e35, width= 30.0 * 3.0 | units.RSun, timeStep=timeStep)
+                PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin=5e29, vmax= 1e35, width= 30.0 * 3.0 | units.RSun, side_on=True, timeStep=timeStep)
             else:
-                PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax, width= 4.0 | units.AU)
-                PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax, width= 4.0 | units.AU, side_on=True)
+                PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax, width= 4.0 | units.AU, timeStep=timeStep)
+                PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax, width= 4.0 | units.AU, side_on=True, timeStep=timeStep)
             PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
 
         #close opened handles
@@ -821,7 +823,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             except:
                 pass
 from ctypes import *
-def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False, plotDust=True, dustRadius=700.0|units.RSun):
+def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False, plotDust=True, dustRadius=700.0|units.RSun, timeStep=0.2):
     if lastStep == 0 : # no boundary on last step
         lastStep = len(gasFiles)
     print lastStep
@@ -862,7 +864,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                                                                                   binaryDistances, semmimajors,
                                                                                   eccentricities, innerMass, Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
                                                                                   toPlot,
-                                                                                  plotDust,dustRadius,)))
+                                                                                  plotDust,dustRadius,timeStep,)))
         #pool.map()
     for p in processes:
         p.start()
@@ -882,10 +884,10 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     PlotAdaptiveQuantities([(newSemmimajors ,"aInners")], outputDir+"/graphs", beginStep)
     PlotEccentricity([(eccentricities, "eInners")], outputDir + "/graphs", beginStep)
     PlotAdaptiveQuantities([(innerMass, "InnerMass")], outputDir + "/graphs", beginStep)
-    PlotQuadropole(Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,outputDir+"/graphs",0.02,beginStep)
+    PlotQuadropole(Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,outputDir+"/graphs",timeStep,beginStep)
 
 
-def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False, opposite= False,  axesOriginInInnerBinaryCenterOfMass= False):
+def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False, opposite= False,  axesOriginInInnerBinaryCenterOfMass= False, timeStep=0.2):
     separationStep = multiprocessing.Value('i')
     if lastStep == 0 : # no boundary on last step
         lastStep = len(dmFiles)
@@ -929,7 +931,10 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         processes.append(multiprocessing.Process(target= AnalyzeTripleChunk,args=(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vmax, beginStep,
                        binaryDistances, tripleDistances, triple1Distances, triple2Distances,
                        aInners, aOuters, aOuters1, aOuters2,
-                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, separationStep, toPlot, opposite, axesOriginInInnerBinaryCenterOfMass,)))
+                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2,
+                                                                                  separationStep, toPlot, opposite,
+                                                                                  axesOriginInInnerBinaryCenterOfMass,
+                                                                                  timeStep,)))
     for p in processes:
         p.start()
     for p in processes:
@@ -970,6 +975,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     Plot1Axe(inclinations,"inclinations", outputDir+"/graphs", beginStep=beginStep)
     PlotAdaptiveQuantities([(innerMass, "InnerMass"), (innerMass1, "InnerMass1"), (innerMass2, "InnerMass2")], outputDir + "/graphs", beginStep)
 
+
 def GetArgs(args):
     if len(args) > 1:
         directory=args[1]
@@ -1009,12 +1015,16 @@ def GetArgs(args):
     else:
         axesOriginInInnerBinaryCenterOfMass = False
     if len(args) >9:
-        opposite = True
+        opposite = bool(int(args[9]))
     else:
         opposite = False
+    if len(args) > 10:
+        timeStep=float(args[10])
+    else:
+        timeStep = 0.2
 
     outputDir = savingDir + "/pics"
-    return savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, axesOriginInInnerBinaryCenterOfMass, opposite
+    return savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, axesOriginInInnerBinaryCenterOfMass, opposite, timeStep
 
 def InitializeSnapshots(savingDir, toCompare=False):
     '''
@@ -1051,9 +1061,11 @@ def compare(st1, st2):
 
 
 def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0,1e16,1e34, 1]):
-    savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, axesOriginInInnerBinaryCenterOfMass, opposite = GetArgs(args)
+    savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, axesOriginInInnerBinaryCenterOfMass, \
+    opposite, timeStep = GetArgs(args)
     print "plotting to " +  outputDir + " plot- " + str(plot) +  " from " +  savingDir +" begin step = " , beginStep , \
-        " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare, "axes at the origin? ", axesOriginInInnerBinaryCenterOfMass, "opossite? ", opposite
+        " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare, "axes at the origin? ", \
+        axesOriginInInnerBinaryCenterOfMass, "opossite? ", opposite, "timeStep= ", timeStep
     try:
         os.makedirs(outputDir)
     except(OSError):
@@ -1078,9 +1090,10 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
 
     if numberOfCompanion <= 2: #binary
         print "analyzing binary"
-        AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, plot, plotDust=False)
+        AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, plot, plotDust=False, timeStep=timeStep)
     elif numberOfCompanion ==3: #triple
-        AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, plot, opposite, axesOriginInInnerBinaryCenterOfMass)
+        AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, plot, opposite,
+                      axesOriginInInnerBinaryCenterOfMass, timeStep=timeStep)
 
 if __name__ == "__main__":
     for arg in sys.argv:

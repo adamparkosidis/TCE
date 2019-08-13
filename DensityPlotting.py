@@ -683,7 +683,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             print Qxx[i]
             Qxy[i] += (Qxy_p + Qxy_g)/(10**40)
             Qxz[i] += (Qxz_p + Qxz_g)/(10**40)
-            Qyx[i] += (Qyx_p + Qyz_g)/(10**40)
+            Qyx[i] += (Qyx_p + Qyx_g)/(10**40)
             Qyy[i] += (Qyy_p + Qyy_g)/(10**40)
             Qyz[i] += (Qyz_p + Qyz_g)/(10**40)
             Qzx[i] += (Qzx_p + Qzx_g)/(10**40)
@@ -975,6 +975,20 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     Plot1Axe(inclinations,"inclinations", outputDir+"/graphs", beginStep=beginStep)
     PlotAdaptiveQuantities([(innerMass, "InnerMass"), (innerMass1, "InnerMass1"), (innerMass2, "InnerMass2")], outputDir + "/graphs", beginStep)
 
+def InitParser():
+    parser = argparse.ArgumentParser(description='')
+    parser.add_argument('--beginStep', type=int,  help='first step', default=0)
+    parser.add_argument('--lastStep', type=int,  help='last step', default=0)
+    parser.add_argument('--time_step', type=float,  help='time between files in days', default=0.2)
+    parser.add_argument('--source_dir', type=str,  help='path to amuse files directory', default= sys.args[0])
+    parser.add_argument('--snapshots_dir', type=str,  help='path to amuse files directory', default= "evolution")
+    parser.add_argument('--vmin', type=float,  help='minimum  density plotting', default=1e16)
+    parser.add_argument('--vmax', type=float,  help='maximum  density plotting', default=1e34)
+    parser.add_argument('--plot', type=bool,  help='do you want to plot profiles?', default=False)
+    parser.add_argument('--axesOriginInInnerBinaryCenterOfMass', type=bool,  help='do you want to plot the inner binary at the origin?', default=False)
+    parser.add_argument('--opposite', type=bool,  help='do you want the main star to be a part of the inner binary?', default=False)
+
+    return parser
 
 def GetArgs(args):
     if len(args) > 1:
@@ -1061,8 +1075,10 @@ def compare(st1, st2):
 
 
 def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0,1e16,1e34, 1]):
+    #parser=InitParser()
+    #args=parser.parse_args()
     savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, axesOriginInInnerBinaryCenterOfMass, \
-    opposite, timeStep = GetArgs(args)
+        opposite, timeStep = GetArgs(args)
     print "plotting to " +  outputDir + " plot- " + str(plot) +  " from " +  savingDir +" begin step = " , beginStep , \
         " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare, "axes at the origin? ", \
         axesOriginInInnerBinaryCenterOfMass, "opossite? ", opposite, "timeStep= ", timeStep

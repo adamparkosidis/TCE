@@ -158,12 +158,14 @@ class SphGiant:
         self.innerGas.position = (self.innerGas.xTot, self.innerGas.yTot, self.innerGas.zTot)
 
     def CountLeavingParticlesInsideRadius(self):
-        leavingParticles = 0
+        self.leavingParticles = 0
+        self.totalUnboundedMass = 0 | units.MSun
         for particle in self.gasParticles:
             specificEnergy = CalculateSpecificEnergy(CalculateVelocityDifference(particle,self.gas),CalculateSeparation(particle, self.gas), particle, self.gas)
             if specificEnergy > 0:
-                leavingParticles += 1
-        return leavingParticles
+                self.leavingParticles += 1
+                self.totalUnboundedMass += particle.mass
+        return self.leavingParticles
 
     def FindSmallestCell(self):
         smallestRadius = self.gasParticles.total_radius()
@@ -770,6 +772,9 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             separationStep = 0
 
         #all the three are connected
+        sphGiant.CountLeavingParticlesInsideRadius()
+        print "leaving particles: ", sphGiant.leavingParticles
+        print "unbounded mass: ", sphGiant.totalUnboundedMass
         print time.ctime(), "beginning innerGas calculations of step ", i
         sphGiant.CalculateInnerSPH(innerBinary)
         innerMass[i] = sphGiant.innerGas.mass.value_in(units.MSun)

@@ -162,7 +162,7 @@ class SphGiant:
         self.totalUnboundedMass = 0 | units.MSun
         for particle in self.gasParticles:
             specificEnergy = CalculateSpecificEnergy(CalculateVelocityDifference(particle,self.gas),CalculateSeparation(particle, self.gas), particle, self.gas)
-            if specificEnergy > 0:
+            if specificEnergy > 0 |specificEnergy.unit:
                 self.leavingParticles += 1
                 self.totalUnboundedMass += particle.mass
         return self.leavingParticles

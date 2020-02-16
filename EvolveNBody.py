@@ -85,6 +85,7 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     system.parameters.time_max = t_end * 1.5
 
 
+
     print system.dm_particles
     #print core
     print system.parameters.epsilon_squared

@@ -371,7 +371,7 @@ class Star:
                                self.relaxationTimeSteps, savedVersionPath= self.savedPath, relax= True)
         #return sphStar
 
-def GetRelativeVelocityAtApastron(total_mass, semimajor_axis, ecc):
+def     GetRelativeVelocityAtApastron(total_mass, semimajor_axis, ecc):
     return (constants.G * total_mass * ((1.0 - ecc)/(1.0 + ecc)) / semimajor_axis).sqrt()
 
 def CalculateTotalMass(particles):
@@ -414,7 +414,9 @@ class Binary:
             stars[1].x = self.semimajorAxis * math.sin(self.angle.value_in(units.rad))
             stars[1].y = self.semimajorAxis * math.cos(self.angle.value_in(units.rad))
             stars[1].vx = -math.cos(self.inclination)*GetRelativeVelocityAtApastron(
-                stars.total_mass(), self.semimajorAxis, self.eccentricity)
+                stars.total_mass(), self.semimajorAxis, self.eccentricity) * math.cos(self.angle.value_in(units.rad))
+            stars[1].vy = -math.cos(self.inclination)*GetRelativeVelocityAtApastron(
+                stars.total_mass(), self.semimajorAxis, self.eccentricity) * math.sin(self.angle.value_in(units.rad))
             stars[1].vz = math.sin(self.inclination)*GetRelativeVelocityAtApastron(
                 stars.total_mass(), self.semimajorAxis, self.eccentricity)
 

@@ -1,5 +1,5 @@
 import pickle
-import os, sys
+import os, sys, time
 
 from amuse.units import units
 from amuse.community.gadget2.interface import Gadget2
@@ -23,7 +23,8 @@ import EvolveNBody
 def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, takeSavedMesa = False):
     '''
     creating the TCE
-    the inner binary is made by the giant and one MS star, the outer binary is made of the center of mass of the inner binary with another far MS star.
+    the inner binary is made by the giant and one compact object, the outer binary is made of another compact object
+    and the center of mass of the inner binary.
     :return:main star's mass, the envelope particles, the core particles, the binary stars and the triple semmimajor
 
     '''
@@ -33,8 +34,18 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     #now setting up the giant (want it to be relaxed and spinning)
     outerBinary = StarModels.Binary(configurationFile, configurationSection="OuterBinary")
 
-    outerBinary.stars.position += innerBinary.stars.center_of_mass()
-    outerBinary.stars.velocity += innerBinary.stars.center_of_mass_velocity()
+    #the inner binary's center of mass is the second star of the outer binary. so move the center of mass to that place.
+    innerBinary.stars.position += outerBinary.stars[1].position
+    innerBinary.stars.velocity += outerBinary.stars[1].velocity
+
+    #we now move the system so the giant will be in the middle
+    giantPossitionDiff = innerBinary.stars[0].position
+    giantVelocityDiff = innerBinary.stars[0].velocity
+    innerBinary.stars.position -= giantPossitionDiff
+    innerBinary.stars.velocity -= giantVelocityDiff
+    outerBinary.stars.position -= giantPossitionDiff
+    outerBinary.stars.velocity -= giantVelocityDiff
+
     giant.position = innerBinary.stars[0].position
     giant.velocity = innerBinary.stars[0].velocity
 
@@ -42,12 +53,19 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                 savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
 
     print "Now having the sph star and the binaries, ready for relaxing"
-
+    outputDirectory = savedPath + "/codes_output_{0}".format(str(time.localtime().tm_year) + "-" +
+                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
+                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
+                            str(time.localtime().tm_sec))
+    os.makedirs(outputDirectory)
     hydroSystem = EvolveNBody.HydroSystem(Gadget2, sphStar.gas_particles, sphStar.core_particle, sphStar.relaxationTime,
-                                          sphStar.relaxationTimeSteps, 0.0 | units.Myr, sphStar.core_particle.radius/10,
-                                          sphStar.numberOfWorkers)
-    '''
+                                          sphStar.relaxationTimeSteps, 0.0 | units.Myr,
+                                          sphStar.core_particle.radius * 20.0 * (250.0 * 1000.0 / len(sphStar.gas_particles)),
+                                          sphStar.numberOfWorkers, outputDirectory)
+    companionField = CalculateFieldForParticles(Particles(particles=[innerBinary.stars[1],outerBinary.stars[0]]), gravity_constant=constants.G)
     coupledSystem = Bridge(timestep=(sphStar.relaxationTime / (2 * sphStar.relaxationTimeSteps)), verbose=False, use_threading= False)
+    coupledSystem.add_system(hydroSystem,(companionField,),False,h_smooth_is_eps=True)
+    '''
     #kickFromBinary = CalculateFieldForParticles(particles=Particles(particles=[innerBinary.stars[1],outerBinary.stars[1]]), gravity_constant=constants.G)
     nbodyConverter = nbody_to_si(innerBinary.stars[1].mass, sphStar.relaxationTime)
     companion1 = Hermite(nbodyConverter)
@@ -58,14 +76,14 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     epsilonSquared = (hydroSystem.dm_particles.radius[0] / 2.8)**2
     #kickFromBinary.smoothing_length_squared = epsilonSquared
     coupledSystem.add_system(hydroSystem, (companion1, companion2,), False)
-    '''
-    coupledSystem= hydroSystem
+
+    coupledSystem= hydroSystem'''
     starEnvelope, dmStars = EvolveNBody.Run(totalMass= outerBinary.stars.total_mass(),
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
-                                             stars=None, endTime= sphStar.relaxationTime,
+                                             stars=innerBinary, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
-                                              numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath,
-                                            saveAfterMinute=10, system=coupledSystem)
+                                              numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=10,system=coupledSystem)
+
     starCore = dmStars[0]
     starCore.radius = sphStar.core_particle.radius
 
@@ -76,12 +94,11 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
     #moving the main star back to the center
     diffPosition = starCore.position - giant.position
-    diffVelocity = (starCore.velocity*starCore.mass + starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass())/ giant.mass
+    #diffVelocity = (starCore.velocity*starCore.mass + starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass())/ giant.mass
     starEnvelope.position -= diffPosition
-    starCore.position -= diffPosition
-    starEnvelope.velocity -= diffVelocity
-    starCore.velocity -= diffVelocity
-
+    starCore.position = giant.position
+    starEnvelope.velocity = giant.velocity
+    starCore.velocity = giant.velocity
 
 
     return giant.mass, starEnvelope, starCore, innerBinary, outerBinary, sphMetaData
@@ -115,12 +132,20 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSave
             starMass, starEnvelope, starCore, innerBinary, outerBinary, sphMetaData = CreateTripleSystem(configurationFile, savedVersionPath)
 
     # creating the NBody system with the 3 and evolving
-
+    outputDirectory = savedVersionPath + "/codes_output_{0}".format(str(time.localtime().tm_year) + "-" +
+                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
+                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
+                            str(time.localtime().tm_sec))
+    try:
+        coreRadius = starCore.epsilon
+    except:
+        coreRadius = starCore.radius
     hydroSystem = EvolveNBody.HydroSystem(Gadget2, starEnvelope, starCore, sphMetaData.evolutionTime,
-                                          sphMetaData.evolutionTimeSteps, 0.0 | units.Myr, starCore.radius,
-                                          sphMetaData.numberOfWorkers)
+                                          sphMetaData.evolutionTimeSteps, 0.0 | units.Myr, coreRadius,
+                                          sphMetaData.numberOfWorkers, outputDirectory)
+
     hydroSystem.dm_particles.add_particle(innerBinary.stars[1])
-    hydroSystem.dm_particles.add_particle(outerBinary.stars[1])
+    hydroSystem.dm_particles.add_particle(outerBinary.stars[0])
     coupledSystem = hydroSystem
 
     '''unitConverter = nbody_system.nbody_to_si(outerBinary.stars[1].mass + innerBinary.stars[1].mass, sphMetaData.evolutionTime)
@@ -136,9 +161,9 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSave
     starsToSave = Particles(particles=[innerBinary.stars[1], starCore])
     binarySystem.particles.new_channel_to(starsToSave)
     hydroSystem.gas_particles.new_channel_to(starEnvelope)'''
-    EvolveNBody.Run(totalMass= starMass + innerBinary.stars.mass[-1] + outerBinary.stars.mass[-1],
+    EvolveNBody.Run(totalMass= outerBinary.stars.total_mass(),
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= starEnvelope,
-                    sphCore=starCore, stars=innerBinary,
+                    sphCore=starCore, stars=None,
                     endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
                     savedVersionPath=savedVersionPath, saveAfterMinute= 0, system=coupledSystem)
 

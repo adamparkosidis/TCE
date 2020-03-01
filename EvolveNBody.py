@@ -362,9 +362,14 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
         else:
             coreParticleRadius = sphCore.epsilon
         hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, coreParticleRadius, numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
-        if not relax or takeCompanionInRelaxation:
+        if not relax:
             hydroSystem.dm_particles.add_particle(stars.stars[-1])
             coupledSystem = hydroSystem
+        elif takeCompanionInRelaxation:
+            companionField = CalculateFieldForParticles(
+                Particles(particles=[stars.stars[-1]]), gravity_constant=constants.G)
+            coupledSystem = Bridge(timestep=timeStep, verbose=False, use_threading=False)
+            coupledSystem.add_system(hydroSystem, (companionField,), False, h_smooth_is_eps=False)
         else:
             coupledSystem = hydroSystem
     else:

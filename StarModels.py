@@ -411,7 +411,7 @@ class Binary:
 
             stars.position = [0.0, 0.0, 0.0] | units.AU
             stars.velocity = [0.0, 0.0, 0.0] | units.km / units.s
-            stars[1].x = self.semimajorAxis * math.sin(self.angle.value_in(units.rad))
+            stars[1].x = -self.semimajorAxis * math.sin(self.angle.value_in(units.rad))
             stars[1].y = self.semimajorAxis * math.cos(self.angle.value_in(units.rad))
             stars[1].vx = -math.cos(self.inclination)*GetRelativeVelocityAtApastron(
                 stars.total_mass(), self.semimajorAxis, self.eccentricity) * math.cos(self.angle.value_in(units.rad))
@@ -419,10 +419,15 @@ class Binary:
                 stars.total_mass(), self.semimajorAxis, self.eccentricity) * math.sin(self.angle.value_in(units.rad))
             stars[1].vz = math.sin(self.inclination)*GetRelativeVelocityAtApastron(
                 stars.total_mass(), self.semimajorAxis, self.eccentricity)
-
+            print self.inclination
+            print stars[1].vx, stars[1].vz
+            print self.semimajorAxis, self.eccentricity, stars.total_mass()
+            print GetRelativeVelocityAtApastron(stars.total_mass(), self.semimajorAxis, self.eccentricity)
+            print "binary stars before moving to center:", stars
             stars.move_to_center()
 
             self.stars = stars
+            print "after moving:", self.stars
         else:
             self.LoadBinary(particles)
         self.velocity = self.stars.center_of_mass_velocity()

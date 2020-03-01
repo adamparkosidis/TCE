@@ -412,7 +412,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
             print "com v: ", particles.center_of_mass_velocity()
         #else:
         #    sinks.accrete(coupledSystem.gas_particles)
-        print "system time: ", coupledSystem.get_time()
+        #print "system time: ", coupledSystem.get_time()
         coupledSystem.evolve_model(currentSimulationTime + timeStep)
         print "   Evolved to:", (currentTime + timeStep).as_quantity_in(units.day)
         currentTime += timeStep

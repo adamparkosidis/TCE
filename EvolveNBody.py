@@ -358,7 +358,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
                             str(time.localtime().tm_sec))
         os.makedirs(outputDirectory)
         if relax:
-            coreParticleRadius = sphCore.radius * 10.0 * (250.0 * 1000.0 / len(sphEnvelope)) # will be 10 for 250K, 5 for 500K and less for better resolution
+            coreParticleRadius = sphCore.radius * 20.0 * (250.0 * 1000.0 / len(sphEnvelope)) # will be 10 for 250K, 5 for 500K and less for better resolution
         else:
             coreParticleRadius = sphCore.epsilon
         hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, coreParticleRadius, numberOfWorkers, outputDirectory=outputDirectory + "/hydro")

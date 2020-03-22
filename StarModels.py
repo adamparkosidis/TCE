@@ -189,6 +189,7 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
             giant.position = innerBinary.stars[0].position
             giant.velocity = innerBinary.stars[0].velocity
             starCore.velocity = giant.velocity
+            starEnvelope.velocity = giant.velocity
 
             centerOfMassPos = GiantSPHCenterOfMassPosition(starEnvelope, starCore)
             diffPosition = centerOfMassPos - giant.position

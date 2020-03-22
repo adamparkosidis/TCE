@@ -146,8 +146,8 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSave
                                           sphMetaData.evolutionTimeSteps, 0.0 | units.Myr, coreRadius,
                                           sphMetaData.numberOfWorkers, outputDirectory)
 
-    hydroSystem.dm_particles.add_particle(companions.stars[1])
-    hydroSystem.dm_particles.add_particle(companions.stars[0])
+    hydroSystem.dm_particles.add_particle(companions[1])
+    hydroSystem.dm_particles.add_particle(companions[0])
     coupledSystem = hydroSystem
 
     '''unitConverter = nbody_system.nbody_to_si(outerBinary.stars[1].mass + innerBinary.stars[1].mass, sphMetaData.evolutionTime)

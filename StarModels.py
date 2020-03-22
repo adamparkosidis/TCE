@@ -154,18 +154,17 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
     if step > -1:
         starEnvelope= LoadGas(savedVersionPath + "/gas_{0}.amuse".format(step))
         loadedDms= LoadDm(savedVersionPath + "/dm_{0}.amuse".format(step))
-        innerBinary = Binary(particles=Particles(2, particles=[loadedDms[0], loadedDms[1]]))
+
         if opposite:
             starCore=loadedDms[0]
             companions.add_particle(loadedDms[1])
             companions.add_particle(loadedDms[-1])
         else:
             starCore=loadedDms[-1]
-            companions=innerBinary
+            innerBinary = Binary(particles=Particles(2, particles=[loadedDms[0], loadedDms[1]]))
+            companions = innerBinary
+
         starMass = starEnvelope.total_mass() + starCore.mass
-        giant.mass = starMass
-        giant.velocity = GiantSPHCenterOfMassVelocity(starEnvelope, starCore)
-        giant.position = GiantSPHCenterOfMassPosition(starEnvelope, starCore)
 
     else:
         starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
@@ -198,7 +197,7 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
             starCore.position -= diffPosition
 
             companions.add_particle(innerBinary.stars[1])
-            companions.add_particle(outerBinary.stars[1])
+            companions.add_particle(outerBinary.stars[0])
             #return starMass, starEnvelope, starCore, innerBinary, outerBinary, sphMetaData
 
         else:

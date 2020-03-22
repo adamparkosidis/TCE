@@ -488,3 +488,6 @@ class Binary:
         eAttitude1 = BinaryCalculations.CalculateVectorSize(element1 - element2)
         eAttitude2 = (1 + (2 * BinaryCalculations.CalculateSpecificEnergy(V,R,self.stars[0],self.stars[1])*(hSize**2))/(constants.G*(self.stars.total_mass()))**2)**0.5
         return eAttitude1
+
+    def total_mass(self):
+        return self.stars.total_mass()

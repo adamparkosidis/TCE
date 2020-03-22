@@ -120,10 +120,10 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSave
         pass
     # creating the triple system
     if takeSavedState == "True":
-        starMass, starEnvelope, starCore,innerBinary, outerBinary, sphMetaData = \
+        starMass, starEnvelope, starCore,companions, outerSemmimajor, sphMetaData = \
             StarModels.TakeTripleSavedState(savedVersionPath, configurationFile, step= -1, opposite=True)
     elif takeSavedState == "Evolve":
-        starMass, starEnvelope, starCore,innerBinary, outerBinary, sphMetaData = \
+        starMass, starEnvelope, starCore,companions, outerSemmimajor, sphMetaData = \
             StarModels.TakeTripleSavedState(savedVersionPath + "/evolution", configurationFile, step, opposite=True)
     else:
         if takeSavedState == "Mesa":
@@ -144,8 +144,8 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSave
                                           sphMetaData.evolutionTimeSteps, 0.0 | units.Myr, coreRadius,
                                           sphMetaData.numberOfWorkers, outputDirectory)
 
-    hydroSystem.dm_particles.add_particle(innerBinary.stars[1])
-    hydroSystem.dm_particles.add_particle(outerBinary.stars[0])
+    hydroSystem.dm_particles.add_particle(companions.stars[1])
+    hydroSystem.dm_particles.add_particle(companions.stars[0])
     coupledSystem = hydroSystem
 
     '''unitConverter = nbody_system.nbody_to_si(outerBinary.stars[1].mass + innerBinary.stars[1].mass, sphMetaData.evolutionTime)

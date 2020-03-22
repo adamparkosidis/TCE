@@ -161,8 +161,8 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSave
     starsToSave = Particles(particles=[innerBinary.stars[1], starCore])
     binarySystem.particles.new_channel_to(starsToSave)
     hydroSystem.gas_particles.new_channel_to(starEnvelope)'''
-    EvolveNBody.Run(totalMass= outerBinary.stars.total_mass(),
-                    semmiMajor= outerBinary.semimajorAxis, sphEnvelope= starEnvelope,
+    EvolveNBody.Run(totalMass= companions.total_mass()+starMass,
+                    semmiMajor= outerSemmimajor, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=None,
                     endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
                     savedVersionPath=savedVersionPath, saveAfterMinute= 0, system=coupledSystem)

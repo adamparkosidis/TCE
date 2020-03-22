@@ -232,7 +232,7 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
             companions = innerBinary
 
     sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
-    print innerBinary.stars
+    print companions
     print starCore
     
     #return starMass, starEnvelope, starCore, innerBinary, outerBinary.semimajorAxis, sphMetaData

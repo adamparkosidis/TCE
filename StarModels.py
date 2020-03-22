@@ -150,14 +150,18 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
     print "using saved state file - {0}".format(savedVersionPath) , "config file: ", configurationFile
     giant = CreatePointStar(configurationFile,configurationSection="MainStar")
     outerBinary = Binary(configurationFile, configurationSection="OuterBinary")
+    companions=Particles()
     if step > -1:
         starEnvelope= LoadGas(savedVersionPath + "/gas_{0}.amuse".format(step))
-        load= LoadDm(savedVersionPath + "/dm_{0}.amuse".format(step))
+        loadedDms= LoadDm(savedVersionPath + "/dm_{0}.amuse".format(step))
+        innerBinary = Binary(particles=Particles(2, particles=[loadedDms[0], loadedDms[1]]))
         if opposite:
-            starCore=load[0]
+            starCore=loadedDms[0]
+            companions.add_particle(loadedDms[1])
+            companions.add_particle(loadedDms[-1])
         else:
-            starCore=load[-1]
-        innerBinary = Binary(particles=Particles(2, particles=[load[0], load[1]]))
+            starCore=loadedDms[-1]
+            companions=innerBinary
         starMass = starEnvelope.total_mass() + starCore.mass
         giant.mass = starMass
         giant.velocity = GiantSPHCenterOfMassVelocity(starEnvelope, starCore)
@@ -174,46 +178,66 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
         innerBinary.stars.position += outerBinary.stars[1].position
         innerBinary.stars.velocity += outerBinary.stars[1].velocity
 
-        giant.position = outerBinary.stars[0].position
-        giant.velocity = outerBinary.stars[0].velocity
+        if opposite:#0 star of the inner binary is the giant, not the core
+            # we now move the system so the giant will be in the middle
+            giantPossitionDiff = innerBinary.stars[0].position
+            giantVelocityDiff = innerBinary.stars[0].velocity
+            innerBinary.stars.position -= giantPossitionDiff
+            innerBinary.stars.velocity -= giantVelocityDiff
+            outerBinary.stars.position -= giantPossitionDiff
+            outerBinary.stars.velocity -= giantVelocityDiff
 
-        triple = innerBinary.stars
-        giantInSet = triple.add_particle(giant)
-        innerBinary.stars = triple - giantInSet
+            giant.position = innerBinary.stars[0].position
+            giant.velocity = innerBinary.stars[0].velocity
+            starCore.velocity = giant.velocity
 
-        triple.position -= giantInSet.position
-        triple.velocity -= giantInSet.velocity
+            centerOfMassPos = GiantSPHCenterOfMassPosition(starEnvelope, starCore)
+            diffPosition = centerOfMassPos - giant.position
 
-        #moving the main star back to the center
-        centerOfMassPos = GiantSPHCenterOfMassPosition(starEnvelope, starCore)
+            starEnvelope.position -= diffPosition
+            starCore.position -= diffPosition
 
-        #changing according to before relaxation, in case of an old state
-        diffPosition = centerOfMassPos - giantInSet.position
-        diffVelocity = GiantSPHCenterOfMassVelocity(starEnvelope, starCore) - giantInSet.velocity
+            companions.add_particle(innerBinary.stars[1])
+            companions.add_particle(outerBinary.stars[1])
+            #return starMass, starEnvelope, starCore, innerBinary, outerBinary, sphMetaData
 
-        starEnvelope.position -= diffPosition
-        starCore.position -= diffPosition
-        starEnvelope.velocity = giantInSet.velocity
-        starCore.velocity = giantInSet.velocity
+        else:
+            giant.position = outerBinary.stars[0].position
+            giant.velocity = outerBinary.stars[0].velocity
 
-        print "binary position :", innerBinary.stars.center_of_mass()
-        print"new sph center of mass position: ", (GiantSPHCenterOfMassPosition(starEnvelope, starCore)).as_quantity_in(units.AU)
-        print "new core position: ", starCore.position.as_quantity_in(units.AU)
-        print (GiantSPHCenterOfMassPosition(starEnvelope, starCore) - innerBinary.stars.center_of_mass()).as_quantity_in(units.AU)
-        if opposite: #0 star of the inner binary is the giant, not the core
-            innerBinary.stars[0].mass = starMass
-            innerBinary.stars.velocity += giant.velocity
-            outerBinary.stars[0].mass = starMass + innerBinary.stars[1].mass
-            outerBinary.stars[0].velocity = innerBinary.stars.center_of_mass_velocity()
-            outerBinary.stars[1].velocity += outerBinary.stars[0].velocity
-            sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
-            return starMass, starEnvelope, starCore, innerBinary, outerBinary, sphMetaData
+            triple = innerBinary.stars
+            giantInSet = triple.add_particle(giant)
+            innerBinary.stars = triple - giantInSet
+
+            triple.position -= giantInSet.position
+            triple.velocity -= giantInSet.velocity
+
+            #moving the main star back to the center
+            centerOfMassPos = GiantSPHCenterOfMassPosition(starEnvelope, starCore)
+
+            #changing according to before relaxation, in case of an old state
+            diffPosition = centerOfMassPos - giantInSet.position
+            diffVelocity = GiantSPHCenterOfMassVelocity(starEnvelope, starCore) - giantInSet.velocity
+
+            starEnvelope.position -= diffPosition
+            starCore.position -= diffPosition
+            starEnvelope.velocity = giantInSet.velocity
+            starCore.velocity = giantInSet.velocity
+
+            print "binary position :", innerBinary.stars.center_of_mass()
+            print"new sph center of mass position: ", (GiantSPHCenterOfMassPosition(starEnvelope, starCore)).as_quantity_in(units.AU)
+            print "new core position: ", starCore.position.as_quantity_in(units.AU)
+            print (GiantSPHCenterOfMassPosition(starEnvelope, starCore) - innerBinary.stars.center_of_mass()).as_quantity_in(units.AU)
+
+            companions = innerBinary
 
     sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
     print innerBinary.stars
     print starCore
     
-    return starMass, starEnvelope, starCore, innerBinary, outerBinary.semimajorAxis, sphMetaData
+    #return starMass, starEnvelope, starCore, innerBinary, outerBinary.semimajorAxis, sphMetaData
+    return starMass, starEnvelope, starCore, companions, outerBinary.semimajorAxis, sphMetaData
+
 
 def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
     '''

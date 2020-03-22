@@ -99,9 +99,11 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     starCore.position = giant.position
     starEnvelope.velocity = giant.velocity
     starCore.velocity = giant.velocity
+    companions = Particles()
+    companions.add_particle(innerBinary.stars[1])
+    companions.add_particle(outerBinary.stars[0])
 
-
-    return giant.mass, starEnvelope, starCore, innerBinary, outerBinary, sphMetaData
+    return giant.mass, starEnvelope, starCore, companions, outerBinary.semimajorAxis, sphMetaData
 
 
 
@@ -127,9 +129,9 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSave
             StarModels.TakeTripleSavedState(savedVersionPath + "/evolution", configurationFile, step, opposite=True)
     else:
         if takeSavedState == "Mesa":
-            starMass, starEnvelope, starCore, innerBinary, outerBinary, sphMetaData = CreateTripleSystem(configurationFile, savedVersionPath, takeSavedMesa= True)
+            starMass, starEnvelope, starCore,companions, outerSemmimajor, sphMetaData = CreateTripleSystem(configurationFile, savedVersionPath, takeSavedMesa= True)
         else:
-            starMass, starEnvelope, starCore, innerBinary, outerBinary, sphMetaData = CreateTripleSystem(configurationFile, savedVersionPath)
+            starMass, starEnvelope, starCore,companions, outerSemmimajor, sphMetaData = CreateTripleSystem(configurationFile, savedVersionPath)
 
     # creating the NBody system with the 3 and evolving
     outputDirectory = savedVersionPath + "/codes_output_{0}".format(str(time.localtime().tm_year) + "-" +

@@ -11,7 +11,7 @@ import EvolveNBody
 
 
 def Start(savedVersionPath="/home/hilaglanz/Documents/80265", step=-1,
-          configurationFile="/home/hilaglanz/Documents/80265/TCEConfiguration.ini", mergedParticles=01):
+          configurationFile="/home/hilaglanz/Documents/80265/TCEConfiguration.ini", mergedParticles=01, opposite=False):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -27,7 +27,7 @@ def Start(savedVersionPath="/home/hilaglanz/Documents/80265", step=-1,
         pass
 
     starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = \
-        StarModels.TakeTripleSavedState(savedVersionPath, configurationFile, step=-1)
+        StarModels.TakeTripleSavedState(savedVersionPath, configurationFile, step=-1, opposite= opposite)
 
     # creating the new binary system
     if mergedParticles == "01":
@@ -66,8 +66,12 @@ def Start(savedVersionPath="/home/hilaglanz/Documents/80265", step=-1,
 if __name__ == "__main__":
     args = sys.argv
     if len(args) > 1:
-        Start(savedVersionPath=args[1], step=int(args[2]),
+        if len(args) < 5:
+            Start(savedVersionPath=args[1], step=int(args[2]),
               configurationFile=args[1] + "/TCEConfiguration.ini", mergedParticles=args[3])
+        else:
+            Start(savedVersionPath=args[1], step=int(args[2]),
+              configurationFile=args[1] + "/TCEConfiguration.ini", mergedParticles=args[3], opposite=bin(int(args[4])))
     else:
         print "can do nothing without arguments"
 

@@ -31,13 +31,25 @@ def Start(savedVersionPath="/home/hilaglanz/Documents/80265", step=-1,
 
     # creating the new binary system
     if mergedParticles == "01":
-        starCore = StarModels.MergeParticles(Particles(particles=[starCore,binary.stars[0]]))
-        companion = binary.stars[1]
+        if not opposite:
+            starCore = StarModels.MergeParticles(Particles(particles=[starCore,binary.stars[0]]))
+            companion = binary.stars[1]
+        else:
+            starCore = StarModels.MergeParticles(Particles(particles=[starCore,binary[0]]))
+            companion = binary[1]
+
     elif mergedParticles == "02":
-        starCore = StarModels.MergeParticles(Particles(particles=[starCore, binary.stars[1]]))
-        companion = binary.stars[0]
+        if not opposite:
+            starCore = StarModels.MergeParticles(Particles(particles=[starCore, binary.stars[1]]))
+            companion = binary.stars[0]
+        else:
+            starCore = StarModels.MergeParticles(Particles(particles=[starCore, binary[1]]))
+            companion = binary[0]
     else:
-        companion = StarModels.MergeParticles(Particles(particles=[binary.stars[0], binary.stars[1]]))
+        if not opposite:
+            companion = StarModels.MergeParticles(Particles(particles=[binary.stars[0], binary.stars[1]]))
+        else:
+            companion = StarModels.MergeParticles(Particles(particles=[binary[0], binary[1]]))
 
     print "core: ", starCore
     print "companion: ", companion

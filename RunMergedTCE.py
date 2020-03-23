@@ -66,7 +66,7 @@ def Start(savedVersionPath="/home/hilaglanz/Documents/80265", step=-1,
     hydroSystem.dm_particles.add_particle(companion)
     coupledSystem = hydroSystem
 
-    EvolveNBody.EvolveBinary(totalMass=starMass + binary.stars.total_mass(),
+    EvolveNBody.EvolveBinary(totalMass=starEnvelope.total_mass() + starCore.mass + companion.mass,
                     semmiMajor=tripleSemmimajor, sphEnvelope=starEnvelope,
                     sphCore=starCore, stars=None,
                     endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,

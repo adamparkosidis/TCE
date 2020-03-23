@@ -36,7 +36,7 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     print "Now having the sph star and the binaries, ready for relaxing"
     starEnvelope, dmStars = EvolveNBody.EvolveBinary(totalMass= binary.stars.total_mass(),
                     semmiMajor= binary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
-                                             stars=binary, endTime= sphStar.relaxationTime,
+                                             stars=binary.stars, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
                                               numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=5, takeCompanionInRelaxation= True)
     starCore = dmStars[0]
@@ -95,7 +95,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = F
     print "Now having the second sph star , ready for relaxing"
     star2Envelope, dmStars2 = EvolveNBody.Run(totalMass= binary.stars.total_mass(),
                     semmiMajor= binary.semimajorAxis, sphEnvelope= sphStar2.gas_particles, sphCore=sphStar2.core_particle,
-                                             stars=binary, endTime= sphStar2.relaxationTime,
+                                             stars=binary.stars, endTime= sphStar2.relaxationTime,
                                              timeSteps= sphStar2.relaxationTimeSteps, relax=True,
                                               numberOfWorkers= sphStar2.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=15)
     star2Core = dmStars1[-1]
@@ -137,7 +137,7 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
     # creating the NBody system with the 3 and evolving
     EvolveNBody.EvolveBinary(totalMass= binary.stars.total_mass(),
                     semmiMajor= semmimajor, sphEnvelope= starEnvelope,
-                    sphCore=starCore, stars=binary,
+                    sphCore=starCore, stars=binary.stars,
                     endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
                     savedVersionPath=savedVersionPath,relax= False)
 

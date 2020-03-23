@@ -39,6 +39,8 @@ def Start(savedVersionPath="/home/hilaglanz/Documents/80265", step=-1,
     else:
         companion = StarModels.MergeParticles(Particles(particles=[binary.stars[0], binary.stars[1]]))
 
+    print "core: ", starCore
+    print "companion: ", companion
 
     outputDirectory = savedVersionPath + "/codes_output_{0}".format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +

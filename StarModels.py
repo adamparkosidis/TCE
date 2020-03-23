@@ -26,12 +26,16 @@ def CreatePointStar(configurationFile="", configurationSection=""):
 
 
 def MergeParticles(particles):
+    print "merging stars: "
+    print [part for part in particles]
     newParticle = Particle()
     newParticle.mass = particles.total_mass()
     newParticle.radius = particles.total_radius()
+    print "total radius: ", newParticle.radius
     try:
         smallestParticle = particles.sorted_by_attribute("radius")[-1]
-        newParticle.radius += smallestParticle.radius
+        if smallestParticle.radius < newParticle.radius:
+            newParticle.radius += smallestParticle.radius
     except:
         print "no option to retrieve the smallest radius, using 0"
     newParticle.position = particles.center_of_mass()

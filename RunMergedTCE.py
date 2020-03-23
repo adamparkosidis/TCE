@@ -27,7 +27,7 @@ def Start(savedVersionPath="/home/hilaglanz/Documents/80265", step=-1,
         pass
 
     starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = \
-        StarModels.TakeTripleSavedState(savedVersionPath, configurationFile, step=step, opposite= opposite)
+        StarModels.TakeTripleSavedState(savedVersionPath+ "/evolution", configurationFile, step=step, opposite= opposite)
 
     # creating the new binary system
     if mergedParticles == "01":

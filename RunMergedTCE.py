@@ -31,13 +31,13 @@ def Start(savedVersionPath="/home/hilaglanz/Documents/80265", step=-1,
 
     # creating the new binary system
     if mergedParticles == "01":
-        starCore = StarModels.MergeParticles(Particles([starCore,binary.stars[0]]))
+        starCore = StarModels.MergeParticles(Particles(particles=[starCore,binary.stars[0]]))
         companion = binary.stars[1]
     elif mergedParticles == "02":
-        starCore = StarModels.MergeParticles(Particles([starCore, binary.stars[1]]))
+        starCore = StarModels.MergeParticles(Particles(particles=[starCore, binary.stars[1]]))
         companion = binary.stars[0]
     else:
-        companion = StarModels.MergeParticles(Particles([binary.stars[0], binary.stars[1]]))
+        companion = StarModels.MergeParticles(Particles(particles=[binary.stars[0], binary.stars[1]]))
 
 
     outputDirectory = savedVersionPath + "/codes_output_{0}".format(str(time.localtime().tm_year) + "-" +
@@ -57,7 +57,7 @@ def Start(savedVersionPath="/home/hilaglanz/Documents/80265", step=-1,
                     sphCore=starCore, stars=None,
                     endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
                     savedVersionPath=savedVersionPath, saveAfterMinute= 0, system=coupledSystem)
-    
+
     print "****************** Simulation Completed ******************"
 
 

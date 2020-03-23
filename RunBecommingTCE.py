@@ -80,7 +80,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     coupledSystem= hydroSystem'''
     starEnvelope, dmStars = EvolveNBody.Run(totalMass= outerBinary.stars.total_mass(),
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
-                                             stars=innerBinary, endTime= sphStar.relaxationTime,
+                                             stars=None, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
                                               numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=10,system=coupledSystem)
 

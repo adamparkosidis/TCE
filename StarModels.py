@@ -27,7 +27,11 @@ def CreatePointStar(configurationFile="", configurationSection=""):
 
 def MergeParticles(particles):
     print "merging stars: "
-    print [part for part in particles]
+    print particles.position
+    try:
+        print [part.key for part in particles]
+    except:
+        print particles.x
     newParticle = Particle()
     newParticle.mass = particles.total_mass()
     newParticle.radius = particles.total_radius()

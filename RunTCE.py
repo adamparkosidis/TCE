@@ -48,7 +48,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     print "Now having the sph star and the binaries, ready for relaxing"
     starEnvelope, dmStars = EvolveNBody.Run(totalMass= giantInSet.mass + innerBinary.stars.total_mass(),
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
-                                             stars=innerBinary, endTime= sphStar.relaxationTime,
+                                             stars=innerBinary.stars, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
                                               numberOfWorkers= 2, savedVersionPath=savedPath, saveAfterMinute=10)
     starCore = dmStars[-1]
@@ -111,7 +111,7 @@ def Start(savedVersionPath = "/home/hilaglanz/Documents/80265", takeSavedState =
     # creating the NBody system with the 3 and evolving
     EvolveNBody.Run(totalMass= starMass + binary.stars.total_mass(),
                     semmiMajor= tripleSemmimajor, sphEnvelope= starEnvelope,
-                    sphCore=starCore, stars=binary,
+                    sphCore=starCore, stars=binary.stars,
                     endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers , step= step,
                     savedVersionPath=savedVersionPath, saveAfterMinute= 0)
 

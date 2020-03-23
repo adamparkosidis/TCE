@@ -23,6 +23,22 @@ def CreatePointStar(configurationFile="", configurationSection=""):
     star.position = [0.0, 0.0, 0.0] | units.AU
     star.velocity = [0.0, 0.0, 0.0] | units.m/units.s
     return star
+
+
+def MergeParticles(particles):
+    newParticle = Particle()
+    newParticle.mass = particles.total_mass()
+    newParticle.radius = particles.total_radius()
+    try:
+        smallestParticle = particles.sorted_by_attribute("radius")[-1]
+        newParticle.radius += smallestParticle.radius
+    except:
+        print "no option to retrieve the smallest radius, using 0"
+    newParticle.position = particles.center_of_mass()
+    newParticle.velocity = particles.center_of_mass_velocity()
+
+    return newParticle
+
 '''
 def CreatePointStar(mass = 1.0 | units.MSun, radius = 1.0 | units.RSun):
     star = Particle()
@@ -358,7 +374,6 @@ class Star:
         self.envelope = gas_particles
         self.core = core_particles
 
-
     def CreateSphModel(self):
         '''
         :return: the sph model and the maximum radius of this star
@@ -492,3 +507,5 @@ class Binary:
 
     def total_mass(self):
         return self.stars.total_mass()
+
+

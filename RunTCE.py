@@ -112,7 +112,7 @@ def Start(savedVersionPath = "/home/hilaglanz/Documents/80265", takeSavedState =
     EvolveNBody.Run(totalMass= starMass + binary.stars.total_mass(),
                     semmiMajor= tripleSemmimajor, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=binary,
-                    endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= 7 , step= step,
+                    endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers , step= step,
                     savedVersionPath=savedVersionPath, saveAfterMinute= 0)
 
     print "****************** Simulation Completed ******************"

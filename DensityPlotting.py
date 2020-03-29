@@ -831,6 +831,8 @@ from ctypes import *
 def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False, plotDust=True, dustRadius=700.0|units.RSun, timeStep=0.2):
     if lastStep == 0 : # no boundary on last step
         lastStep = len(gasFiles)
+    else:
+        lastStep=min(lastStep, len(dmFiles))
     print lastStep
     binaryDistances = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     semmimajors = multiprocessing.Array('f', [0.0 for i in range(beginStep, lastStep)])
@@ -896,6 +898,9 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     separationStep = multiprocessing.Value('i')
     if lastStep == 0 : # no boundary on last step
         lastStep = len(dmFiles)
+
+    else:
+        lastStep=min(lastStep, len(dmFiles))
     print lastStep
 
     binaryDistances = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])

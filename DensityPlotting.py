@@ -1050,7 +1050,7 @@ def GetArgs(args):
     outputDir = savingDir + "/pics"
     return savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, axesOriginInInnerBinaryCenterOfMass, opposite, timeStep
 
-def InitializeSnapshots(savingDir, toCompare=False):
+def InitializeSnapshots(savingDir, toCompare=False, firstFile=0):
     '''
     taking the snapshots directory of past run
     Returns: sorted dm snapshots and gas snapshots
@@ -1073,7 +1073,10 @@ def InitializeSnapshots(savingDir, toCompare=False):
         gasFiles.sort()
     numberOfCompanion = 0
     if len(dmFiles) > 0:
-        numberOfCompanion = len(read_set_from_file(os.path.join(os.getcwd(), savingDir,dmFiles[0]), format='amuse'))
+        try:
+            numberOfCompanion = len(read_set_from_file(os.path.join(os.getcwd(), savingDir,dmFiles[firstFile]), format='amuse'))
+        except:
+            numberOfCompanion = len(read_set_from_file(os.path.join(os.getcwd(), savingDir,dmFiles[0]), format='amuse'))
     return gasFiles, dmFiles, numberOfCompanion
 
 def compare(st1, st2):
@@ -1112,7 +1115,7 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
         os.makedirs(outputDir + "/radial_profile")
     except(OSError):
         pass
-    gasFiles, dmFiles, numberOfCompanion = InitializeSnapshots(savingDir, toCompare)
+    gasFiles, dmFiles, numberOfCompanion = InitializeSnapshots(savingDir, toCompare,beginStep)
 
     if numberOfCompanion <= 2: #binary
         print "analyzing binary"

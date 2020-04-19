@@ -228,6 +228,7 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
 
     return gas, dm
 
+
 def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | units.yr, timeSteps = 3 ,
         savedVersionPath = "", saveAfterMinute = 1, step = -1, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
          numberOfWorkers = 1, takeCompanionInRelaxation = True, system=None, dmToSave=None, gasToSave=None):
@@ -315,6 +316,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     return RunSystem(system=coupledSystem, endTime=endTime, timeSteps=timeSteps,
         savedVersionPath=savedVersionPath, saveAfterMinute=saveAfterMinute, step=step, relax=relax)
 
+
 def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | units.yr, timeSteps = 3 ,
         savedVersionPath = "", saveAfterMinute = 0, step = -1, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
          numberOfWorkers = 1, takeCompanionInRelaxation = True, system=None):
@@ -389,7 +391,6 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
             coupledSystem = hydroSystem
     else:
         coupledSystem = system
-
 
     return RunSystem(system=coupledSystem, endTime=endTime, timeSteps=timeSteps,
         savedVersionPath=savedVersionPath, saveAfterMinute=saveAfterMinute, step=step, relax=relax)

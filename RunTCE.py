@@ -1,5 +1,5 @@
 import pickle
-import os
+import os, time
 import sys
 from amuse.units import units
 from amuse.units.units import *
@@ -7,6 +7,9 @@ from amuse.plot import native_plot, sph_particles_plot
 from amuse.ext.star_to_sph import pickle_stellar_model
 from amuse.datamodel import Particles
 from amuse.io import read_set_from_file
+
+from amuse.community.gadget2.interface import Gadget2
+from amuse.community.huayno.interface import Huayno
 import StarModels
 import EvolveNBody
 from StarModels import GiantSPHCenterOfMassPosition, GiantSPHCenterOfMassVelocity
@@ -95,6 +98,33 @@ def Start(savedVersionPath = "/home/hilaglanz/Documents/80265", takeSavedState =
     continueEvolutionSimulation = False
     
     # creating the triple system
+    if takeSavedState == "Single":#continue the relaxation but without forcing the com to stay in place
+        starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = \
+            StarModels.TakeTripleSavedState(savedVersionPath, configurationFile, step=-1)
+        outputDirectory = savedVersionPath + "/codes_output_{0}".format(str(time.localtime().tm_year) + "-" +
+                                                                        str(time.localtime().tm_mon) + "-" + str(
+            time.localtime().tm_mday) + "-" +
+                                                                        str(time.localtime().tm_hour) + ":" + str(
+            time.localtime().tm_min) + ":" +
+                                                                        str(time.localtime().tm_sec))
+        os.makedirs(outputDirectory)
+        try:
+            coreParticleRadius = starCore.epsilon
+        except:
+            coreParticleRadius = starCore.radius
+
+        currentTime = 0.0 | units.Myr
+        hydroSystem = EvolveNBody.HydroSystem(Gadget2, starEnvelope, starCore, sphMetaData.relaxationTime, sphMetaData.relaxationTimeSteps, currentTime, coreParticleRadius,
+                                  sphMetaData.numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
+        binarySystem = EvolveNBody.DynamicsForBinarySystem(Huayno, tripleSemmimajor, binary.stars,
+                                               outputDirectory=outputDirectory + "/dynamics")
+        system=EvolveNBody.CoupledSystem(hydroSystem,binarySystem,sphMetaData.relaxationTime,sphMetaData.relaxationTimeSteps,currentTime,relax=True,outputDirectory=outputDirectory)
+
+        EvolveNBody.RunSystem(system,sphMetaData.relaxationTime,sphMetaData.relaxationTimeSteps,savedVersionPath,0,-1,False)
+
+        print "****************** Simulation Completed ******************"
+        return
+
     if takeSavedState == "True":
         starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = \
             StarModels.TakeTripleSavedState(savedVersionPath, configurationFile, step= -1)

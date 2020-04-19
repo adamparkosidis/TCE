@@ -777,8 +777,6 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
                 print "triple2 is breaking up", triple2.specificEnergy, i * timeStep
 
-            separationStep=0
-
             separationStep = 0
 
         #all the three are connected
@@ -908,7 +906,6 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     separationStep = multiprocessing.Value('i')
     if lastStep == 0 : # no boundary on last step
         lastStep = len(dmFiles)
-
     else:
         lastStep=min(lastStep, len(dmFiles))
     print lastStep

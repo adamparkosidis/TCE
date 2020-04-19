@@ -54,6 +54,17 @@ def FindLowestNumberOfNeighbours(gas):
                 numberOfNeighbours = gasParticle.num_neighbours
         return numberOfNeighbours
 
+def CheckMerger(pointParticles):
+    for i in xrange(len(pointParticles)):
+        for j in xrange(i+1,len(pointParticles)):
+            if BinaryCalculations.CalculateVectorSize(
+                    BinaryCalculations.CalculateSeparation(pointParticles[i],pointParticles[j])) <= \
+                    max(pointParticles[i].radius, pointParticles[j].radius):
+                print "merger between particle", i, " and particle ",j, "!"
+                return True
+    return False
+
+
 def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius, numberOfWorkers = 1, outputDirectory=""):
     unitConverter = nbody_system.nbody_to_si(envelope.total_mass() + core.mass, core_radius*100)
     print "preparing the system with ",numberOfWorkers, " workers"
@@ -121,6 +132,101 @@ def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = 
     return coupledSystem
 
 
+def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
+        savedVersionPath="", saveAfterMinute=1, step=-1, relax=False):
+
+
+    '''
+    Now check if there is a saved state
+    '''
+    if relax:
+        adding = "relaxation"
+    else:
+        adding = "evolution"
+
+    try:
+        os.makedirs(savedVersionPath + "/" + adding)
+    except(OSError):
+        pass
+
+    try:
+        os.makedirs(savedVersionPath + '/pics/')
+    except(OSError):
+        pass
+
+    timeStep = endTime / timeSteps
+    currentTime = 0.0 | units.Myr
+    currentSimulationTime = currentTime
+
+    if step != -1:
+        currentTime = step * timeStep
+
+    coupledSystem = system
+    dm = coupledSystem.dm_particles.copy()
+    gas = coupledSystem.gas_particles.copy()
+
+    centerOfMassRadius = coupledSystem.particles.center_of_mass()
+    centerOfMassV = coupledSystem.particles.center_of_mass_velocity()
+
+    print "initial com: ", centerOfMassRadius
+    print "initial com v: ", centerOfMassV
+    # if not relax:
+    #    sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[0]*2) #sink radius is the particle radius * 2
+
+    currentSecond = time.time()
+    # coupledSystem.time = currentTime
+    print "starting SPH " + adding
+    print coupledSystem.dm_particles
+    print "evolving from step ", step + 1
+    print "beggining time: ", coupledSystem.time + currentTime
+    if step == -1:
+        StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse", gas)
+        StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse", dm)
+        print "pre state saved - {0}".format(savedVersionPath) + "/" + adding
+
+    while currentTime < endTime:
+        step += 1
+        particles = coupledSystem.particles
+        if relax:
+            print "com: ", particles.center_of_mass()
+            if (particles.center_of_mass() != centerOfMassRadius).all():
+                particles.position += (centerOfMassRadius - particles.center_of_mass())
+            print "com: ", particles.center_of_mass()
+            print "com v: ", particles.center_of_mass_velocity()
+            relaxingVFactor = (step * 1.0 / timeSteps)
+            particles.velocity = relaxingVFactor * (
+                        particles.velocity - particles.center_of_mass_velocity()) + centerOfMassV
+            print "com v: ", particles.center_of_mass_velocity()
+        else:
+            # check if there is a merger - don't continue
+            if CheckMerger(coupledSystem.dm_particles):
+                coupledSystem.stop()
+                return gas, dm
+            #    sinks.accrete(coupledSystem.gas_particles)
+
+        coupledSystem.evolve_model(currentSimulationTime + timeStep)
+        print "   Evolved to:", (currentTime + timeStep).as_quantity_in(units.day)
+        # print "time step is - ", coupledSystem.get_time_step()
+        currentTime += timeStep
+        currentSimulationTime += timeStep
+        if (time.time() - currentSecond) > saveAfterMinute * 60:
+            if savedVersionPath != "":
+                StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step),
+                                   coupledSystem.gas_particles)
+                StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step),
+                                  coupledSystem.dm_particles)
+                print "state saved - {0}".format(savedVersionPath) + "/" + adding
+                print coupledSystem.dm_particles
+                print len(coupledSystem.gas_particles)
+                currentSecond = time.time()
+        dm = coupledSystem.dm_particles.copy()
+        gas = coupledSystem.gas_particles.copy()
+
+        # if not relax:
+        #    print "masses: ", sinks.mass.as_quantity_in(units.MSun)
+    coupledSystem.stop()
+
+    return gas, dm
 
 def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | units.yr, timeSteps = 3 ,
         savedVersionPath = "", saveAfterMinute = 1, step = -1, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
@@ -205,100 +311,9 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
             coupledSystem = hydroSystem
     else: # got it from the outside
         coupledSystem = system
-    dm = coupledSystem.dm_particles.copy()
-    gas = coupledSystem.gas_particles.copy()
-    
-    centerOfMassRadius = coupledSystem.particles.center_of_mass()
-    centerOfMassV = coupledSystem.particles.center_of_mass_velocity()
 
-    print "initial com: ", centerOfMassRadius
-    print "initial com v: ", centerOfMassV
-    #if not relax:
-    #    sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[0]*2) #sink radius is the particle radius * 2
-
-    currentSecond = time.time()
-    #coupledSystem.time = currentTime
-    print "starting SPH " + adding
-    print "starting SPH " + adding
-    print coupledSystem.dm_particles
-    print "evolving from step ", step + 1
-    print "beggining time: ", coupledSystem.time + currentTime
-    if step ==-1:
-        StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse", gas)
-        StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse", dm)
-        print "pre state saved - {0}".format(savedVersionPath) + "/" + adding
-    
-    while currentTime < endTime:
-        step += 1
-        particles = coupledSystem.particles
-        if relax:
-            print "com: ", particles.center_of_mass()
-            if (particles.center_of_mass() !=  centerOfMassRadius).all():
-                particles.position += (centerOfMassRadius - particles.center_of_mass())
-            print "com: ", particles.center_of_mass()
-            print "com v: ", particles.center_of_mass_velocity()
-            relaxingVFactor = (step * 1.0 / timeSteps)
-            particles.velocity = relaxingVFactor * (particles.velocity - particles.center_of_mass_velocity()) + centerOfMassV
-            print "com v: ", particles.center_of_mass_velocity()
-        else:
-            # check if there is a merger - don't continue
-            if BinaryCalculations.CalculateVectorSize(BinaryCalculations.CalculateSeparation(coupledSystem.dm_particles[0], coupledSystem.dm_particles[1])) <= \
-            max(coupledSystem.dm_particles[0].radius, coupledSystem.dm_particles[1].radius):
-                print "merger between particle 0 and particle 1!"
-                coupledSystem.stop()
-                return gas, dm
-            if BinaryCalculations.CalculateVectorSize(BinaryCalculations.CalculateSeparation(coupledSystem.dm_particles[0], coupledSystem.dm_particles[2])) <= \
-            max(coupledSystem.dm_particles[0].radius, coupledSystem.dm_particles[2].radius):
-                print "merger between particle 0 and particle 2!"
-                coupledSystem.stop()
-                return gas, dm
-            if BinaryCalculations.CalculateVectorSize(BinaryCalculations.CalculateSeparation(coupledSystem.dm_particles[1], coupledSystem.dm_particles[2])) <= \
-            max(coupledSystem.dm_particles[1].radius, coupledSystem.dm_particles[2].radius):
-                print "merger between particle 1 and particle 2!"
-                coupledSystem.stop()
-                return gas, dm
-
-        #    sinks.accrete(coupledSystem.gas_particles)
-        if not relax:
-            firstBinary = Particles(particles=[coupledSystem.dm_particles[0], coupledSystem.dm_particles[1]])
-            firstBinaryCOM = firstBinary.center_of_mass()
-            firstBinaryOldSep = BinaryCalculations.CalculateVectorSize(firstBinaryCOM - Particles(particles=[coupledSystem.dm_particles[2]]).center_of_mass())
-
-            secondBinary = Particles(particles=[coupledSystem.dm_particles[2], coupledSystem.dm_particles[1]])
-            secondBinaryCOM = secondBinary.center_of_mass()
-            secondBinaryOldSep = BinaryCalculations.CalculateVectorSize(secondBinaryCOM - Particles(particles=[coupledSystem.dm_particles[0]]).center_of_mass())
-
-        coupledSystem.evolve_model(currentSimulationTime + timeStep)
-        print "   Evolved to:", (currentTime + timeStep).as_quantity_in(units.day)
-        #print "time step is - ", coupledSystem.get_time_step()
-        currentTime += timeStep
-        currentSimulationTime += timeStep
-        if (time.time() - currentSecond) > saveAfterMinute * 60:
-            if savedVersionPath != "":
-                StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step), coupledSystem.gas_particles)
-                StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step), coupledSystem.dm_particles)
-                print "state saved - {0}".format(savedVersionPath) + "/" + adding
-                print coupledSystem.dm_particles
-                print len(coupledSystem.gas_particles)
-                currentSecond = time.time()
-        dm = coupledSystem.dm_particles.copy()
-        gas = coupledSystem.gas_particles.copy()
-        if not relax:
-            firstBinary = Particles(particles=[coupledSystem.dm_particles[0], coupledSystem.dm_particles[1]])
-            firstBinaryCOM = firstBinary.center_of_mass()
-            firstBinaryNewSep = BinaryCalculations.CalculateVectorSize(firstBinaryCOM - Particles(particles=[coupledSystem.dm_particles[2]]).center_of_mass())
-
-            secondBinary = Particles(particles=[coupledSystem.dm_particles[2], coupledSystem.dm_particles[1]])
-            secondBinaryCOM = secondBinary.center_of_mass()
-            secondBinaryNewSep = BinaryCalculations.CalculateVectorSize(secondBinaryCOM - Particles(particles=[coupledSystem.dm_particles[0]]).center_of_mass())
-
-            print "first binary difference in separation- ", firstBinaryOldSep - firstBinaryNewSep
-            print "second binary difference in separation- ", secondBinaryOldSep - secondBinaryNewSep
-        #if not relax:
-        #    print "masses: ", sinks.mass.as_quantity_in(units.MSun)
-    coupledSystem.stop()
-
-    return gas, dm
+    return RunSystem(system=coupledSystem, endTime=endTime, timeSteps=timeSteps,
+        savedVersionPath=savedVersionPath, saveAfterMinute=saveAfterMinute, step=step, relax=relax)
 
 def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | units.yr, timeSteps = 3 ,
         savedVersionPath = "", saveAfterMinute = 0, step = -1, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
@@ -375,60 +390,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
     else:
         coupledSystem = system
 
-    dm = coupledSystem.dm_particles.copy()
-    gas = coupledSystem.gas_particles.copy()
 
-    centerOfMassRadius = coupledSystem.particles.center_of_mass()
-    centerOfMassV = coupledSystem.particles.center_of_mass_velocity()
+    return RunSystem(system=coupledSystem, endTime=endTime, timeSteps=timeSteps,
+        savedVersionPath=savedVersionPath, saveAfterMinute=saveAfterMinute, step=step, relax=relax)
 
-    print "initial com: ", centerOfMassRadius
-    print "initial com v: ", centerOfMassV
-    #if not relax:#sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[-1]*2)
-    #    sinks = new_sink_particles(coupledSystem.dm_particles[-1:], sink_radius= stars.radius[-1]*2)
-
-    currentSecond = time.time()
-
-    print "starting SPH " + adding
-    print "evolving from step ", step + 1
-
-    particles = coupledSystem.particles.copy()
-    if step == -1:
-        StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse",coupledSystem.gas_particles)
-        StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse",coupledSystem.dm_particles)
-        print "pre - state saved"
-    
-    while currentTime < endTime:
-        step += 1
-        particles = coupledSystem.particles
-        if relax:
-            print "com: ",  particles.center_of_mass()
-            print "com v: ", particles.center_of_mass_velocity()
-
-            if ((particles.center_of_mass() !=  centerOfMassRadius).all()):
-                particles.position = particles.position + (centerOfMassRadius - particles.center_of_mass())
-            relaxingVFactor = (step / timeSteps)
-            particles.velocity = relaxingVFactor * (particles.velocity - particles.center_of_mass_velocity()) + centerOfMassV
-            print "com: ",  particles.center_of_mass()
-            print "com v: ", particles.center_of_mass_velocity()
-        #else:
-        #    sinks.accrete(coupledSystem.gas_particles)
-        #print "system time: ", coupledSystem.get_time()
-        coupledSystem.evolve_model(currentSimulationTime + timeStep)
-        print "   Evolved to:", (currentTime + timeStep).as_quantity_in(units.day)
-        currentTime += timeStep
-        currentSimulationTime += timeStep
-        if (time.time() - currentSecond) > saveAfterMinute * 60:
-            if savedVersionPath != "":
-                StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step+1), coupledSystem.gas_particles)
-                StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step+1), coupledSystem.dm_particles)
-                print coupledSystem.dm_particles
-                #pickle.dump(StarModels.SphMetaData(coupledSystem.gas_particles),open(savedVersionPath+"/metaData_{0}.p".format(step), 'wb'), pickle.HIGHEST_PROTOCOL)
-                print "state saved - {0}".format(savedVersionPath) + "/" + adding
-                currentSecond = time.time()
-        print len(coupledSystem.gas_particles)
-        dm = coupledSystem.dm_particles.copy()
-        gas = coupledSystem.gas_particles.copy()
-        #if not relax:
-        #    print "masses: ", sinks.mass.as_quantity_in(units.MSun)
-    coupledSystem.stop()
-    return gas, dm

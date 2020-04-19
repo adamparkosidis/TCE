@@ -178,7 +178,7 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
     print "starting SPH " + adding
     print coupledSystem.dm_particles
     print "evolving from step ", step + 1
-    print "beggining time: ", coupledSystem.time + currentTime
+    #print "beggining time: ", coupledSystem.time + currentTime
     if step == -1:
         StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse", gas)
         StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse", dm)

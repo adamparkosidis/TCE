@@ -53,7 +53,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
                                              stars=innerBinary.stars, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
-                                              numberOfWorkers= 2, savedVersionPath=savedPath, saveAfterMinute=10)
+                                              numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=10)
     starCore = dmStars[-1]
     #starCore.radius = sphStar.core_particle.radius
     print starCore

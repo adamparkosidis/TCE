@@ -759,7 +759,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vmax, beginStep,
                        binaryDistances, tripleDistances, triple1Distances, triple2Distances,
                        aInners, aOuters, aOuters1, aOuters2,
-                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, localDensity, separationStep,
+                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, localDensity, localRadius=50.0|units.RSun,
                        toPlot = False, opposite= False, axesOriginInInnerBinaryCenterOfMass= False, timeStep=0.2):
 
     for i in [j - beginStep for j in chunk]:
@@ -776,10 +776,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
 
         particle1 , particle2 = binary[0] , binary[1]
         innerBinary = Star(particle1,particle2)
-        try:
-            innerBinary.localRadius = binaryDistances[0] * 2
-        except:
-            innerBinary.localRadius = 50.0 | units.RSun
+        innerBinary.localRadius =localRadius
         #change the position and velocity of center of mass to 0
         centerOfMassPosition = (sphGiant.position * sphGiant.mass + innerBinary.position * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
         centerOfMassVelocity = (sphGiant.v * sphGiant.mass + innerBinary.velocity * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
@@ -944,7 +941,8 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     PlotQuadropole(Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,outputDir+"/graphs",timeStep,beginStep)
 
 
-def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False, opposite= False,  axesOriginInInnerBinaryCenterOfMass= False, timeStep=0.2):
+def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, localRadius=50.0 | units.RSun
+                  ,toPlot = False, opposite= False,  axesOriginInInnerBinaryCenterOfMass= False, timeStep=0.2):
     separationStep = multiprocessing.Value('i')
     if lastStep == 0 : # no boundary on last step
         lastStep = len(dmFiles)
@@ -992,7 +990,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                        binaryDistances, tripleDistances, triple1Distances, triple2Distances,
                        aInners, aOuters, aOuters1, aOuters2,
                        eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2,localDensity,
-                                                                                  separationStep, toPlot, opposite,
+                                                                                  localRadius, toPlot, opposite,
                                                                                   axesOriginInInnerBinaryCenterOfMass,
                                                                                   timeStep,)))
     for p in processes:
@@ -1098,9 +1096,13 @@ def GetArgs(args):
         timeStep=float(args[10])
     else:
         timeStep = 0.2
+    if len(args) > 11:
+        localRadius = float(args[11]) | units.RSun
+    else:
+        localRadius = 50.0 | units.RSun
 
     outputDir = savingDir + "/pics"
-    return savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, axesOriginInInnerBinaryCenterOfMass, opposite, timeStep
+    return savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, axesOriginInInnerBinaryCenterOfMass, opposite, timeStep, localRadius
 
 def InitializeSnapshots(savingDir, toCompare=False, firstFile=0):
     '''
@@ -1143,10 +1145,10 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
     #parser=InitParser()
     #args=parser.parse_args()
     savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, axesOriginInInnerBinaryCenterOfMass, \
-        opposite, timeStep = GetArgs(args)
+        opposite, timeStep, localRadius = GetArgs(args)
     print "plotting to " +  outputDir + " plot- " + str(plot) +  " from " +  savingDir +" begin step = " , beginStep , \
         " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare, "axes at the origin? ", \
-        axesOriginInInnerBinaryCenterOfMass, "opossite? ", opposite, "timeStep= ", timeStep
+        axesOriginInInnerBinaryCenterOfMass, "opossite? ", opposite, "timeStep= ", timeStep, "localRadius= ",localRadius
     try:
         os.makedirs(outputDir)
     except(OSError):
@@ -1173,8 +1175,8 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
         print "analyzing binary"
         AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, plot, plotDust=False, timeStep=timeStep)
     elif numberOfCompanion ==3: #triple
-        AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, plot, opposite,
-                      axesOriginInInnerBinaryCenterOfMass, timeStep=timeStep)
+        AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, localRadius,
+                      plot, opposite, axesOriginInInnerBinaryCenterOfMass, timeStep=timeStep)
 
 if __name__ == "__main__":
     for arg in sys.argv:

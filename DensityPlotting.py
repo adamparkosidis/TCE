@@ -398,12 +398,16 @@ def structure_from_star(star):
         tau = tau
     )
 
-def velocity_distribution(sphGiant,step,outputDir):
+def velocity_softening_distribution(sphGiant,step,outputDir):
     sorted = sphGiant.gasParticles.pressure.argsort()[::-1]
     binned = sorted.reshape((-1, 1))
     velocities = sphGiant.gasParticles.velocity[binned].average(axis=1)
     textFile = open(outputDir + '/radial_profile/velocities_{0}'.format(step) + '.txt', 'w')
     textFile.write(', '.join([str(CalculateVectorSize(v)) for v in velocities]))
+    textFile.close()
+    h = sphGiant.gasParticles.radius[binned].average(axis=1)
+    textFile = open(outputDir + '/radial_profile/velocities_{0}'.format(step) + '.txt', 'w')
+    textFile.write(', '.join([str(r) for r in h]))
     textFile.close()
 
 def temperature_density_plot(sphGiant, step, outputDir, toPlot = False, plotDust= False, dustRadius= 0.0 | units.RSun):

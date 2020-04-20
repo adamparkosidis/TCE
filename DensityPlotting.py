@@ -109,7 +109,7 @@ class SphGiant:
         self.innerGas = Star(None, None)
         radius = CalculateVectorSize(CalculateSeparation(relativeParticle, self.core))
         print time.ctime(), "beginning inner gas calculation"
-        self.CalculateSphMassVelocityAndPositionInsideRadius(radius)
+        self.CalculateSphMassVelocityAndPositionInsideRadius(radius, includeCore=True, centeralParticle=relativeParticle, localRadius=relativeParticle.localRadius)
         self.innerGas.x , self.innerGas.y, self.innerGas.z = self.innerGas.position
         print time.ctime(), "calculated!"
     def CalculateTotalGasMassInsideRadius(self, radius):
@@ -755,7 +755,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vmax, beginStep,
                        binaryDistances, tripleDistances, triple1Distances, triple2Distances,
                        aInners, aOuters, aOuters1, aOuters2,
-                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, separationStep,
+                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, localDensity, separationStep,
                        toPlot = False, opposite= False, axesOriginInInnerBinaryCenterOfMass= False, timeStep=0.2):
 
     for i in [j - beginStep for j in chunk]:
@@ -772,7 +772,10 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
 
         particle1 , particle2 = binary[0] , binary[1]
         innerBinary = Star(particle1,particle2)
-
+        try:
+            innerBinary.localRadius = binaryDistances[0] * 2
+        except:
+            innerBinary.localRadius = 50.0 | units.RSun
         #change the position and velocity of center of mass to 0
         centerOfMassPosition = (sphGiant.position * sphGiant.mass + innerBinary.position * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
         centerOfMassVelocity = (sphGiant.v * sphGiant.mass + innerBinary.velocity * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
@@ -840,7 +843,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         inclinations[i] = inclination
         innerMass1[i] , aOuters1[i], eOuters1[i], triple1Distances[i] = CalculateBinaryParameters(particle1, sphGiant)
         innerMass2[i] , aOuters2[i], eOuters2[i], triple2Distances[i] = CalculateBinaryParameters(particle2, sphGiant)
-
+        localDensity[i] = sphGiant.localDensity.value_in(units.MSun/units.RSun**3)
         print time.ctime(), "temperature_density_plotting of step ", i
         temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
         print time.ctime(), "finished temperature plotting of step: ", i
@@ -961,6 +964,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     innerMass = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     innerMass1 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     innerMass2 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    localDensity = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
 
     cpus = multiprocessing.cpu_count() - 6
     chunkSize= (lastStep-beginStep)/(multiprocessing.cpu_count() - 6)
@@ -983,7 +987,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         processes.append(multiprocessing.Process(target= AnalyzeTripleChunk,args=(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vmax, beginStep,
                        binaryDistances, tripleDistances, triple1Distances, triple2Distances,
                        aInners, aOuters, aOuters1, aOuters2,
-                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2,
+                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2,localDensity,
                                                                                   separationStep, toPlot, opposite,
                                                                                   axesOriginInInnerBinaryCenterOfMass,
                                                                                   timeStep,)))
@@ -1003,7 +1007,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     newInnerMass = AdaptingVectorQuantity()
     newInnerMass1 = AdaptingVectorQuantity()
     newInnerMass2 = AdaptingVectorQuantity()
-
+    newLocalDensity = AdaptingVectorQuantity()
     for j in xrange(len(binaryDistances)-1):
         newBinaryDistances.append(float(binaryDistances[j]) | units.RSun)
         newTripleDistances.append(float(tripleDistances[j]) | units.RSun)
@@ -1016,6 +1020,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         newInnerMass.append(float(innerMass[j]) | units.MSun)
         newInnerMass1.append(float(innerMass1[j]) | units.MSun)
         newInnerMass2.append(float(innerMass2[j]) | units.MSun)
+        newLocalDensity.append(float(localDensity[j]) | units.MSun / units.RSun**3)
     separationStep = int(separationStep.value)
 
     PlotBinaryDistance([(newBinaryDistances, "InnerBinaryDistances"), (newTripleDistances, "tripleDistances"), (newTriple1Distances, "triple1Distances"),
@@ -1025,7 +1030,8 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     PlotEccentricity([(eInners, "eInners"), (eOuters, "eOuters")], outputDir + "/graphs", beginStep)
     PlotEccentricity([(eOuters1, "eOuters1"), (eOuters2, "eOuters2")],outputDir + "/graphs", separationStep)
     Plot1Axe(inclinations,"inclinations", outputDir+"/graphs", beginStep=beginStep)
-    PlotAdaptiveQuantities([(innerMass, "InnerMass"), (innerMass1, "InnerMass1"), (innerMass2, "InnerMass2")], outputDir + "/graphs", beginStep)
+    PlotAdaptiveQuantities([(innerMass, "InnerMass"), (innerMass1, "InnerMass1"), (innerMass2, "InnerMass2"),
+                            (localDensity, "LocalDensity")], outputDir + "/graphs", beginStep)
 
 def InitParser():
     parser = argparse.ArgumentParser(description='')

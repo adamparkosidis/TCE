@@ -120,21 +120,39 @@ class SphGiant:
                 innerMass += particle.mass
         return innerMass
 
-    def CalculateSphMassVelocityAndPositionInsideRadius(self,radius):
-        self.innerGas.mass = self.core.mass
+    def CalculateSphMassVelocityAndPositionInsideRadius(self,radius,includeCore=True,centeralParticle=None, localRadius=0.0 | units.RSun):
+
         self.innerGas.vxTot , self.innerGas.vyTot , self.innerGas.vzTot = ( 0.0 , 0.0, 0.0 )| units.m * units.s**-1
         self.innerGas.xTot , self.innerGas.yTot , self.innerGas.zTot = ( 0.0 , 0.0, 0.0 )| units.m
-        cmass = self.core.mass.value_in(units.MSun)
-        velocityAndMass = [self.core.vx * cmass, self.core.vy * cmass,self.core.vz * cmass]
-        positionAndMass = [self.core.x * cmass, self.core.y * cmass,self.core.z * cmass]
+        self.localMass = 0.0 | units.MSun
+        if includeCore:
+            self.innerGas.mass = self.core.mass
+            cmass = self.core.mass.value_in(units.MSun)
+            vx = self.core.vx
+            vy= self.core.vy
+            vz = self.core.vz
+            x = self.core.x
+            y = self.core.y
+            z = self.core.z
+        else:
+            cmass = 0.0 | units.MSun
+            vx = 0.0 | units.m / units.s
+            vy= 0.0 | units.m / units.s
+            vz = 0.0 | units.m / units.s
+            x = 0.0 | units.AU
+            y = 0.0 | units.AU
+            z = 0.0 | units.AU
 
-        particles = 0
+        velocityAndMass = [vx * cmass, vy* cmass, vz * cmass]
+        positionAndMass = [x * cmass, y * cmass, z * cmass]
+        particlesAroundCore = 0
+        particlesAroundCenteral = 0
         i = 0
         for particle in self.gasParticles:
             #print i
             i += 1
-            separation = CalculateVectorSize(CalculateSeparation(particle, self.core))
-            if separation < radius:
+            separationFromCore = CalculateVectorSize(CalculateSeparation(particle, self.core))
+            if separationFromCore < radius:
                 pmass = particle.mass.value_in(units.MSun)
                 self.innerGas.mass += particle.mass
                 velocityAndMass[0] += particle.vx * pmass
@@ -143,9 +161,16 @@ class SphGiant:
                 positionAndMass[0] += particle.x * pmass
                 positionAndMass[1] += particle.y * pmass
                 positionAndMass[2] += particle.z * pmass
-                particles += 1
-        print time.ctime(), particles
-        if particles > 0:
+                particlesAroundCore += 1
+
+            if centeralParticle:
+                separationFromCentral = CalculateVectorSize(CalculateSeparation(particle, centeralParticle))
+                if separationFromCentral < localRadius:
+                    self.localMass += particle.mass
+                    particlesAroundCenteral += 1
+
+        print time.ctime(), particlesAroundCore, particlesAroundCenteral
+        if particlesAroundCore > 0:
             totalMass=  self.innerGas.mass.value_in(units.MSun)
             self.innerGas.vxTot = velocityAndMass[0] / totalMass
             self.innerGas.vyTot = velocityAndMass[1] / totalMass
@@ -156,6 +181,8 @@ class SphGiant:
             self.innerGas.zTot = positionAndMass[2] / totalMass
         self.innerGas.v = (self.innerGas.vxTot, self.innerGas.vyTot, self.innerGas.vzTot)
         self.innerGas.position = (self.innerGas.xTot, self.innerGas.yTot, self.innerGas.zTot)
+        if particlesAroundCenteral > 0:
+            self.localDensity = self.localMass / ((4.0*constants.pi*localRadius**3)/3.0)
 
     def CountLeavingParticlesInsideRadius(self):
         self.leavingParticles = 0
@@ -371,6 +398,13 @@ def structure_from_star(star):
         tau = tau
     )
 
+def velocity_distribution(sphGiant,step,outputDir):
+    sorted = sphGiant.gasParticles.pressure.argsort()[::-1]
+    binned = sorted.reshape((-1, 1))
+    velocities = sphGiant.gasParticles.velocity[binned].average(axis=1)
+    textFile = open(outputDir + '/radial_profile/velocities_{0}'.format(step) + '.txt', 'w')
+    textFile.write(', '.join([str(CalculateVectorSize(v)) for v in velocities]))
+    textFile.close()
 
 def temperature_density_plot(sphGiant, step, outputDir, toPlot = False, plotDust= False, dustRadius= 0.0 | units.RSun):
     if not HAS_PYNBODY:
@@ -409,6 +443,7 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False, plotDust
     textFile = open(outputDir + '/radial_profile/cumulative_mass_profile{0}'.format(step) + '.txt', 'w')
     textFile.write(', '.join([str(y) for y in data["cumulative_mass"]]))
     textFile.close()
+    velocity_distribution(sphGiant,step,outputDir)
     if toPlot:
         figure = pyplot.figure(figsize = (8, 10))
         pyplot.subplot(1, 1, 1)

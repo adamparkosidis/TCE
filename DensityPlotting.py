@@ -105,11 +105,11 @@ class SphGiant:
         self.v = self.velocity
         self.radius = self.gasParticles.total_radius()
 
-    def CalculateInnerSPH(self, relativeParticle):
+    def CalculateInnerSPH(self, relativeParticle, localRadius=50.0 | units.RSun):
         self.innerGas = Star(None, None)
         radius = CalculateVectorSize(CalculateSeparation(relativeParticle, self.core))
         print time.ctime(), "beginning inner gas calculation"
-        self.CalculateSphMassVelocityAndPositionInsideRadius(radius, includeCore=True, centeralParticle=relativeParticle, localRadius=relativeParticle.localRadius)
+        self.CalculateSphMassVelocityAndPositionInsideRadius(radius, includeCore=True, centeralParticle=relativeParticle, localRadius=localRadius)
         self.innerGas.x , self.innerGas.y, self.innerGas.z = self.innerGas.position
         print time.ctime(), "calculated!"
     def CalculateTotalGasMassInsideRadius(self, radius):
@@ -447,7 +447,7 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False, plotDust
     textFile = open(outputDir + '/radial_profile/cumulative_mass_profile{0}'.format(step) + '.txt', 'w')
     textFile.write(', '.join([str(y) for y in data["cumulative_mass"]]))
     textFile.close()
-    velocity_distribution(sphGiant,step,outputDir)
+    velocity_softening_distribution(sphGiant,step,outputDir)
     if toPlot:
         figure = pyplot.figure(figsize = (8, 10))
         pyplot.subplot(1, 1, 1)
@@ -776,7 +776,6 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
 
         particle1 , particle2 = binary[0] , binary[1]
         innerBinary = Star(particle1,particle2)
-        innerBinary.localRadius =localRadius
         #change the position and velocity of center of mass to 0
         centerOfMassPosition = (sphGiant.position * sphGiant.mass + innerBinary.position * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
         centerOfMassVelocity = (sphGiant.v * sphGiant.mass + innerBinary.velocity * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
@@ -823,7 +822,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         print "leaving particles: ", sphGiant.leavingParticles
         print "unbounded mass: ", sphGiant.totalUnboundedMass
         print time.ctime(), "beginning innerGas calculations of step ", i
-        sphGiant.CalculateInnerSPH(innerBinary)
+        sphGiant.CalculateInnerSPH(innerBinary, localRadius)
         innerMass[i] = sphGiant.innerGas.mass.value_in(units.MSun)
 
         tripleMass = innerBinary.mass + sphGiant.innerGas.mass

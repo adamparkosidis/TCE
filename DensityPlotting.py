@@ -163,7 +163,7 @@ class SphGiant:
                 positionAndMass[2] += particle.z * pmass
                 particlesAroundCore += 1
 
-            if centeralParticle:
+            if centeralParticle != None:
                 separationFromCentral = CalculateVectorSize(CalculateSeparation(particle, centeralParticle))
                 if separationFromCentral < localRadius:
                     self.localMass += particle.mass

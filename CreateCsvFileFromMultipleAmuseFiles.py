@@ -73,7 +73,7 @@ def GetBinaryStateFromFile(directoryPath, fileNumber):
         if fileNumber == 0 or fileNumber =='0':
             return read_set_from_file(os.path.join(directoryPath, "dm_00.amuse"), format='amuse')
         else:
-            raise None
+            return None
 
 def InitParser():
     parser = argparse.ArgumentParser(description='')
@@ -105,7 +105,7 @@ if __name__ == "__main__":
             offset += 1
             GetBinaryStateFromFile(args.source_dir, str(n + offset))
         csvData += GetValuesOfMultipleParticles(binState) + ", " + str(GetTimeOfFile(n+offset, args.time_step).value_in(units.s)) + '\r\n'
-        
+
         for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
             try:
                 f.close()

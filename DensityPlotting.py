@@ -104,6 +104,8 @@ class SphGiant:
         #self.v = [self.vx.value_in(units.m / units.s), self.vy.value_in(units.m / units.s), self.vz.value_in(units.m / units.s)] | (units.m / units.s)
         self.v = self.velocity
         self.radius = self.gasParticles.total_radius()
+        self.dynamicalTime = 1.0/math.sqrt(constants.G*self.mass/((4*math.pi*self.radius**3)/3))
+
 
     def CalculateInnerSPH(self, relativeParticle, localRadius=50.0 | units.RSun):
         self.innerGas = Star(None, None)
@@ -147,10 +149,14 @@ class SphGiant:
         positionAndMass = [x * cmass, y * cmass, z * cmass]
         particlesAroundCore = 0
         particlesAroundCenteral = 0
+        dynamicalVelocity= self.radius/self.dynamicalTime
+        particlesExceedingMaxVelocity = 0
         i = 0
         for particle in self.gasParticles:
             #print i
             i += 1
+            if CalculateVectorSize(particle.velocity) > min(dynamicalVelocity,particle.cs):
+                particlesExceedingMaxVelocity += 1
             separationFromCore = CalculateVectorSize(CalculateSeparation(particle, self.core))
             if separationFromCore < radius:
                 pmass = particle.mass.value_in(units.MSun)
@@ -183,6 +189,7 @@ class SphGiant:
         self.innerGas.position = (self.innerGas.xTot, self.innerGas.yTot, self.innerGas.zTot)
         if particlesAroundCenteral > 0:
             self.localDensity = self.localMass / ((4.0*constants.pi*localRadius**3)/3.0)
+        print "over speed ", particlesExceedingMaxVelocity*100 / len(self.gasParticles)
 
     def CountLeavingParticlesInsideRadius(self):
         self.leavingParticles = 0

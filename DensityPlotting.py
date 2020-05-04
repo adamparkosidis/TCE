@@ -701,6 +701,10 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
         sphGiant.gasParticles.velocity -= centerOfMassVelocity
         sphGiant.core.position -= centerOfMassPosition
         sphGiant.core.velocity -= centerOfMassVelocity
+
+        companion.position -= centerOfMassPosition
+        companion.velocity -= centerOfMassVelocity
+
         #print [CalculateVectorSize(part.velocity).as_quantity_in(units.m / units.s) for part in sphGiant.gasParticles]
         if isBinary:
             #semmimajor = CalculateSemiMajor(CalculateVelocityDifference(companion, sphGiant.core), CalculateSeparation(companion, sphGiant.core),companion.mass + sphGiant.core.mass).as_quantity_in(units.AU)
@@ -738,9 +742,6 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             Qzy[i] += (Qzy_p + Qzy_g)/(10**40)
             Qzz[i] += (Qzz_p + Qzz_g)/(10**40)
 
-
-            companion.position -= centerOfMassPosition
-            companion.velocity -= centerOfMassVelocity
 
 
         temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)

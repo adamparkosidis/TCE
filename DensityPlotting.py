@@ -401,12 +401,12 @@ def structure_from_star(star):
 def velocity_softening_distribution(sphGiant,step,outputDir):
     sorted = sphGiant.gasParticles.pressure.argsort()[::-1]
     binned = sorted.reshape((-1, 1))
-    velocities = sphGiant.gasParticles.velocity[binned].average(axis=1)
+    velocities = sphGiant.gasParticles.velocity[binned].sum(axis=1)
     textFile = open(outputDir + '/radial_profile/velocities_{0}'.format(step) + '.txt', 'w')
     textFile.write(', '.join([str(CalculateVectorSize(v)) for v in velocities]))
     textFile.close()
-    h = sphGiant.gasParticles.radius[binned].average(axis=1)
-    textFile = open(outputDir + '/radial_profile/velocities_{0}'.format(step) + '.txt', 'w')
+    h = sphGiant.gasParticles.radius[binned].sum(axis=1)
+    textFile = open(outputDir + '/radial_profile/softenings_{0}'.format(step) + '.txt', 'w')
     textFile.write(', '.join([str(r) for r in h]))
     textFile.close()
 

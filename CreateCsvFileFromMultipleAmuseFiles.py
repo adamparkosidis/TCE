@@ -100,10 +100,10 @@ if __name__ == "__main__":
     args.time_step = args.time_step | units.day
     offset = 0
     for n in xrange(args.first, numberOfSnapshots):
-        binState= GetBinaryStateFromFile(args.source_dir, str(n+offset))
+        binState = GetBinaryStateFromFile(args.source_dir, str(n+offset))
         while not binState:
             offset += 1
-            GetBinaryStateFromFile(args.source_dir, str(n + offset))
+            binState = GetBinaryStateFromFile(args.source_dir, str(n + offset))
         csvData += GetValuesOfMultipleParticles(binState) + ", " + str(GetTimeOfFile(n+offset, args.time_step).value_in(units.s)) + '\r\n'
 
         for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:

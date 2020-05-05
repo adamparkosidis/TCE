@@ -104,7 +104,7 @@ class SphGiant:
         #self.v = [self.vx.value_in(units.m / units.s), self.vy.value_in(units.m / units.s), self.vz.value_in(units.m / units.s)] | (units.m / units.s)
         self.v = self.velocity
         self.radius = self.gasParticles.total_radius()
-        self.dynamicalTime = 1.0/math.sqrt(constants.G*self.mass/((4*math.pi*self.radius**3)/3))
+        self.dynamicalTime = 1.0/(constants.G*self.mass/((4*constants.pi*self.radius**3)/3))**0.5
 
 
     def CalculateInnerSPH(self, relativeParticle, localRadius=50.0 | units.RSun):
@@ -777,6 +777,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
 
         sphGiant = SphGiant(gas_particles_file, dm_particles_file, opposite= opposite)
         print sphGiant.core
+        if i == 1:
+            print sphGiant.gasParticles[0]
         #print "neigbbours:", sphGiant.FindLowestNumberOfNeighbours()
         #print "smallest cell radius: ", sphGiant.FindSmallestCell()
         #binary = Particles(2,pickle.load(open(os.path.join(os.getcwd(),savingDir,"binary.p"),"rb")))

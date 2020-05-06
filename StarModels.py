@@ -90,7 +90,7 @@ class SphStar:
 
             self.gas_particles = self.sphStar.gas_particles
             self.core_particle = self.sphStar.core_particle
-            print "sph center of mass before moving to the pointStar position: ", (self.gas_particles.position*self.gas_particles.total_mass()
+            print "sph center of mass before moving to the pointStar position: ", (self.gas_particles.center_of_mass()*self.gas_particles.total_mass()
                                                                                    +self.core_particle.position*self.core_particle.mass)\
                                                                                   /(self.gas_particles.total_mass()+self.core_particle.mass)
             print "point star position: ", pointStar.position

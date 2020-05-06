@@ -39,10 +39,12 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     giantInSet = triple.add_particle(giant)
     innerBinary.stars = triple - giantInSet
 
-    triple.position -= giantInSet.position
-    triple.velocity -= giantInSet.velocity
+    #triple.position -= giantInSet.position
+    #triple.velocity -= giantInSet.velocity
 
     print triple
+    print "triple center of mass: ", triple.center_of_mass()
+    print "triple center of mass velocity: ", triple.center_of_mass_velocity()
 
     sphStar = StarModels.SphStar(giantInSet,configurationFile,configurationSection="MainStar",
                                 savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)

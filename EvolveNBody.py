@@ -188,6 +188,7 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
         step += 1
         particles = coupledSystem.particles
         if relax:
+            centerOfMassV = [0.0,0.0,0.0] | units.m/units.s
             print "com: ", particles.center_of_mass()
             if (particles.center_of_mass() != centerOfMassRadius).all():
                 particles.position += (centerOfMassRadius - particles.center_of_mass())

@@ -135,7 +135,7 @@ def Start(savedVersionPath = "/home/hilaglanz/Documents/80265", takeSavedState =
             StarModels.TakeTripleSavedState(savedVersionPath + "/evolution", configurationFile, step)
     elif takeSavedState == "Relax":
         starMass, starEnvelope, starCore, binary, tripleSemmimajor,sphMetaData = \
-            StarModels.TakeTripleSavedState(savedVersionPath + "/relaxation", configurationFile, step=-1)
+            StarModels.TakeTripleSavedState(savedVersionPath + "/relaxation", configurationFile, step=step)
         relax=True
     else:
         if takeSavedState == "Mesa":

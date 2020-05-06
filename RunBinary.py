@@ -25,8 +25,8 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     giant = binary.stars[0]
 
     #put the giant in the center
-    binary.stars.position -= giant.position
-    binary.stars.velocity -= giant.velocity
+    #binary.stars.position -= giant.position
+    #binary.stars.velocity -= giant.velocity
 
     giant = binary.stars[0]
     print "binary: ", binary.stars

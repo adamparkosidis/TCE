@@ -56,7 +56,9 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                              stars=innerBinary.stars, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
                                               numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=10)
+    print "inner binary before con moving to the origin: ", innerBinary
     triple.move_to_center()
+    print "inner after: ", innerBinary
     starCore = dmStars[-1]
     #starCore.radius = sphStar.core_particle.radius
     print starCore
@@ -128,6 +130,8 @@ def Start(savedVersionPath = "/home/hilaglanz/Documents/80265", takeSavedState =
         print "****************** Simulation Completed ******************"
         return
     relax = False
+    simulationTime = None
+    simulationTimeSteps = None
     if takeSavedState == "True":
         starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = \
             StarModels.TakeTripleSavedState(savedVersionPath, configurationFile, step= -1)
@@ -138,18 +142,24 @@ def Start(savedVersionPath = "/home/hilaglanz/Documents/80265", takeSavedState =
         starMass, starEnvelope, starCore, binary, tripleSemmimajor,sphMetaData = \
             StarModels.TakeTripleSavedState(savedVersionPath + "/relaxation", configurationFile, step=step)
         relax=True
+        simulationTime = sphMetaData.relaxationTime
+        simulationTimeSteps = sphMetaData.relaxationTimeSteps
     else:
         if takeSavedState == "Mesa":
             starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = CreateTripleSystem(configurationFile, savedVersionPath, takeSavedMesa= True)            
         else:
             starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = CreateTripleSystem(configurationFile, savedVersionPath)
         step=-1
+    if not simulationTime:
+        simulationTime = sphMetaData.evolutionTime
+        simulationTimeStep = sphMetaData.evolutionTimeSteps
+    #####add running time differently for relaxation!!!
 
     # creating the NBody system with the 3 and evolving
     EvolveNBody.Run(totalMass= starMass + binary.stars.total_mass(),
                     semmiMajor= tripleSemmimajor, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=binary.stars,
-                    endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers , step= step,
+                    endTime= simulationTime, timeSteps= simulationTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers , step= step,
                     savedVersionPath=savedVersionPath, saveAfterMinute= 0, relax= relax)
 
     print "****************** Simulation Completed ******************"

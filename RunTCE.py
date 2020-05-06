@@ -133,7 +133,7 @@ def Start(savedVersionPath = "/home/hilaglanz/Documents/80265", takeSavedState =
     elif takeSavedState == "Evolve":
         starMass, starEnvelope, starCore, binary, tripleSemmimajor,sphMetaData = \
             StarModels.TakeTripleSavedState(savedVersionPath + "/evolution", configurationFile, step)
-    elif takeSavedState == "Relax":
+    elif takeSavedState == "Relax": # this option is currently supported only for the circumstellar case, for the other need to form the companions 
         starMass, starEnvelope, starCore, binary, tripleSemmimajor,sphMetaData = \
             StarModels.TakeTripleSavedState(savedVersionPath + "/relaxation", configurationFile, step=step)
         relax=True

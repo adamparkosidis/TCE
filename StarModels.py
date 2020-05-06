@@ -193,7 +193,7 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
             except:
                 innerBinary = Binary(configurationFile, configurationSection="InnerBinary")
                 print "could not parse inner binary, creating new"
-                
+
             companions = innerBinary
 
         starMass = starEnvelope.total_mass() + starCore.mass

@@ -155,7 +155,9 @@ class SphGiant:
         for particle in self.gasParticles:
             #print i
             i += 1
-            if CalculateVectorSize(particle.velocity) > min(dynamicalVelocity,particle.cs):
+            volume = (4.0/3.0)*constants.pi*particle.radius**3
+            particleSoundSpeed = ((5.0/3.0)*particle.pressure/(particle.mass/volume))**0.5
+            if CalculateVectorSize(particle.velocity) > min(dynamicalVelocity, particleSoundSpeed):
                 particlesExceedingMaxVelocity += 1
             separationFromCore = CalculateVectorSize(CalculateSeparation(particle, self.core))
             if separationFromCore < radius:

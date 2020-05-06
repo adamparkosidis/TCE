@@ -188,7 +188,12 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
             companions.add_particle(loadedDms[-1])
         else:
             starCore=loadedDms[-1]
-            innerBinary = Binary(particles=Particles(2, particles=[loadedDms[0], loadedDms[1]]))
+            try:
+                innerBinary = Binary(particles=Particles(2, particles=[loadedDms[0], loadedDms[1]]))
+            except:
+                innerBinary = Binary(configurationFile, configurationSection="InnerBinary")
+                print "could not parse inner binary, creating new"
+                
             companions = innerBinary
 
         starMass = starEnvelope.total_mass() + starCore.mass

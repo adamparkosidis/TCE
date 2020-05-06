@@ -149,16 +149,10 @@ class SphGiant:
         positionAndMass = [x * cmass, y * cmass, z * cmass]
         particlesAroundCore = 0
         particlesAroundCenteral = 0
-        dynamicalVelocity= self.radius/self.dynamicalTime
-        particlesExceedingMaxVelocity = 0
         i = 0
         for particle in self.gasParticles:
             #print i
             i += 1
-            volume = (4.0/3.0)*constants.pi*particle.radius**3
-            particleSoundSpeed = ((5.0/3.0)*particle.pressure/(particle.mass/volume))**0.5
-            if CalculateVectorSize(particle.velocity) > min(dynamicalVelocity, particleSoundSpeed):
-                particlesExceedingMaxVelocity += 1
             separationFromCore = CalculateVectorSize(CalculateSeparation(particle, self.core))
             if separationFromCore < radius:
                 pmass = particle.mass.value_in(units.MSun)
@@ -191,16 +185,23 @@ class SphGiant:
         self.innerGas.position = (self.innerGas.xTot, self.innerGas.yTot, self.innerGas.zTot)
         if particlesAroundCenteral > 0:
             self.localDensity = self.localMass / ((4.0*constants.pi*localRadius**3)/3.0)
-        print "over speed ", particlesExceedingMaxVelocity*100 / len(self.gasParticles)
 
     def CountLeavingParticlesInsideRadius(self):
         self.leavingParticles = 0
         self.totalUnboundedMass = 0 | units.MSun
+        dynamicalVelocity= self.radius/self.dynamicalTime
+        particlesExceedingMaxVelocity = 0
         for particle in self.gasParticles:
             specificEnergy = CalculateSpecificEnergy(CalculateVelocityDifference(particle,self.gas),CalculateSeparation(particle, self.gas), particle, self.gas)
             if specificEnergy > 0 |specificEnergy.unit:
                 self.leavingParticles += 1
                 self.totalUnboundedMass += particle.mass
+                volume = (4.0/3.0)*constants.pi*particle.radius**3
+                particleSoundSpeed = ((5.0/3.0)*particle.pressure/(particle.mass/volume))**0.5
+                if CalculateVectorSize(particle.velocity) > min(dynamicalVelocity, particleSoundSpeed):
+                    particlesExceedingMaxVelocity += 1
+        print "over speed ", particlesExceedingMaxVelocity*100 / len(self.gasParticles)
+
         return self.leavingParticles
 
     def FindSmallestCell(self):
@@ -713,6 +714,10 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 
         companion.position -= centerOfMassPosition
         companion.velocity -= centerOfMassVelocity
+
+        sphGiant.CountLeavingParticlesInsideRadius()
+        print "leaving particles: ", sphGiant.leavingParticles
+        print "unbounded mass: ", sphGiant.totalUnboundedMass
 
         #print [CalculateVectorSize(part.velocity).as_quantity_in(units.m / units.s) for part in sphGiant.gasParticles]
         if isBinary:

@@ -291,7 +291,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec))
         os.makedirs(outputDirectory)
-        if relax:
+        if relax and step==-1:
             coreParticleRadius = sphCore.radius * 20.0 * (250.0 * 1000.0 / len(sphEnvelope)) # will be 20 for 250K, 10 for 500K and less for better resolution
         else:
             try:

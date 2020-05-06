@@ -126,13 +126,17 @@ def Start(savedVersionPath = "/home/hilaglanz/Documents/80265", takeSavedState =
 
         print "****************** Simulation Completed ******************"
         return
-
+    relax = False
     if takeSavedState == "True":
         starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = \
             StarModels.TakeTripleSavedState(savedVersionPath, configurationFile, step= -1)
     elif takeSavedState == "Evolve":
         starMass, starEnvelope, starCore, binary, tripleSemmimajor,sphMetaData = \
             StarModels.TakeTripleSavedState(savedVersionPath + "/evolution", configurationFile, step)
+    elif takeSavedState == "Relax":
+        starMass, starEnvelope, starCore, binary, tripleSemmimajor,sphMetaData = \
+            StarModels.TakeTripleSavedState(savedVersionPath, configurationFile, step=-1)
+        relax=True
     else:
         if takeSavedState == "Mesa":
             starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = CreateTripleSystem(configurationFile, savedVersionPath, takeSavedMesa= True)            
@@ -145,7 +149,7 @@ def Start(savedVersionPath = "/home/hilaglanz/Documents/80265", takeSavedState =
                     semmiMajor= tripleSemmimajor, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=binary.stars,
                     endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers , step= step,
-                    savedVersionPath=savedVersionPath, saveAfterMinute= 0)
+                    savedVersionPath=savedVersionPath, saveAfterMinute= 0, relax= relax)
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":

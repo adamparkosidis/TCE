@@ -39,8 +39,8 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     giantInSet = triple.add_particle(giant)
     innerBinary.stars = triple - giantInSet
 
-    #triple.position -= giantInSet.position
-    #triple.velocity -= giantInSet.velocity
+    triple.position -= giantInSet.position
+    triple.velocity -= giantInSet.velocity
 
     print triple
     print "triple center of mass: ", triple.center_of_mass()
@@ -56,6 +56,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                              stars=innerBinary.stars, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
                                               numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=10)
+    triple.move_to_center()
     starCore = dmStars[-1]
     #starCore.radius = sphStar.core_particle.radius
     print starCore
@@ -133,7 +134,7 @@ def Start(savedVersionPath = "/home/hilaglanz/Documents/80265", takeSavedState =
     elif takeSavedState == "Evolve":
         starMass, starEnvelope, starCore, binary, tripleSemmimajor,sphMetaData = \
             StarModels.TakeTripleSavedState(savedVersionPath + "/evolution", configurationFile, step)
-    elif takeSavedState == "Relax": # this option is currently supported only for the circumstellar case, for the other need to form the companions 
+    elif takeSavedState == "Relax": # this option is currently supported only for the circumstellar case, for the other need to form the companions
         starMass, starEnvelope, starCore, binary, tripleSemmimajor,sphMetaData = \
             StarModels.TakeTripleSavedState(savedVersionPath + "/relaxation", configurationFile, step=step)
         relax=True

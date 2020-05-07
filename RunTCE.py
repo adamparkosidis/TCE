@@ -150,9 +150,9 @@ def Start(savedVersionPath = "/home/hilaglanz/Documents/80265", takeSavedState =
         else:
             starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = CreateTripleSystem(configurationFile, savedVersionPath)
         step=-1
-    if not simulationTime:
+    if simulationTime is None:
         simulationTime = sphMetaData.evolutionTime
-        simulationTimeStep = sphMetaData.evolutionTimeSteps
+        simulationTimeSteps= sphMetaData.evolutionTimeSteps
     #####add running time differently for relaxation!!!
 
     # creating the NBody system with the 3 and evolving

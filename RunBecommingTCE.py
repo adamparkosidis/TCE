@@ -86,8 +86,17 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
     starCore = dmStars[0]
     starCore.radius = sphStar.core_particle.radius
+    #moving the com back to the center
+    giant.position += giantPossitionDiff
+    giant.velocity += giantVelocityDiff
+    innerBinary.stars.position += giantPossitionDiff
+    innerBinary.stars.velocity += giantVelocityDiff
+    outerBinary.stars.position += giantPossitionDiff
+    outerBinary.stars.velocity += giantVelocityDiff
+
 
     sphMetaData = StarModels.SphMetaData(sphStar)
+
 
     #saved state
     StarModels.SaveState(savedPath, starEnvelope.total_mass() + starCore.mass, starEnvelope, dmStars, outerBinary.semimajorAxis, sphMetaData)

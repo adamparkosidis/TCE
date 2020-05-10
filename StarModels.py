@@ -211,12 +211,12 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
 
         if opposite:#0 star of the inner binary is the giant, not the core
             # we now move the system so the giant will be in the middle
-            giantPossitionDiff = innerBinary.stars[0].position
+            '''giantPossitionDiff = innerBinary.stars[0].position
             giantVelocityDiff = innerBinary.stars[0].velocity
             innerBinary.stars.position -= giantPossitionDiff
             innerBinary.stars.velocity -= giantVelocityDiff
             outerBinary.stars.position -= giantPossitionDiff
-            outerBinary.stars.velocity -= giantVelocityDiff
+            outerBinary.stars.velocity -= giantVelocityDiff'''
 
             giant.position = innerBinary.stars[0].position
             giant.velocity = innerBinary.stars[0].velocity
@@ -241,8 +241,9 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
             giantInSet = triple.add_particle(giant)
             innerBinary.stars = triple - giantInSet
 
-            triple.position -= giantInSet.position
-            triple.velocity -= giantInSet.velocity
+            triple.move_to_center()
+            #triple.position -= giantInSet.position
+            #triple.velocity -= giantInSet.velocity
 
             #moving the main star back to the center
             centerOfMassPos = GiantSPHCenterOfMassPosition(starEnvelope, starCore)
@@ -299,8 +300,8 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
         print "sph com: ", GiantSPHCenterOfMassPosition(starEnvelope,starCore)
         print "sph velocity: ", GiantSPHCenterOfMassVelocity(starEnvelope,starCore)
 
-        binary.stars.position -= binary.stars[0].position
-        binary.stars.velocity -= binary.stars[0].velocity
+        #binary.stars.position -= binary.stars[0].position
+        #binary.stars.velocity -= binary.stars[0].velocity
 
         print "binary loaded: ", binary.stars
         #changing according to before relaxation

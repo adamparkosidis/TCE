@@ -191,8 +191,20 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
             try:
                 innerBinary = Binary(particles=Particles(2, particles=[loadedDms[0], loadedDms[1]]))
             except:
-                innerBinary = Binary(configurationFile, configurationSection="InnerBinary")
-                print "could not parse inner binary, creating new"
+                if not opposite:
+                    innerBinary = Binary(configurationFile, configurationSection="InnerBinary")
+                    innerBinary.stars.position += outerBinary.stars[1].position
+                    innerBinary.stars.velocity += outerBinary.stars[1].velocity
+                    giant.position = outerBinary.stars[0].position
+                    giant.velocity = outerBinary.stars[0].velocity
+                    triple = innerBinary.stars
+                    giantInSet = triple.add_particle(giant)
+                    innerBinary.stars = triple - giantInSet
+
+                    triple.move_to_center()
+                    # triple.position -= giantInSet.position
+                    # triple.velocity -= giantInSet.velocity
+                    print "could not parse inner binary, created new"
 
             companions = innerBinary
 

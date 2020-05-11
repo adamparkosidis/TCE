@@ -198,8 +198,8 @@ class SphGiant:
                 self.totalUnboundedMass += particle.mass
                 volume = (4.0/3.0)*constants.pi*particle.radius**3
                 particleSoundSpeed = ((5.0/3.0)*particle.pressure/(particle.mass/volume))**0.5
-                if CalculateVectorSize(particle.velocity) > min(dynamicalVelocity, particleSoundSpeed):
-                    particlesExceedingMaxVelocity += 1
+            if CalculateVectorSize(particle.velocity) > min(dynamicalVelocity, particleSoundSpeed):
+                particlesExceedingMaxVelocity += 1
         print "over speed ", particlesExceedingMaxVelocity*100.0 / len(self.gasParticles)
 
         return self.leavingParticles

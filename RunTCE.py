@@ -49,13 +49,16 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     sphStar = StarModels.SphStar(giantInSet,configurationFile,configurationSection="MainStar",
                                 savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
     print sphStar.core_particle
+    sphMetaData = StarModels.SphMetaData(sphStar)
+    pickle.dump(sphMetaData,open(savedPath+"/metaData.p", 'wb'), pickle.HIGHEST_PROTOCOL)
 
     print "Now having the sph star and the binaries, ready for relaxing"
     starEnvelope, dmStars = EvolveNBody.Run(totalMass= giantInSet.mass + innerBinary.stars.total_mass(),
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
                                              stars=innerBinary.stars, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
-                                              numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=10)
+                                              numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath,
+                                            saveAfterMinute=10, initialCOM=sphStar.initialCOM, initialCOMV=sphStar.initialCOMV)
     print "inner binary before con moving to the origin: ", innerBinary
     triple.move_to_center()
     print "inner after: ", innerBinary
@@ -132,6 +135,8 @@ def Start(savedVersionPath = "/home/hilaglanz/Documents/80265", takeSavedState =
     relax = False
     simulationTime = None
     simulationTimeSteps = None
+    initialCOM = None
+    initialCOMV = None
     if takeSavedState == "True":
         starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = \
             StarModels.TakeTripleSavedState(savedVersionPath, configurationFile, step= -1)
@@ -144,6 +149,11 @@ def Start(savedVersionPath = "/home/hilaglanz/Documents/80265", takeSavedState =
         relax=True
         simulationTime = sphMetaData.relaxationTime
         simulationTimeSteps = sphMetaData.relaxationTimeSteps
+        try:
+            initialCOM = sphMetaData.initialCOM
+            initialCOMV = sphMetaData.initialCOMV
+        except:
+            print "couldn't rertrieve initial com"
     else:
         if takeSavedState == "Mesa":
             starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = CreateTripleSystem(configurationFile, savedVersionPath, takeSavedMesa= True)            
@@ -153,14 +163,17 @@ def Start(savedVersionPath = "/home/hilaglanz/Documents/80265", takeSavedState =
     if simulationTime is None:
         simulationTime = sphMetaData.evolutionTime
         simulationTimeSteps= sphMetaData.evolutionTimeSteps
+
+
     #####add running time differently for relaxation!!!
 
     # creating the NBody system with the 3 and evolving
     EvolveNBody.Run(totalMass= starMass + binary.stars.total_mass(),
                     semmiMajor= tripleSemmimajor, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=binary.stars,
-                    endTime= simulationTime, timeSteps= simulationTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers , step= step,
-                    savedVersionPath=savedVersionPath, saveAfterMinute= 0, relax= relax)
+                    endTime= simulationTime, timeSteps= simulationTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers ,
+                    step= step, savedVersionPath=savedVersionPath, saveAfterMinute= 0, relax= relax, initialCOM=initialCOM,
+                    initialCOMV=initialCOMV)
 
     print "****************** Simulation Completed ******************"
 if __name__ == "__main__":

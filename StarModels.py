@@ -105,8 +105,10 @@ class SphStar:
             self.core_particle.velocity += pointStar.velocity
 
             print "core:" ,self.core_particle
-            print "sph center of mass: ", self.particles.center_of_mass()
-            print "sph center of mass velocity: ", self.particles.center_of_mass_velocity()
+            self.initialCOM = self.particles.center_of_mass()
+            self.initialCOMV = self.particles.center_of_mass_velocity()
+            print "sph center of mass: ", self.initialCOM
+            print "sph center of mass velocity: ", self.initialCOMV
 
 
 
@@ -142,6 +144,8 @@ class SphMetaData:
         self.evolutionTime = sphStar.evolutionTime
         self.evolutionTimeSteps = sphStar.evolutionTimeSteps
         self.numberOfWorkers = sphStar.numberOfWorkers
+        self.initialCOM = sphStar.initialCOM
+        self.initialCOMV = sphStar.initialCOMV
 
 def LoadGas(savedGas):
     gas = read_set_from_file(savedGas, format='amuse')

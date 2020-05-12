@@ -41,7 +41,8 @@ class Star:
 
     def Star(self,particle1,particle2):
         particles = Particles()
-        particles.add_particle(particle1)
+        part1=particle1.copy()
+        particles.add_particle(part1)
         part2 = Particle()
         part2.mass = particle2.mass
         part2.position = particle2.position
@@ -64,6 +65,8 @@ class Star:
         self.specificEnergy = CalculateSpecificEnergy(self.velocityDifference,self.separation,particle1,particle2)
         self.kineticEnergy = particles.kinetic_energy()
         self.potentialEnergy = particles.potential_energy()
+        particles.move_to_center()
+        self.angularMomentum = particles.total_angular_momentum()
 
 class SphGiant:
     def __init__(self, gas_particles_file, dm_particles_file, opposite= False):
@@ -111,7 +114,29 @@ class SphGiant:
         self.kineticEnergy = totalGiant.kinetic_energy()
         self.potentialEnergy = totalGiant.potential_energy()
         self.thermalEnergy = self.gasParticles.thermal_energy()
+        #self.angularMomentum = totalGiant.total_angular_momentum()
 
+    def GetAngularMomentum(self,comPos=None,comV=None):
+        totalGiant = Particles()
+        totalGiant.add_particles(self.gasParticles)
+        totalGiant.add_particle(self.core)
+        totGiant = totalGiant.copy()
+        if comPos != None:
+            totGiant.position -= comPos
+        if comV != None:
+            totGiant.velocity -= comV
+
+        return totGiant.total_angular_momentum()
+
+    def GetAngularMomentumOfGas(self, comPos=None, comV=None):
+        gas = self.gasParticles.copy()
+
+        if comPos != None:
+            gas.position -= comPos
+        if comV != None:
+            gas.velocity -= comV
+
+        return gas.total_angular_momentum()
 
     def CalculateInnerSPH(self, relativeParticle, localRadius=50.0 | units.RSun):
         self.innerGas = Star(None, None)
@@ -787,7 +812,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                        eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, localDensity,
                        kInner, kOuter, kOuter1, kOuter2, pInner, pOuter, pOuter1, pOuter2,
                        kGas, uGas, pGas, kCore, pOuterCore, kTot, pTot, eTot,
-                       localRadius=50.0|units.RSun,
+                       angularInner, angularOuter,angularOuter1,angularOuter2, angularOuterCOM1, angularOuterCOM2,
+                       angularGasCOM, angularTot, localRadius=50.0|units.RSun,
                        toPlot = False, opposite= False, axesOriginInInnerBinaryCenterOfMass= False, timeStep=0.2):
 
     for i in [j - beginStep for j in chunk]:
@@ -882,11 +908,11 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                       0.5*particle1.mass*(particle2.vx**2+particle2.vy**2+particle2.vz**2)).value_in(units.g*(units.cm**2) / units.s**2)
         pInner[i] = (innerBinary.potentialEnergy).value_in(units.g*(units.cm**2) / units.s**2)
         pOuter[i] = -(constants.G*sphGiant.innerGas.mass*innerBinary.mass/
-                      (tripleSeparation)).value_in(units.g*(units.cm**2) / units.s**2)
+                      (tripleDistances[i] | units.RSun)).value_in(units.g*(units.cm**2) / units.s**2)
         pOuter1[i] = -(constants.G*sphGiant.innerGas.mass*particle1.mass/
-                       (triple1Distances[i])).value_in(units.g*(units.cm**3) / units.s**2)
+                       (triple1Distances[i] | units.RSun)).value_in(units.g*(units.cm**2) / units.s**2)
         pOuter2[i] = (-constants.G*sphGiant.innerGas.mass*particle2.mass/
-                      (triple2Distances[i])).value_in(units.g*(units.cm**3) / units.s**2)
+                      (triple2Distances[i]) | units.RSun).value_in(units.g*(units.cm**2) / units.s**2)
         kGas[i] = sphGiant.gasParticles.kinetic_energy().value_in(units.g*(units.cm**2) / units.s**2)
         uGas[i] = sphGiant.gasParticles.thermal_energy().value_in(units.g*(units.cm**2) / units.s**2)
         pGas[i] = sphGiant.gasParticles.potential_energy().value_in(units.g*(units.cm**2) / units.s**2)
@@ -898,6 +924,28 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                    constants.G*innerBinary.mass*sphGiant.mass/
                    (CalculateVectorSize(CalculateSeparation(innerBinary,sphGiant)))).value_in(units.g*(units.cm**2) / units.s**2)
         eTot[i] = kTot[i] + pTot[i] + uGas[i]
+
+        angularInner[i] = innerBinary.angularMomentum.value_in(units.cm**2 * units.g /units.s)
+        angularOuter[i] = (innerBinary.mass*sphGiant.innerGas.mass*
+                           (constants.G*(aOuter[i] | units.AU)/(innerBinary.mass+sphGiant.innerGas.mass))**0.5).value_in(units.cm**2 * units.g /units.s)
+        angularOuter1[i] = (particle1.mass*sphGiant.innerGas.mass*
+                           (constants.G*(aOuters1[i] | units.AU)/(particle1.mass+sphGiant.innerGas.mass))**0.5).value_in(units.cm**2 * units.g /units.s)
+        angularOuter2[i] = (particle2.mass*sphGiant.innerGas.mass*
+                           (constants.G*(aOuters2[i] | units.AU)/(particle2.mass+sphGiant.innerGas.mass))**0.5).value_in(units.cm**2 * units.g /units.s)
+        comParticle=Particle()
+        comParticle.position = centerOfMassPosition
+        comParticle.velocity = centerOfMassVelocity
+
+        angularOuterCOM1[i] = (particle1.mass*
+                               CalculateSpecificMomentum(CalculateSeparation(particle1,comParticle),
+                                                         CalculateVelocityDifference(particle1,comParticle))).value_in(units.cm**2 * units.g /units.s)
+        angularOuterCOM2[i] = (particle2.mass *
+                               CalculateSpecificMomentum(CalculateSeparation(particle2, comParticle),
+                                                         CalculateVelocityDifference(particle2, comParticle))).value_in(
+                                                            units.cm ** 2 * units.g / units.s)
+        angularGasCOM[i] = sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity).value_in(units.cm ** 2 * units.g / units.s)
+        angularTot[i] = sphGiant.GetAngularMomentum(centerOfMassPosition,centerOfMassVelocity).value_in(units.cm ** 2 * units.g / units.s) \
+                        + angularOuterCOM1[i] + angularOuterCOM2[i]
 
         print time.ctime(), "temperature_density_plotting of step ", i
         temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
@@ -1039,6 +1087,17 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     pTot = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     eTot = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
 
+
+    angularInner = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    angularOuter = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    angularOuter1 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    angularOuter2 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    angularOuterCOM1 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    angularOuterCOM2 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    angularGasCOM = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    angularTot = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+
+    #angularInner, angularOuter,angularOuter1,angularOuter2 angularOuterCOM1, angularOuterCOM2, angularGasCOM, angularTot
     #kInner, kOuter, kOuter1, kOuter2, pInner, pOuter, pOuter1, pOuter2, uInner, uOuter, uOuter1, uOuter2, kGas, uGas, pGas, kCore, pOuterCore, kTot, pTot, uTot, eTot
 
 
@@ -1068,6 +1127,10 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                                                                                   pInner, pOuter, pOuter1, pOuter2,
                                                                                   kGas, uGas, pGas, kCore, pOuterCore,
                                                                                   kTot, pTot,  eTot,
+                                                                                  angularInner, angularOuter,
+                                                                                  angularOuter1, angularOuter2,
+                                                                                  angularOuterCOM1, angularOuterCOM2,
+                                                                                  angularGasCOM, angularTot,
                                                                                   localRadius, toPlot, opposite,
                                                                                   axesOriginInInnerBinaryCenterOfMass,
                                                                                   timeStep,)))
@@ -1112,11 +1175,13 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     Plot1Axe(inclinations,"inclinations", outputDir+"/graphs", beginStep=beginStep)
     PlotAdaptiveQuantities([(innerMass, "InnerMass"), (innerMass1, "InnerMass1"), (innerMass2, "InnerMass2"),
                             (localDensity, "LocalDensity"),(kInner,"kInner"), (kOuter,"kOuter"), (kOuter1,"kOuter1"),
-                                                            (kOuter2,"kOuter2"),(pInner,"pInner"), (pOuter,"pOuter"),
-                                                            (pOuter1,"pOuter1"), (pOuter2,"pOuter2"),(kGas,"kGas"),
-                                                            (uGas,"uGas"), (pGas,"pGas"), (kCore,"kCore"),
-                                                            (pOuterCore,"pOuterCore"),(kTot,"kTot"), (pTot,"pTot"),
-                            (eTot,"eTot")], outputDir + "/graphs", beginStep)
+                            (kOuter2,"kOuter2"),(pInner,"pInner"), (pOuter,"pOuter"), (pOuter1,"pOuter1"),
+                            (pOuter2,"pOuter2"),(kGas,"kGas"), (uGas,"uGas"), (pGas,"pGas"), (kCore,"kCore"),
+                            (pOuterCore,"pOuterCore"),(kTot,"kTot"), (pTot,"pTot"), (eTot,"eTot"),
+                            (angularInner,"angularInner"), (angularOuter,"angularOuter"), (angularOuter1,"angularOuter1"),
+                            (angularOuter2,"angularOuter2"), (angularOuterCOM1,"angularOuterCOM1"),
+                            (angularOuterCOM2,"angularOuterCOM2"), (angularGasCOM,"angularGasCOM"),
+                            (angularTot,"angularTot")], outputDir + "/graphs", beginStep)
 
 def InitParser():
     parser = argparse.ArgumentParser(description='')

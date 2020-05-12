@@ -133,7 +133,8 @@ def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = 
 
 
 def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
-        savedVersionPath="", saveAfterMinute=1, step=-1, relax=False):
+        savedVersionPath="", saveAfterMinute=1, step=-1, relax=False,initialCOM=None,
+                    initialCOMV=None):
 
 
     '''
@@ -165,11 +166,20 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
     dm = coupledSystem.dm_particles.copy()
     gas = coupledSystem.gas_particles.copy()
 
-    centerOfMassRadius = coupledSystem.particles.center_of_mass()
-    centerOfMassV = coupledSystem.particles.center_of_mass_velocity()
+    if initialCOM is None:
+        if relax and step==-1:
+            initialCOM = coupledSystem.particles.center_of_mass()
+        else:
+            initialCOM =  [0.0, 0.0, 0.0] | units.m
+    if initialCOMV is None:
+        if relax and step==-1:
+            initialCOMV = coupledSystem.particles.center_of_mass_velocity()
+        else:
+            initialCOMV = [0.0, 0.0, 0.0] | units.m / units.s
 
-    print "initial com: ", centerOfMassRadius
-    print "initial com v: ", centerOfMassV
+    print "initial com: ", initialCOM
+    print "initial com v: ", initialCOMV
+
     # if not relax:
     #    sinks = new_sink_particles(coupledSystem.codes[0].particles, sink_radius= stars.radius[0]*2) #sink radius is the particle radius * 2
 
@@ -188,16 +198,14 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
         step += 1
         particles = coupledSystem.particles
         if relax:
-            centerOfMassV = [0.0,0.0,0.0] | units.m/units.s
-            centerOfMassRadius = [0.0,0.0,0.0] | units.m
             print "com: ", particles.center_of_mass()
-            if (particles.center_of_mass() != centerOfMassRadius).all():
-                particles.position += (centerOfMassRadius - particles.center_of_mass())
+            if (particles.center_of_mass() != initialCOM).all():
+                particles.position += (initialCOM - particles.center_of_mass())
             print "com: ", particles.center_of_mass()
             print "com v: ", particles.center_of_mass_velocity()
             relaxingVFactor = (step * 1.0 / timeSteps)
             particles.velocity = relaxingVFactor * (
-                        particles.velocity - particles.center_of_mass_velocity()) + centerOfMassV
+                        particles.velocity - particles.center_of_mass_velocity()) + initialCOMV
             print "com v: ", particles.center_of_mass_velocity()
         else:
             # check if there is a merger - don't continue
@@ -233,7 +241,8 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
 
 def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | units.yr, timeSteps = 3 ,
         savedVersionPath = "", saveAfterMinute = 1, step = -1, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
-         numberOfWorkers = 1, takeCompanionInRelaxation = True, system=None, dmToSave=None, gasToSave=None):
+         numberOfWorkers = 1, takeCompanionInRelaxation = True, system=None, dmToSave=None, gasToSave=None,initialCOM=None,
+                    initialCOMV=None):
     '''
 
     Args:
@@ -316,12 +325,14 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
         coupledSystem = system
 
     return RunSystem(system=coupledSystem, endTime=endTime, timeSteps=timeSteps,
-        savedVersionPath=savedVersionPath, saveAfterMinute=saveAfterMinute, step=step, relax=relax)
+        savedVersionPath=savedVersionPath, saveAfterMinute=saveAfterMinute, step=step, relax=relax,initialCOM=initialCOM,
+                    initialCOMV=initialCOMV)
 
 
 def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | units.yr, timeSteps = 3 ,
         savedVersionPath = "", saveAfterMinute = 0, step = -1, relax = False, sphCode = Gadget2, dynamicsCode = Huayno,
-         numberOfWorkers = 1, takeCompanionInRelaxation = True, system=None):
+         numberOfWorkers = 1, takeCompanionInRelaxation = True, system=None,initialCOM=None,
+                    initialCOMV=None):
     '''
 
     Args:
@@ -395,5 +406,6 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
         coupledSystem = system
 
     return RunSystem(system=coupledSystem, endTime=endTime, timeSteps=timeSteps,
-        savedVersionPath=savedVersionPath, saveAfterMinute=saveAfterMinute, step=step, relax=relax)
+        savedVersionPath=savedVersionPath, saveAfterMinute=saveAfterMinute, step=step, relax=relax,initialCOM=initialCOM,
+                    initialCOMV=initialCOMV)
 

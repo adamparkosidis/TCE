@@ -57,10 +57,13 @@ class Star:
         self.y = self.position[1]
         self.z = self.position[2]
 
+
         self.mass  = particles.total_mass()
         self.velocityDifference = CalculateVelocityDifference(particle1,particle2)
         self.separation = CalculateSeparation(particle1,particle2)
         self.specificEnergy = CalculateSpecificEnergy(self.velocityDifference,self.separation,particle1,particle2)
+        self.kineticEnergy = particles.kinetic_energy()
+        self.potentialEnergy = particles.potential_energy()
 
 class SphGiant:
     def __init__(self, gas_particles_file, dm_particles_file, opposite= False):
@@ -105,6 +108,9 @@ class SphGiant:
         self.v = self.velocity
         self.radius = self.gasParticles.total_radius()
         self.dynamicalTime = 1.0/(constants.G*self.mass/((4*constants.pi*self.radius**3)/3))**0.5
+        self.kineticEnergy = totalGiant.kinetic_energy()
+        self.potentialEnergy = totalGiant.potential_energy()
+        self.thermalEnergy = self.gasParticles.thermal_energy()
 
 
     def CalculateInnerSPH(self, relativeParticle, localRadius=50.0 | units.RSun):
@@ -113,6 +119,8 @@ class SphGiant:
         print time.ctime(), "beginning inner gas calculation"
         self.CalculateSphMassVelocityAndPositionInsideRadius(radius, includeCore=True, centeralParticle=relativeParticle, localRadius=localRadius)
         self.innerGas.x , self.innerGas.y, self.innerGas.z = self.innerGas.position
+        self.innerGas.kineticEnergy = 0.5*self.innerGas.mass*CalculateVectorSize(self.innerGas.v)**2
+
         print time.ctime(), "calculated!"
     def CalculateTotalGasMassInsideRadius(self, radius):
         innerMass = self.core.mass
@@ -776,7 +784,10 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vmax, beginStep,
                        binaryDistances, tripleDistances, triple1Distances, triple2Distances,
                        aInners, aOuters, aOuters1, aOuters2,
-                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, localDensity, localRadius=50.0|units.RSun,
+                       eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, localDensity,
+                       kInner, kOuter, kOuter1, kOuter2, pInner, pOuter, pOuter1, pOuter2,
+                       kGas, uGas, pGas, kCore, pOuterCore, kTot, pTot, eTot,
+                       localRadius=50.0|units.RSun,
                        toPlot = False, opposite= False, axesOriginInInnerBinaryCenterOfMass= False, timeStep=0.2):
 
     for i in [j - beginStep for j in chunk]:
@@ -863,6 +874,31 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         innerMass1[i] , aOuters1[i], eOuters1[i], triple1Distances[i] = CalculateBinaryParameters(particle1, sphGiant)
         innerMass2[i] , aOuters2[i], eOuters2[i], triple2Distances[i] = CalculateBinaryParameters(particle2, sphGiant)
         localDensity[i] = sphGiant.localDensity.value_in(units.MSun/units.RSun**3)
+        kInner[i]= innerBinary.kineticEnergy.value_in(units.g*(units.cm**2) / units.s**2)
+        kOuter[i] = kInner[i] + sphGiant.innerGas.kineticEnergy.value_in(units.g*(units.cm**2) / units.s**2)
+        kOuter1[i] = (sphGiant.innerGas.kineticEnergy +
+                      0.5*particle1.mass*(particle1.vx**2+particle1.vy**2+particle1.vz**2)).value_in(units.g*(units.cm**2) / units.s**2)
+        kOuter2[i] = (sphGiant.innerGas.kineticEnergy +
+                      0.5*particle1.mass*(particle2.vx**2+particle2.vy**2+particle2.vz**2)).value_in(units.g*(units.cm**2) / units.s**2)
+        pInner[i] = (innerBinary.potentialEnergy).value_in(units.g*(units.cm**2) / units.s**2)
+        pOuter[i] = -(constants.G*sphGiant.innerGas.mass*innerBinary.mass/
+                      (tripleSeparation)).value_in(units.g*(units.cm**2) / units.s**2)
+        pOuter1[i] = -(constants.G*sphGiant.innerGas.mass*particle1.mass/
+                       (triple1Distances[i])).value_in(units.g*(units.cm**3) / units.s**2)
+        pOuter2[i] = (-constants.G*sphGiant.innerGas.mass*particle2.mass/
+                      (triple2Distances[i])).value_in(units.g*(units.cm**3) / units.s**2)
+        kGas[i] = sphGiant.gasParticles.kinetic_energy().value_in(units.g*(units.cm**2) / units.s**2)
+        uGas[i] = sphGiant.gasParticles.thermal_energy().value_in(units.g*(units.cm**2) / units.s**2)
+        pGas[i] = sphGiant.gasParticles.potential_energy().value_in(units.g*(units.cm**2) / units.s**2)
+        kCore[i] = (0.5*sphGiant.core.mass*CalculateVectorSize(sphGiant.core.velocity)**2).value_in(units.g*(units.cm**2) / units.s**2)
+        pOuterCore[i] = (-constants.G*sphGiant.core.mass*innerBinary.mass
+                         /CalculateVectorSize(CalculateSeparation(sphGiant.core,innerBinary))).value_in(units.g*(units.cm**2) / units.s**2)
+        kTot[i] = (sphGiant.kineticEnergy + innerBinary.kineticEnergy).value_in(units.g*(units.cm**2) / units.s**2)
+        pTot[i] = (sphGiant.potentialEnergy + pInner -
+                   constants.G*innerBinary.mass*sphGiant.mass/
+                   (CalculateVectorSize(CalculateSeparation(innerBinary,sphGiant)))).value_in(units.g*(units.cm**2) / units.s**2)
+        eTot[i] = kTot[i] + pTot[i] + uGas[i]
+
         print time.ctime(), "temperature_density_plotting of step ", i
         temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
         print time.ctime(), "finished temperature plotting of step: ", i
@@ -986,6 +1022,26 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     innerMass2 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     localDensity = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
 
+    kInner = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    kOuter = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    kOuter1 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    kOuter2 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    pInner = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    pOuter = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    pOuter1 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    pOuter2 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    kGas = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    uGas = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    pGas = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    kCore = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    pOuterCore = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    kTot = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    pTot = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    eTot = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+
+    #kInner, kOuter, kOuter1, kOuter2, pInner, pOuter, pOuter1, pOuter2, uInner, uOuter, uOuter1, uOuter2, kGas, uGas, pGas, kCore, pOuterCore, kTot, pTot, uTot, eTot
+
+
     cpus = multiprocessing.cpu_count() - 6
     chunkSize= (lastStep-beginStep)/(multiprocessing.cpu_count() - 6)
     print "using ", multiprocessing.cpu_count() - 6, " cpus"
@@ -1008,6 +1064,10 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                        binaryDistances, tripleDistances, triple1Distances, triple2Distances,
                        aInners, aOuters, aOuters1, aOuters2,
                        eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2,localDensity,
+                                                                                  kInner, kOuter, kOuter1, kOuter2,
+                                                                                  pInner, pOuter, pOuter1, pOuter2,
+                                                                                  kGas, uGas, pGas, kCore, pOuterCore,
+                                                                                  kTot, pTot,  eTot,
                                                                                   localRadius, toPlot, opposite,
                                                                                   axesOriginInInnerBinaryCenterOfMass,
                                                                                   timeStep,)))
@@ -1051,7 +1111,12 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     PlotEccentricity([(eOuters1, "eOuters1"), (eOuters2, "eOuters2")],outputDir + "/graphs", separationStep)
     Plot1Axe(inclinations,"inclinations", outputDir+"/graphs", beginStep=beginStep)
     PlotAdaptiveQuantities([(innerMass, "InnerMass"), (innerMass1, "InnerMass1"), (innerMass2, "InnerMass2"),
-                            (localDensity, "LocalDensity")], outputDir + "/graphs", beginStep)
+                            (localDensity, "LocalDensity"),(kInner,"kInner"), (kOuter,"kOuter"), (kOuter1,"kOuter1"),
+                                                            (kOuter2,"kOuter2"),(pInner,"pInner"), (pOuter,"pOuter"),
+                                                            (pOuter1,"pOuter1"), (pOuter2,"pOuter2"),(kGas,"kGas"),
+                                                            (uGas,"uGas"), (pGas,"pGas"), (kCore,"kCore"),
+                                                            (pOuterCore,"pOuterCore"),(kTot,"kTot"), (pTot,"pTot"),
+                            (eTot,"eTot")], outputDir + "/graphs", beginStep)
 
 def InitParser():
     parser = argparse.ArgumentParser(description='')

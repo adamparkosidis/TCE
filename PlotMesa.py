@@ -126,6 +126,9 @@ def temperature_density_plot(outputDir, pickleFile):
     textFile = open(outputDir + '/radial_profile/pressure_' + adding +  '.txt', 'w')
     textFile.write(', '.join([str(y) for y in data["pressure"]]))
     textFile.close()
+    textFile = open(outputDir + '/radial_profile/specific_energy_' + adding +  '.txt', 'w')
+    textFile.write(', '.join([str(y) for y in data["specific_energy"]]))
+    textFile.close()
     #print "saved"
     pyplot.legend()
     pyplot.suptitle('Structure of a ' + adding + ' mass star')

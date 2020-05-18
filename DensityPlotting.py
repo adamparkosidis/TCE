@@ -898,6 +898,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         innerMass1[i] , aOuters1[i], eOuters1[i], triple1Distances[i] = CalculateBinaryParameters(particle1, sphGiant)
         innerMass2[i] , aOuters2[i], eOuters2[i], triple2Distances[i] = CalculateBinaryParameters(particle2, sphGiant)
         localDensity[i] = sphGiant.localDensity.value_in(units.MSun/units.RSun**3)
+        print "inner binary kinetic energy: ",innerBinary.kineticEnergy
         kInner[i]= innerBinary.kineticEnergy.value_in(units.g*(units.cm**2) / units.s**2)
         kOuter[i] = kInner[i] + sphGiant.innerGas.kineticEnergy.value_in(units.g*(units.cm**2) / units.s**2)
         kOuter1[i] = (sphGiant.innerGas.kineticEnergy +

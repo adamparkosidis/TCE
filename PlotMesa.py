@@ -81,7 +81,7 @@ def structure_from_star(star):
         mass = star.mu_profile * star.mass,
         temperature = star.temperature,
         specific_energy= star.specific_internal_energy_profile,
-        pressure = star.specific_internal_energy_profile,
+        pressure = star.pressure,
         sound_speed = star.sound_speed
     )
 

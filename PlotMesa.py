@@ -190,7 +190,7 @@ def InitializeSnapshots(savingDir):
 
 def main(args= ["/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels"]):
     savingDir = GetArgs(args)
-    print "plotting pics to " +  savingDir +  " from " +  savingDir
+    print "plotting pics to " +  savingDir + "/radial_profile" +  " from " +  os.path.join(os.getcwd(),savingDir)
     try:
         os.makedirs(savingDir + "/radial_profile")
     except(OSError):

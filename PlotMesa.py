@@ -52,10 +52,9 @@ class Star:
         self.midpoints_profile   = structure['midpoints_profile']
         self.temperature = [ self.specific_internal_energy_profile[i] * self.mu_profile[i] / (1.5 * constants.kB) for i in range(len(self.specific_internal_energy_profile))]
         self.pressure = [ (2.0/3)*self.specific_internal_energy_profile[i] * self.density_profile[i] for i in range(len(self.specific_internal_energy_profile))]
-        self.sound_speed = self.temperature/self.temperature | units.m * units.s**-1
-        for i in xrange(len(self.sound_speed)):
-            #print self.temperature[i] * constants.Rydberg_constant / self.mu_profile[i]
-            self.sound_speed[i] = math.sqrt(((5.0/3.0) * constants.kB * self.temperature[i] / self.mu_profile[i]).value_in(units.m **2 * units.s**-2)) | units.m / units.s
+        self.sound_speed = [math.sqrt(((5.0/3.0) * constants.kB * self.temperature[i] /
+                              self.mu_profile[i]).value_in(units.m **2 * units.s**-2)) | units.m / units.s for i in  xrange(len(self.temperature))]
+
 def mu(X = None, Y = 0.25, Z = 0.02, x_ion = 0.1):
     """
     Compute the mean molecular weight in kg (the average weight of particles in a gas)

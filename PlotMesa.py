@@ -50,10 +50,11 @@ class Star:
         self.composition_profile = structure['composition_profile']
         self.specific_internal_energy_profile = structure['specific_internal_energy_profile']
         self.midpoints_profile   = structure['midpoints_profile']
-        self.temperature = [ self.specific_internal_energy_profile[i] * self.mu_profile[i] / (1.5 * constants.kB) for i in range(len(self.specific_internal_energy_profile))]
-        self.pressure = [ (2.0/3)*self.specific_internal_energy_profile[i] * self.density_profile[i] for i in range(len(self.specific_internal_energy_profile))]
-        self.sound_speed = [math.sqrt(((5.0/3.0) * constants.kB * self.temperature[i] /
-                              self.mu_profile[i]).value_in(units.m **2 * units.s**-2)) | units.m / units.s for i in  xrange(len(self.temperature))]
+        self.temperature =  self.specific_internal_energy_profile * self.mu_profile / (1.5 * constants.kB)
+        self.pressure = (2.0/3)*self.specific_internal_energy_profile * self.density_profile
+        self.sound_speed = math.sqrt(((5.0/3.0) * constants.kB * self.temperature /
+                              self.mu_profile).value_in(units.m **2 * units.s**-2)) | units.m / units.s
+        print len(self.specific_internal_energy_profile), len(self.temperature), len(self.sound_speed)
 
 def mu(X = None, Y = 0.25, Z = 0.02, x_ion = 0.1):
     """

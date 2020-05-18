@@ -52,8 +52,8 @@ class Star:
         self.midpoints_profile   = structure['midpoints_profile']
         self.temperature =  self.specific_internal_energy_profile * self.mu_profile / (1.5 * constants.kB)
         self.pressure = (2.0/3)*self.specific_internal_energy_profile * self.density_profile
-        self.sound_speed = math.sqrt(((5.0/3.0) * constants.kB * self.temperature /
-                              self.mu_profile).value_in(units.m **2 * units.s**-2)) | units.m / units.s
+        self.sound_speed = (((5.0/3.0) * constants.kB * self.temperature /
+                              self.mu_profile)**0.5).as_quantity_in(units.m / units.s)
         print len(self.specific_internal_energy_profile), len(self.temperature), len(self.sound_speed)
 
 def mu(X = None, Y = 0.25, Z = 0.02, x_ion = 0.1):

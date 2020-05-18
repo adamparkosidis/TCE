@@ -429,7 +429,9 @@ def structure_from_star(star):
         mass_profile = (4.0/3.0 * constants.pi) * density_profile * (radii_cubed[1:] - radii_cubed[:-1])
     cumulative_mass_profile = CalculateCumulantiveMass(density_profile, radius_profile)
     tau = CalculateTau(density_profile, radius_profile, 0.0159 | units.RSun, (0.392|units.MSun)/((4.0/3.0)*constants.pi*(0.0159 |units.RSun)**3), star.temperature, radius_profile[-100])
-    sound_speed = [math.sqrt(((5.0/3.0) * constants.kB * star.temperature[i] / mu()).value_in(units.m **2 * units.s**-2)) | units.m / units.s for i in  xrange(len(star.temperature))]
+    sound_speed = star.temperature
+    for i in xrange(len(star.temperature)):
+        sound_speed[i] = math.sqrt(((5.0/3.0) * constants.kB * star.temperature[i] / mu()).value_in(units.m **2 * units.s**-2)) | units.m / units.s
     return dict(
         radius = radius_profile.as_quantity_in(units.RSun),
         density = density_profile,
@@ -898,7 +900,6 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         innerMass1[i] , aOuters1[i], eOuters1[i], triple1Distances[i] = CalculateBinaryParameters(particle1, sphGiant)
         innerMass2[i] , aOuters2[i], eOuters2[i], triple2Distances[i] = CalculateBinaryParameters(particle2, sphGiant)
         localDensity[i] = sphGiant.localDensity.value_in(units.MSun/units.RSun**3)
-        print "inner binary kinetic energy: ",innerBinary.kineticEnergy
         kInner[i]= innerBinary.kineticEnergy.value_in(units.g*(units.cm**2) / units.s**2)
         kOuter[i] = kInner[i] + sphGiant.innerGas.kineticEnergy.value_in(units.g*(units.cm**2) / units.s**2)
         kOuter1[i] = (sphGiant.innerGas.kineticEnergy +

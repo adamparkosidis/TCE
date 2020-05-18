@@ -911,8 +911,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                       (tripleDistances[i] | units.RSun)).value_in(units.g*(units.cm**2) / units.s**2)
         pOuter1[i] = -(constants.G*sphGiant.innerGas.mass*particle1.mass/
                        (triple1Distances[i] | units.RSun)).value_in(units.g*(units.cm**2) / units.s**2)
-        pOuter2[i] = (-constants.G*sphGiant.innerGas.mass*particle2.mass/
-                      (triple2Distances[i]) | units.RSun).value_in(units.g*(units.cm**2) / units.s**2)
+        pOuter2[i] = ((-constants.G*sphGiant.innerGas.mass*particle2.mass/
+                      (triple2Distances[i]) | units.RSun)).value_in(units.g*(units.cm**2) / units.s**2)
         kGas[i] = sphGiant.gasParticles.kinetic_energy().value_in(units.g*(units.cm**2) / units.s**2)
         uGas[i] = sphGiant.gasParticles.thermal_energy().value_in(units.g*(units.cm**2) / units.s**2)
         pGas[i] = sphGiant.gasParticles.potential_energy().value_in(units.g*(units.cm**2) / units.s**2)
@@ -925,6 +925,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                    (CalculateVectorSize(CalculateSeparation(innerBinary,sphGiant)))).value_in(units.g*(units.cm**2) / units.s**2)
         eTot[i] = kTot[i] + pTot[i] + uGas[i]
 
+        print "eTot: ", eTot[i]
         angularInner[i] = innerBinary.angularMomentum.value_in(units.cm**2 * units.g /units.s)
         angularOuter[i] = (innerBinary.mass*sphGiant.innerGas.mass*
                            (constants.G*(aOuter[i] | units.AU)/(innerBinary.mass+sphGiant.innerGas.mass))**0.5).value_in(units.cm**2 * units.g /units.s)

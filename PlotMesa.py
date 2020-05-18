@@ -50,7 +50,8 @@ class Star:
         self.composition_profile = structure['composition_profile']
         self.specific_internal_energy_profile = structure['specific_internal_energy_profile']
         self.midpoints_profile   = structure['midpoints_profile']
-        self.temperature = self.specific_internal_energy_profile * self.mu_profile / (1.5 * constants.kB)
+        self.temperature = [ self.specific_internal_energy_profile[i] * self.mu_profile[i] / (1.5 * constants.kB) for i in range(len(self.specific_internal_energy_profile))]
+        self.pressure = [ (2.0/3)*self.specific_internal_energy_profile[i] * self.density_profile[i] for i in range(len(self.specific_internal_energy_profile))]
         self.sound_speed = self.temperature/self.temperature | units.m * units.s**-1
         for i in xrange(len(self.sound_speed)):
             #print self.temperature[i] * constants.Rydberg_constant / self.mu_profile[i]
@@ -80,6 +81,7 @@ def structure_from_star(star):
         density = density_profile,
         mass = star.mu_profile * star.mass,
         temperature = star.temperature,
+        specific_energy= star.specific_internal_energy_profile,
         pressure = star.specific_internal_energy_profile,
         sound_speed = star.sound_speed
     )
@@ -120,6 +122,9 @@ def temperature_density_plot(outputDir, pickleFile):
     textFile.close()
     textFile = open(outputDir + '/radial_profile/sound_speed_' + adding +  '.txt', 'w')
     textFile.write(', '.join([str(y) for y in data["sound_speed"]]))
+    textFile.close()
+    textFile = open(outputDir + '/radial_profile/pressure_' + adding +  '.txt', 'w')
+    textFile.write(', '.join([str(y) for y in data["pressure"]]))
     textFile.close()
     #print "saved"
     pyplot.legend()

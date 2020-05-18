@@ -194,8 +194,9 @@ def main(args= ["/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels"]):
     try:
         os.makedirs(savingDir + "/radial_profile")
     except(OSError):
-        pass
+        print ""
     pickleMesaFiles = InitializeSnapshots(savingDir)
+    print "found ",len(pickleMesaFiles) ," pickled files"
     for pickleFile in pickleMesaFiles:
         temperature_density_plot(savingDir, pickleFile)
 

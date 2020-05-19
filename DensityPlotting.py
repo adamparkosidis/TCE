@@ -940,7 +940,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                       (triple2Distances[i] | units.RSun)).value_in(units.g*(units.cm**2) / units.s**2)
         kGas[i] = sphGiant.gasParticles.kinetic_energy().value_in(units.g*(units.cm**2) / units.s**2)
         uGas[i] = sphGiant.gasParticles.thermal_energy().value_in(units.g*(units.cm**2) / units.s**2)
-        pGas[i] = sphGiant.potentialEnergy.value_in(units.g*(units.cm**2) / units.s**2)
+        pGas[i] = sphGiant.gasPotential.value_in(units.g*(units.cm**2) / units.s**2)
         kCore[i] = (0.5*sphGiant.core.mass*CalculateVectorSize(sphGiant.core.velocity)**2).value_in(units.g*(units.cm**2) / units.s**2)
         pOuterCore[i] = (-constants.G*sphGiant.core.mass*innerBinary.mass
                          /CalculateVectorSize(CalculateSeparation(sphGiant.core,innerBinary))).value_in(units.g*(units.cm**2) / units.s**2)

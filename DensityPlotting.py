@@ -91,16 +91,14 @@ class SphGiant:
         self.gas.position = self.gasParticles.center_of_mass()
         self.gas.x , self.gas.y, self.gas.z = self.gasParticles.center_of_mass()
         self.gas.velocity = self.gasParticles.center_of_mass_velocity()
+
         #self.gas.vx, self.gas.vy, self.gas.vz = self.gasParticles.center_of_mass_velocity()
         self.gas.v = self.gas.velocity
-        totalGiant = Particles()
-        totalGiant.add_particles(self.gasParticles)
-        totalGiant.add_particle(self.core)
-        self.position = totalGiant.center_of_mass()
-        self.velocity = totalGiant.center_of_mass_velocity()
+        self.mass = self.gas.mass + self.core.mass
+        self.position = (self.gas.position * self.gas.mass + self.core.position* self.core.mass)/self.mass
+        self.velocity = (self.gas.velocity * self.gas.mass + self.core.velocity* self.core.mass)/self.mass
 
         #print "gas position: ", self.gas.position, " core position: ", self.core.position
-        self.mass = self.gas.mass + self.core.mass
         #print "core mass: ",self.core.mass.as_quantity_in(units.MSun)," gas mass: ", self.gas.mass.as_quantity_in(units.MSun), " total star mass: ", self.mass.as_quantity_in(units.MSun)
         #self.x , self.y, self.z = totalGiant.center_of_mass()
         self.x , self.y, self.z = self.position
@@ -111,11 +109,16 @@ class SphGiant:
         self.v = self.velocity
         self.radius = self.gasParticles.total_radius()
         self.dynamicalTime = 1.0/(constants.G*self.mass/((4*constants.pi*self.radius**3)/3))**0.5
-        self.kineticEnergy = totalGiant.kinetic_energy()
-        self.thermalEnergy = self.gasParticles.thermal_energy()
-        self.gasPotential = self.GasPotentialEnergy()
-        self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core)
+        self.kineticEnergy = 0.0 |units.g*(units.cm**2) / units.s**2
+        self.thermalEnergy = 0.0 |units.g*(units.cm**2) / units.s**2
+        self.potentialEnergy = 0.0 |units.g*(units.cm**2) / units.s**2
         #self.angularMomentum = totalGiant.total_angular_momentum()
+    def CalculateEnergies(self):
+        self.kineticEnergy = self.gasParticles.kinetic_energy() + 0.5*self.core.mass * CalculateVectorSize(self.core.velocity)**2
+        self.thermalEnergy = self.gasParticles.thermal_energy()
+        self.GasPotentialEnergy()
+        print "potential energies: ", self.gasPotential, self.gasParticles.mass[-1]*self.gas.mass*constants.G/self.radius
+        self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core)
 
     def GasPotentialEnergy(self):
         self.gasPotential = 0.0 |units.g*(units.cm**2) / units.s**2
@@ -925,6 +928,9 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         innerMass1[i] , aOuters1[i], eOuters1[i], triple1Distances[i] = CalculateBinaryParameters(particle1, sphGiant)
         innerMass2[i] , aOuters2[i], eOuters2[i], triple2Distances[i] = CalculateBinaryParameters(particle2, sphGiant)
         localDensity[i] = sphGiant.localDensity.value_in(units.MSun/units.RSun**3)
+
+        sphGiant.CalculateEnergies()
+
         kInner[i]= innerBinary.kineticEnergy.value_in(units.g*(units.cm**2) / units.s**2)
         kOuter[i] = kInner[i] + sphGiant.innerGas.kineticEnergy.value_in(units.g*(units.cm**2) / units.s**2)
         kOuter1[i] = (sphGiant.innerGas.kineticEnergy +

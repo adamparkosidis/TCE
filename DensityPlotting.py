@@ -118,7 +118,7 @@ class SphGiant:
         #self.angularMomentum = totalGiant.total_angular_momentum()
 
     def GasPotentialEnergy(self):
-        self.gasPotential = 0
+        self.gasPotential = 0.0 | units.g*units.cm^2/units.s^2
         for i in range(len(self.gasParticles)-1):
             dx = self.gasParticles.x[i] - self.gasParticles.x[i+1:]
             dy = self.gasParticles.y[i] - self.gasParticles.y[i+1:]
@@ -133,7 +133,7 @@ class SphGiant:
 
 
     def potentialEnergyWithParticle(self,particle):
-        energy = 0
+        energy = 0.0 | units.g*units.cm^2/units.s^2
         for part in self.gasParticles:
             energy += -1.0*constants.G*part.mass*particle.mass/(CalculateVectorSize(CalculateSeparation(particle,part))**2+part.epsilon**2)**0.5
         return energy

@@ -112,9 +112,28 @@ class SphGiant:
         self.radius = self.gasParticles.total_radius()
         self.dynamicalTime = 1.0/(constants.G*self.mass/((4*constants.pi*self.radius**3)/3))**0.5
         self.kineticEnergy = totalGiant.kinetic_energy()
-        self.potentialEnergy = totalGiant.potential_energy()
         self.thermalEnergy = self.gasParticles.thermal_energy()
+        self.gasPotential = self.GasPotentialEnergy()
+        self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core)
         #self.angularMomentum = totalGiant.total_angular_momentum()
+
+    def GasPotentialEnergy(self):
+        self.potentialEnergy = 0
+        for i in range(len(self.gasParticles)-1):
+            dx = self.gasParticles.x[i] - self.gasParticles.x[i+1:]
+            dy = self.gasParticles.y[i] - self.gasParticles.y[i+1:]
+            dz = self.gasParticles.z[i] - self.gasParticles.z[i+1:]
+            dr_squared = (dx*dx)+(dy*dy)+(dz*dz)
+            epsilon = self.gasParticles.epsilon[i],self.gasParticles.epsilon[i+1:].min()
+            dr = (dr_squared + epsilon*epsilon).sqrt()
+            self.potentialEnergy -= constants.G*self.gasParticles.mass[i] * self.gasParticles.mass[i+1]/dr
+
+
+    def potentialEnergyWithParticle(self,particle):
+        energy = 0
+        for part in self.gasParticles:
+            energy += -1.0*constants.G*part.mass*particle.mass/(CalculateVectorSize(CalculateSeparation(particle,part))**2+part.epsilon**2)**0.5
+        return energy
 
     def GetAngularMomentum(self,comPos=None,comV=None):
         totalGiant = Particles()
@@ -224,10 +243,13 @@ class SphGiant:
         self.totalUnboundedMass = 0 | units.MSun
         dynamicalVelocity= self.radius/self.dynamicalTime
         particlesExceedingMaxVelocity = 0
+        velocityLimitMax = 0
         for particle in self.gasParticles:
             volume = (4.0 / 3.0) * constants.pi * particle.radius ** 3
             particleSoundSpeed = ((5.0 / 3.0) * particle.pressure / (particle.mass / volume)) ** 0.5
-            if CalculateVectorSize(particle.velocity) > min(dynamicalVelocity, particleSoundSpeed):
+            velocityLimit = min(dynamicalVelocity, particleSoundSpeed)
+            velocityLimitMax = max(velocityLimitMax,velocityLimit)
+            if CalculateVectorSize(particle.velocity) > velocityLimit:
                 particlesExceedingMaxVelocity += 1
 
             specificEnergy = CalculateSpecificEnergy(CalculateVelocityDifference(particle,self.gas),CalculateSeparation(particle, self.gas), particle, self.gas)
@@ -235,7 +257,7 @@ class SphGiant:
                 self.leavingParticles += 1
                 self.totalUnboundedMass += particle.mass
 
-        print "over speed ", particlesExceedingMaxVelocity*100.0 / len(self.gasParticles)
+        print "over speed ", particlesExceedingMaxVelocity*100.0 / len(self.gasParticles), "limit: ", velocityLimitMax
 
         return self.leavingParticles
 
@@ -911,18 +933,17 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                       (tripleDistances[i] | units.RSun)).value_in(units.g*(units.cm**2) / units.s**2)
         pOuter1[i] = -(constants.G*sphGiant.innerGas.mass*particle1.mass/
                        (triple1Distances[i] | units.RSun)).value_in(units.g*(units.cm**2) / units.s**2)
-        pOuter2[i] = ((-constants.G*sphGiant.innerGas.mass*particle2.mass/
-                      (triple2Distances[i]) | units.RSun)).value_in(units.g*(units.cm**2) / units.s**2)
+        pOuter2[i] = (-constants.G*sphGiant.innerGas.mass*particle2.mass/
+                      (triple2Distances[i] | units.RSun)).value_in(units.g*(units.cm**2) / units.s**2)
         kGas[i] = sphGiant.gasParticles.kinetic_energy().value_in(units.g*(units.cm**2) / units.s**2)
         uGas[i] = sphGiant.gasParticles.thermal_energy().value_in(units.g*(units.cm**2) / units.s**2)
-        pGas[i] = sphGiant.gasParticles.potential_energy().value_in(units.g*(units.cm**2) / units.s**2)
+        pGas[i] = sphGiant.potentialEnergy.value_in(units.g*(units.cm**2) / units.s**2)
         kCore[i] = (0.5*sphGiant.core.mass*CalculateVectorSize(sphGiant.core.velocity)**2).value_in(units.g*(units.cm**2) / units.s**2)
         pOuterCore[i] = (-constants.G*sphGiant.core.mass*innerBinary.mass
                          /CalculateVectorSize(CalculateSeparation(sphGiant.core,innerBinary))).value_in(units.g*(units.cm**2) / units.s**2)
         kTot[i] = (sphGiant.kineticEnergy + innerBinary.kineticEnergy).value_in(units.g*(units.cm**2) / units.s**2)
-        pTot[i] = (sphGiant.potentialEnergy + pInner -
-                   constants.G*innerBinary.mass*sphGiant.mass/
-                   (CalculateVectorSize(CalculateSeparation(innerBinary,sphGiant)))).value_in(units.g*(units.cm**2) / units.s**2)
+        pTot[i] = (sphGiant.potentialEnergy + pInner + sphGiant.potentialEnergyWithParticle(particle1) +
+                   sphGiant.potentialEnergyWithParticle(particle2)).value_in(units.g*(units.cm**2) / units.s**2) + pOuterCore[i]
         eTot[i] = kTot[i] + pTot[i] + uGas[i]
 
         print "eTot: ", eTot[i]

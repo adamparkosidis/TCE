@@ -128,7 +128,7 @@ class SphGiant:
             for j in range(len(epsilon)):
                 epsilon[j] = min(epsilon[j],self.gasParticles.epsilon[i])
             dr = (dr_squared + epsilon*epsilon).sqrt()
-            self.potentialEnergy -= (constants.G*self.gasParticles.mass[i] * self.gasParticles.mass[i+1]/dr).sum()
+            self.potentialEnergy -= ((constants.G*self.gasParticles.mass[i] * self.gasParticles.mass[i+1:])/dr).sum()
 
 
     def potentialEnergyWithParticle(self,particle):

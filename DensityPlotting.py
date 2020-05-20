@@ -249,7 +249,7 @@ class SphGiant:
         self.totalUnboundedMass = 0 | units.MSun
         dynamicalVelocity= self.radius/self.dynamicalTime
         particlesExceedingMaxVelocity = 0
-        velocityLimitMax = 0
+        velocityLimitMax = 0.0 | units.cm/units.s
         for particle in self.gasParticles:
             volume = (4.0 / 3.0) * constants.pi * particle.radius ** 3
             particleSoundSpeed = ((5.0 / 3.0) * particle.pressure / (particle.mass / volume)) ** 0.5

@@ -113,6 +113,7 @@ class SphGiant:
         self.thermalEnergy = 0.0 |units.g*(units.cm**2) / units.s**2
         self.potentialEnergy = 0.0 |units.g*(units.cm**2) / units.s**2
         #self.angularMomentum = totalGiant.total_angular_momentum()
+
     def CalculateEnergies(self):
         self.kineticEnergy = self.gasParticles.kinetic_energy() + 0.5*self.core.mass * CalculateVectorSize(self.core.velocity)**2
         self.thermalEnergy = self.gasParticles.thermal_energy()
@@ -457,7 +458,7 @@ def structure_from_star(star):
         mass_profile = (4.0/3.0 * constants.pi) * density_profile * (radii_cubed[1:] - radii_cubed[:-1])
     cumulative_mass_profile = CalculateCumulantiveMass(density_profile, radius_profile)
     tau = CalculateTau(density_profile, radius_profile, 0.0159 | units.RSun, (0.392|units.MSun)/((4.0/3.0)*constants.pi*(0.0159 |units.RSun)**3), star.temperature, radius_profile[-100])
-    sound_speed = star.temperature
+    sound_speed = star.temperature / star.temperature | units.cm / units.s
     for i in xrange(len(star.temperature)):
         sound_speed[i] = math.sqrt(((5.0/3.0) * constants.kB * star.temperature[i] / mu()).value_in(units.m **2 * units.s**-2)) | units.m / units.s
     return dict(

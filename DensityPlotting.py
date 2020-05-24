@@ -112,6 +112,8 @@ class SphGiant:
         self.kineticEnergy = self.gasParticles.kinetic_energy() + 0.5*self.core.mass * CalculateVectorSize(self.core.velocity)**2
         self.thermalEnergy = self.gasParticles.thermal_energy()
         print "potential energy of the outemost gas: ", self.gasParticles.mass[-1]*self.gas.mass*constants.G/self.radius
+        print "giant kinetic: ", self.kineticEnergy
+        print "giant thermal: ", self.thermalEnergy
         #self.GasPotentialEnergy()
         #print "potential energies: ", self.gasPotential, self.gasParticles.mass[-1]*self.gas.mass*constants.G/self.radius
         #self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core)
@@ -947,8 +949,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         pOuterCore[i] = (-constants.G*sphGiant.core.mass*innerBinary.mass
                          /CalculateVectorSize(CalculateSeparation(sphGiant.core,innerBinary))).value_in(units.g*(units.cm**2) / units.s**2)
         kTot[i] = (sphGiant.kineticEnergy + innerBinary.kineticEnergy).value_in(units.g*(units.cm**2) / units.s**2)
-        pTot[i] = (sphGiant.potentialEnergy + pInner + sphGiant.potentialEnergyWithParticle(particle1) +
-                   sphGiant.potentialEnergyWithParticle(particle2)).value_in(units.g*(units.cm**2) / units.s**2) + pOuterCore[i]
+        pTot[i] = (sphGiant.potentialEnergy +  sphGiant.potentialEnergyWithParticle(particle1) +
+                   sphGiant.potentialEnergyWithParticle(particle2)).value_in(units.g*(units.cm**2) / units.s**2) + pOuterCore[i] + pInner[i]
         eTot[i] = kTot[i] + pTot[i] + uGas[i]
 
         print "eTot: ", eTot[i]

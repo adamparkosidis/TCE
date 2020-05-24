@@ -97,29 +97,24 @@ class SphGiant:
         self.mass = self.gas.mass + self.core.mass
         self.position = (self.gas.position * self.gas.mass + self.core.position* self.core.mass)/self.mass
         self.velocity = (self.gas.velocity * self.gas.mass + self.core.velocity* self.core.mass)/self.mass
-
-        #print "gas position: ", self.gas.position, " core position: ", self.core.position
-        #print "core mass: ",self.core.mass.as_quantity_in(units.MSun)," gas mass: ", self.gas.mass.as_quantity_in(units.MSun), " total star mass: ", self.mass.as_quantity_in(units.MSun)
-        #self.x , self.y, self.z = totalGiant.center_of_mass()
         self.x , self.y, self.z = self.position
         self.vx, self.vy, self.vz = self.velocity
-        #print "3: ", (self.gas.v * self.gas.mass + (self.core.vx, self.core.vy, self.core.vz) * self.core.mass) / self.mass
-        #self.vx, self.vy, self.vz =  self.core.vx, self.core.vy, self.core.vz
-        #self.v = [self.vx.value_in(units.m / units.s), self.vy.value_in(units.m / units.s), self.vz.value_in(units.m / units.s)] | (units.m / units.s)
         self.v = self.velocity
         self.radius = self.gasParticles.total_radius()
         self.dynamicalTime = 1.0/(constants.G*self.mass/((4*constants.pi*self.radius**3)/3))**0.5
         self.kineticEnergy = 0.0 |units.g*(units.cm**2) / units.s**2
         self.thermalEnergy = 0.0 |units.g*(units.cm**2) / units.s**2
         self.potentialEnergy = 0.0 |units.g*(units.cm**2) / units.s**2
+        self.gasPotential= 0.0 | units.g * (units.cm ** 2) / units.s ** 2
         #self.angularMomentum = totalGiant.total_angular_momentum()
 
     def CalculateEnergies(self):
         self.kineticEnergy = self.gasParticles.kinetic_energy() + 0.5*self.core.mass * CalculateVectorSize(self.core.velocity)**2
         self.thermalEnergy = self.gasParticles.thermal_energy()
-        self.GasPotentialEnergy()
-        print "potential energies: ", self.gasPotential, self.gasParticles.mass[-1]*self.gas.mass*constants.G/self.radius
-        self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core)
+        print "potential energy of the outemost gas: ", self.gasParticles.mass[-1]*self.gas.mass*constants.G/self.radius
+        #self.GasPotentialEnergy()
+        #print "potential energies: ", self.gasPotential, self.gasParticles.mass[-1]*self.gas.mass*constants.G/self.radius
+        #self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core)
 
     def GasPotentialEnergy(self):
         self.gasPotential = 0.0 |units.g*(units.cm**2) / units.s**2

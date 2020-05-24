@@ -106,10 +106,12 @@ class SphGiant:
         self.thermalEnergy = 0.0 |units.g*(units.cm**2) / units.s**2
         self.potentialEnergy = 0.0 |units.g*(units.cm**2) / units.s**2
         self.gasPotential= 0.0 | units.g * (units.cm ** 2) / units.s ** 2
+        self.gasKinetic = 0.0 | units.g * (units.cm ** 2) / units.s ** 2
         #self.angularMomentum = totalGiant.total_angular_momentum()
 
     def CalculateEnergies(self):
-        self.kineticEnergy = self.gasParticles.kinetic_energy() + 0.5*self.core.mass * CalculateVectorSize(self.core.velocity)**2
+        self.gasKinetic = self.gasParticles.kinetic_energy()
+        self.kineticEnergy =  self.gasKinetic + 0.5*self.core.mass * CalculateVectorSize(self.core.velocity)**2
         self.thermalEnergy = self.gasParticles.thermal_energy()
         print "potential energy of the outemost gas: ", self.gasParticles.mass[-1]*self.gas.mass*constants.G/self.radius
         print "giant kinetic: ", self.kineticEnergy
@@ -942,17 +944,17 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                        (triple1Distances[i] | units.RSun)).value_in(units.g*(units.cm**2) / units.s**2)
         pOuter2[i] = (-constants.G*sphGiant.innerGas.mass*particle2.mass/
                       (triple2Distances[i] | units.RSun)).value_in(units.g*(units.cm**2) / units.s**2)
-        kGas[i] = sphGiant.gasParticles.kinetic_energy().value_in(units.g*(units.cm**2) / units.s**2)
-        uGas[i] = sphGiant.gasParticles.thermal_energy().value_in(units.g*(units.cm**2) / units.s**2)
+        kGas[i] = sphGiant.gasKinetic.value_in(units.g*(units.cm**2) / units.s**2)
+        uGas[i] = sphGiant.thermalEnergy.value_in(units.g*(units.cm**2) / units.s**2)
         pGas[i] = sphGiant.gasPotential.value_in(units.g*(units.cm**2) / units.s**2)
         kCore[i] = (0.5*sphGiant.core.mass*CalculateVectorSize(sphGiant.core.velocity)**2).value_in(units.g*(units.cm**2) / units.s**2)
         pOuterCore[i] = (-constants.G*sphGiant.core.mass*innerBinary.mass
-                         /CalculateVectorSize(CalculateSeparation(sphGiant.core,innerBinary))).value_in(units.g*(units.cm**2) / units.s**2)
+                         / CalculateVectorSize(CalculateSeparation(sphGiant.core,innerBinary))).value_in(units.g*(units.cm**2) / units.s**2)
         kTot[i] = (sphGiant.kineticEnergy + innerBinary.kineticEnergy).value_in(units.g*(units.cm**2) / units.s**2)
-        pTot[i] = (sphGiant.potentialEnergy +  sphGiant.potentialEnergyWithParticle(particle1) +
+        pTot[i] = (sphGiant.potentialEnergy + sphGiant.potentialEnergyWithParticle(particle1) +
                    sphGiant.potentialEnergyWithParticle(particle2)).value_in(units.g*(units.cm**2) / units.s**2) + pOuterCore[i] + pInner[i]
         eTot[i] = kTot[i] + pTot[i] + uGas[i]
-
+        print "pTot: ", pTot[i], pGas[i]
         print "eTot: ", eTot[i]
         angularInner[i] = innerBinary.angularMomentum.value_in(units.cm**2 * units.g /units.s)
         angularOuter[i] = (innerBinary.mass*sphGiant.innerGas.mass*

@@ -843,6 +843,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                        angularInner, angularOuter,angularOuter1,angularOuter2, angularOuterCOM1, angularOuterCOM2,
                        angularGasCOM, angularTot, localRadius=50.0|units.RSun,
                        toPlot = False, opposite= False, axesOriginInInnerBinaryCenterOfMass= False, timeStep=0.2):
+    energyUnits = units.kg*(units.km**2) / units.s**2
 
     for i in [j - beginStep for j in chunk]:
         print time.ctime(), "step: ", i
@@ -931,52 +932,51 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
 
         sphGiant.CalculateEnergies()
 
-        kInner[i]= innerBinary.kineticEnergy.value_in(units.kg*(units.m**2) / units.s**2)
-        kOuter[i] = kInner[i] + sphGiant.innerGas.kineticEnergy.value_in(units.kg*(units.m**2) / units.s**2)
+        kInner[i]= innerBinary.kineticEnergy.value_in(energyUnits)
+        kOuter[i] = kInner[i] + sphGiant.innerGas.kineticEnergy.value_in(energyUnits)
         kOuter1[i] = (sphGiant.innerGas.kineticEnergy +
-                      0.5*particle1.mass*(particle1.vx**2+particle1.vy**2+particle1.vz**2)).value_in(units.kg*(units.m**2) / units.s**2)
+                      0.5*particle1.mass*(particle1.vx**2+particle1.vy**2+particle1.vz**2)).value_in(energyUnits)
         kOuter2[i] = (sphGiant.innerGas.kineticEnergy +
-                      0.5*particle1.mass*(particle2.vx**2+particle2.vy**2+particle2.vz**2)).value_in(units.kg*(units.m**2) / units.s**2)
-        pInner[i] = (innerBinary.potentialEnergy).value_in(units.kg*(units.m**2) / units.s**2)
+                      0.5*particle1.mass*(particle2.vx**2+particle2.vy**2+particle2.vz**2)).value_in(energyUnits)
+        pInner[i] = (innerBinary.potentialEnergy).value_in(energyUnits)
         pOuter[i] = -(constants.G*sphGiant.innerGas.mass*innerBinary.mass/
-                      (tripleDistances[i] | units.RSun)).value_in(units.kg*(units.m**2) / units.s**2)
+                      (tripleDistances[i] | units.RSun)).value_in(energyUnits)
         pOuter1[i] = -(constants.G*sphGiant.innerGas.mass*particle1.mass/
-                       (triple1Distances[i] | units.RSun)).value_in(units.kg*(units.m**2) / units.s**2)
+                       (triple1Distances[i] | units.RSun)).value_in(energyUnits)
         pOuter2[i] = (-constants.G*sphGiant.innerGas.mass*particle2.mass/
-                      (triple2Distances[i] | units.RSun)).value_in(units.kg*(units.m**2) / units.s**2)
-        kGas[i] = sphGiant.gasKinetic.value_in(units.kg*(units.m**2) / units.s**2)
-        uGas[i] = sphGiant.thermalEnergy.value_in(units.kg*(units.m**2) / units.s**2)
-        pGas[i] = sphGiant.gasPotential.value_in(units.kg*(units.m**2) / units.s**2)
-        kCore[i] = (0.5*sphGiant.core.mass*CalculateVectorSize(sphGiant.core.velocity)**2).value_in(units.kg*(units.m**2) / units.s**2)
+                      (triple2Distances[i] | units.RSun)).value_in(energyUnits)
+        kGas[i] = sphGiant.gasKinetic.value_in(energyUnits)
+        uGas[i] = sphGiant.thermalEnergy.value_in(energyUnits)
+        pGas[i] = sphGiant.gasPotential.value_in(energyUnits)
+        kCore[i] = (0.5*sphGiant.core.mass*CalculateVectorSize(sphGiant.core.velocity)**2).value_in(energyUnits)
         pOuterCore[i] = (-constants.G*sphGiant.core.mass*innerBinary.mass
-                         / CalculateVectorSize(CalculateSeparation(sphGiant.core,innerBinary))).value_in(units.kg*(units.m**2) / units.s**2)
-        kTot[i] = (sphGiant.kineticEnergy + innerBinary.kineticEnergy).value_in(units.kg*(units.m**2) / units.s**2)
+                         / CalculateVectorSize(CalculateSeparation(sphGiant.core,innerBinary))).value_in(energyUnits)
+        kTot[i] = (sphGiant.kineticEnergy + innerBinary.kineticEnergy).value_in(energyUnits)
         pTot[i] = (sphGiant.potentialEnergy + sphGiant.potentialEnergyWithParticle(particle1) +
-                   sphGiant.potentialEnergyWithParticle(particle2)).value_in(units.kg*(units.m**2) / units.s**2) + pOuterCore[i] + pInner[i]
+                   sphGiant.potentialEnergyWithParticle(particle2)).value_in(energyUnits) + pOuterCore[i] + pInner[i]
         eTot[i] = kTot[i] + pTot[i] + uGas[i]
         print "pTot: ", pTot[i], pGas[i],pOuterCore[i],pInner[i]
         print "kTot: ",kTot[i]
         print "eTot: ", eTot[i]
-        angularInner[i] = innerBinary.angularMomentum.value_in(units.m**2 * units.kg /units.s)
+        angularInner[i] = innerBinary.angularMomentum.value_in(energyUnits * units.s)
         angularOuter[i] = (innerBinary.mass*sphGiant.innerGas.mass*
-                           (constants.G*(aOuter[i] | units.AU)/(innerBinary.mass+sphGiant.innerGas.mass))**0.5).value_in(units.m**2 * units.kg /units.s)
+                           (constants.G*(aOuter[i] | units.AU)/(innerBinary.mass+sphGiant.innerGas.mass))**0.5).value_in(energyUnits * units.s)
         angularOuter1[i] = (particle1.mass*sphGiant.innerGas.mass*
-                           (constants.G*(aOuters1[i] | units.AU)/(particle1.mass+sphGiant.innerGas.mass))**0.5).value_in(units.m**2 * units.kg /units.s)
+                           (constants.G*(aOuters1[i] | units.AU)/(particle1.mass+sphGiant.innerGas.mass))**0.5).value_in(energyUnits * units.s)
         angularOuter2[i] = (particle2.mass*sphGiant.innerGas.mass*
-                           (constants.G*(aOuters2[i] | units.AU)/(particle2.mass+sphGiant.innerGas.mass))**0.5).value_in(units.m**2 * units.kg /units.s)
+                           (constants.G*(aOuters2[i] | units.AU)/(particle2.mass+sphGiant.innerGas.mass))**0.5).value_in(energyUnits * units.s)
         comParticle=Particle()
         comParticle.position = centerOfMassPosition
         comParticle.velocity = centerOfMassVelocity
 
         angularOuterCOM1[i] = (particle1.mass*
                                CalculateSpecificMomentum(CalculateSeparation(particle1,comParticle),
-                                                         CalculateVelocityDifference(particle1,comParticle))).value_in(units.m**2 * units.kg /units.s)
+                                                         CalculateVelocityDifference(particle1,comParticle))).value_in(energyUnits * units.s)
         angularOuterCOM2[i] = (particle2.mass *
                                CalculateSpecificMomentum(CalculateSeparation(particle2, comParticle),
-                                                         CalculateVelocityDifference(particle2, comParticle))).value_in(
-                                                            units.m ** 2 * units.kg / units.s)
-        angularGasCOM[i] = sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity).value_in(units.m ** 2 * units.kg / units.s)
-        angularTot[i] = sphGiant.GetAngularMomentum(centerOfMassPosition,centerOfMassVelocity).value_in(units.m ** 2 * units.kg / units.s) \
+                                                         CalculateVelocityDifference(particle2, comParticle))).value_in(energyUnits * units.s)
+        angularGasCOM[i] = sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity).value_in(energyUnits * units.s)
+        angularTot[i] = sphGiant.GetAngularMomentum(centerOfMassPosition,centerOfMassVelocity).value_in(energyUnits * units.s) \
                         + angularOuterCOM1[i] + angularOuterCOM2[i]
 
         print time.ctime(), "temperature_density_plotting of step ", i

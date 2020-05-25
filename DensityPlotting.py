@@ -102,21 +102,24 @@ class SphGiant:
         self.v = self.velocity
         self.radius = self.gasParticles.total_radius()
         self.dynamicalTime = 1.0/(constants.G*self.mass/((4*constants.pi*self.radius**3)/3))**0.5
-        self.kineticEnergy = 0.0 |units.kg*(units.m**2) / units.s**2
-        self.thermalEnergy = 0.0 |units.kg*(units.m**2) / units.s**2
-        self.potentialEnergy = 0.0 |units.kg*(units.m**2) / units.s**2
-        self.gasPotential= 0.0 | units.kg * (units.m ** 2) / units.s ** 2
-        self.gasKinetic = 0.0 | units.kg * (units.m ** 2) / units.s ** 2
+        self.kineticEnergy = 0.0 |units.kg*(units.km**2) / units.s**2
+        self.thermalEnergy = 0.0 |units.kg*(units.km**2) / units.s**2
+        self.potentialEnergy = 0.0 |units.kg*(units.km**2) / units.s**2
+        self.gasPotential= 0.0 | units.kg * (units.km ** 2) / units.s ** 2
+        self.gasKinetic = 0.0 | units.kg * (units.km ** 2) / units.s ** 2
         #self.angularMomentum = totalGiant.total_angular_momentum()
 
     def CalculateEnergies(self):
         self.gasKinetic = self.gasParticles.kinetic_energy()
         self.kineticEnergy =  self.gasKinetic + 0.5*self.core.mass * CalculateVectorSize(self.core.velocity)**2
         self.thermalEnergy = self.gasParticles.thermal_energy()
-        print "potential energy of the outemost gas: ", self.gasParticles.mass[-1]*self.gas.mass*constants.G/self.radius
         print "giant kinetic: ", self.kineticEnergy
         print "giant thermal: ", self.thermalEnergy
         #self.GasPotentialEnergy()
+        self.gasPotential = self.gasParticles.potential_energy()
+        print "gas potential: ", self.gasPotential
+        self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core)
+        print "giant potential: ", self.potentialEnergy
         #print "potential energies: ", self.gasPotential, self.gasParticles.mass[-1]*self.gas.mass*constants.G/self.radius
         #self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core)
 
@@ -958,26 +961,29 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         print "pTot: ", pTot[i], pGas[i],pOuterCore[i],pInner[i]
         print "kTot: ",kTot[i]
         print "eTot: ", eTot[i]
-        angularInner[i] = innerBinary.angularMomentum.value_in(energyUnits * units.s)
-        angularOuter[i] = (innerBinary.mass*sphGiant.innerGas.mass*
-                           (constants.G*(aOuter[i] | units.AU)/(innerBinary.mass+sphGiant.innerGas.mass))**0.5).value_in(energyUnits * units.s)
-        angularOuter1[i] = (particle1.mass*sphGiant.innerGas.mass*
-                           (constants.G*(aOuters1[i] | units.AU)/(particle1.mass+sphGiant.innerGas.mass))**0.5).value_in(energyUnits * units.s)
-        angularOuter2[i] = (particle2.mass*sphGiant.innerGas.mass*
-                           (constants.G*(aOuters2[i] | units.AU)/(particle2.mass+sphGiant.innerGas.mass))**0.5).value_in(energyUnits * units.s)
-        comParticle=Particle()
-        comParticle.position = centerOfMassPosition
-        comParticle.velocity = centerOfMassVelocity
+        try:
+            angularInner[i] = innerBinary.angularMomentum.value_in(energyUnits * units.s)
+            angularOuter[i] = (innerBinary.mass*sphGiant.innerGas.mass*
+                               (constants.G*(aOuter[i] | units.AU)/(innerBinary.mass+sphGiant.innerGas.mass))**0.5).value_in(energyUnits * units.s)
+            angularOuter1[i] = (particle1.mass*sphGiant.innerGas.mass*
+                               (constants.G*(aOuters1[i] | units.AU)/(particle1.mass+sphGiant.innerGas.mass))**0.5).value_in(energyUnits * units.s)
+            angularOuter2[i] = (particle2.mass*sphGiant.innerGas.mass*
+                               (constants.G*(aOuters2[i] | units.AU)/(particle2.mass+sphGiant.innerGas.mass))**0.5).value_in(energyUnits * units.s)
+            comParticle=Particle()
+            comParticle.position = centerOfMassPosition
+            comParticle.velocity = centerOfMassVelocity
 
-        angularOuterCOM1[i] = (particle1.mass*
-                               CalculateSpecificMomentum(CalculateSeparation(particle1,comParticle),
-                                                         CalculateVelocityDifference(particle1,comParticle))).value_in(energyUnits * units.s)
-        angularOuterCOM2[i] = (particle2.mass *
-                               CalculateSpecificMomentum(CalculateSeparation(particle2, comParticle),
-                                                         CalculateVelocityDifference(particle2, comParticle))).value_in(energyUnits * units.s)
-        angularGasCOM[i] = sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity).value_in(energyUnits * units.s)
-        angularTot[i] = sphGiant.GetAngularMomentum(centerOfMassPosition,centerOfMassVelocity).value_in(energyUnits * units.s) \
-                        + angularOuterCOM1[i] + angularOuterCOM2[i]
+            angularOuterCOM1[i] = (particle1.mass*
+                                   CalculateSpecificMomentum(CalculateSeparation(particle1,comParticle),
+                                                             CalculateVelocityDifference(particle1,comParticle))).value_in(energyUnits * units.s)
+            angularOuterCOM2[i] = (particle2.mass *
+                                   CalculateSpecificMomentum(CalculateSeparation(particle2, comParticle),
+                                                             CalculateVelocityDifference(particle2, comParticle))).value_in(energyUnits * units.s)
+            angularGasCOM[i] = sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity).value_in(energyUnits * units.s)
+            angularTot[i] = sphGiant.GetAngularMomentum(centerOfMassPosition,centerOfMassVelocity).value_in(energyUnits * units.s) \
+                            + angularOuterCOM1[i] + angularOuterCOM2[i]
+        except(Exception):
+            print Exception.message
 
         print time.ctime(), "temperature_density_plotting of step ", i
         temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)

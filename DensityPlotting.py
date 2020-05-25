@@ -962,28 +962,28 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         print "kTot: ",kTot[i]
         print "eTot: ", eTot[i]
         try:
-            angularInner[i] = innerBinary.angularMomentum.value_in(energyUnits * units.s)
-            angularOuter[i] = (innerBinary.mass*sphGiant.innerGas.mass*
-                               (constants.G*(aOuter[i] | units.AU)/(innerBinary.mass+sphGiant.innerGas.mass))**0.5).value_in(energyUnits * units.s)
-            angularOuter1[i] = (particle1.mass*sphGiant.innerGas.mass*
-                               (constants.G*(aOuters1[i] | units.AU)/(particle1.mass+sphGiant.innerGas.mass))**0.5).value_in(energyUnits * units.s)
-            angularOuter2[i] = (particle2.mass*sphGiant.innerGas.mass*
-                               (constants.G*(aOuters2[i] | units.AU)/(particle2.mass+sphGiant.innerGas.mass))**0.5).value_in(energyUnits * units.s)
+            angularInner[i] = CalculateVectorSize(innerBinary.angularMomentum).value_in(energyUnits * units.s)
+            angularOuter[i] = CalculateVectorSize((innerBinary.mass * sphGiant.innerGas.mass *
+                               (constants.G*(aOuter[i] | units.AU)/(innerBinary.mass+sphGiant.innerGas.mass))**0.5)).value_in(energyUnits * units.s)
+            angularOuter1[i] = CalculateVectorSize((particle1.mass*sphGiant.innerGas.mass*
+                               (constants.G*(aOuters1[i] | units.AU)/(particle1.mass+sphGiant.innerGas.mass))**0.5)).value_in(energyUnits * units.s)
+            angularOuter2[i] = CalculateVectorSize((particle2.mass*sphGiant.innerGas.mass*
+                               (constants.G*(aOuters2[i] | units.AU)/(particle2.mass+sphGiant.innerGas.mass))**0.5)).value_in(energyUnits * units.s)
             comParticle=Particle()
             comParticle.position = centerOfMassPosition
             comParticle.velocity = centerOfMassVelocity
 
-            angularOuterCOM1[i] = (particle1.mass*
-                                   CalculateSpecificMomentum(CalculateSeparation(particle1,comParticle),
-                                                             CalculateVelocityDifference(particle1,comParticle))).value_in(energyUnits * units.s)
-            angularOuterCOM2[i] = (particle2.mass *
+            angularOuterCOM1[i] = ((particle1.mass*
+                                   CalculateSpecificMomentum(CalculateSeparation(particle1,comParticle)
+                                                             CalculateVelocityDifference(particle1,comParticle)))).value_in(energyUnits * units.s)
+            angularOuterCOM2[i] = CalculateVectorSize((particle2.mass *
                                    CalculateSpecificMomentum(CalculateSeparation(particle2, comParticle),
-                                                             CalculateVelocityDifference(particle2, comParticle))).value_in(energyUnits * units.s)
-            angularGasCOM[i] = sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity).value_in(energyUnits * units.s)
-            angularTot[i] = sphGiant.GetAngularMomentum(centerOfMassPosition,centerOfMassVelocity).value_in(energyUnits * units.s) \
+                                                             CalculateVelocityDifference(particle2, comParticle)))).value_in(energyUnits * units.s)
+            angularGasCOM[i] = CalculateVectorSize(sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity)).value_in(energyUnits * units.s)
+            angularTot[i] = CalculateVectorSize(sphGiant.GetAngularMomentum(centerOfMassPosition,centerOfMassVelocity)).value_in(energyUnits * units.s) \
                             + angularOuterCOM1[i] + angularOuterCOM2[i]
-        except(Exception):
-            print Exception.message
+        except:
+            print "could not calculate angular momenta, ", sys.exc_info()[0]
 
         print time.ctime(), "temperature_density_plotting of step ", i
         temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)

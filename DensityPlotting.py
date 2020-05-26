@@ -952,11 +952,11 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         uGas[i] = sphGiant.thermalEnergy.value_in(energyUnits)
         pGas[i] = sphGiant.gasPotential.value_in(energyUnits)
         kCore[i] = (0.5*sphGiant.core.mass*CalculateVectorSize(sphGiant.core.velocity)**2).value_in(energyUnits)
-        pOuterCore[i] = (-constants.G*sphGiant.core.mass*innerBinary.mass
-                         / CalculateVectorSize(CalculateSeparation(sphGiant.core,innerBinary))).value_in(energyUnits)
+        pOuterCore[i] = (CalculatePotentialEnergy(sphGiant.core,innerBinary)).value_in(energyUnits)
+        pPartsCore = CalculatePotentialEnergy(sphGiant.core, particle1) + CalculatePotentialEnergy(sphGiant.core, particle2)
         kTot[i] = (sphGiant.kineticEnergy + innerBinary.kineticEnergy).value_in(energyUnits)
         pTot[i] = (sphGiant.potentialEnergy + sphGiant.potentialEnergyWithParticle(particle1) +
-                   sphGiant.potentialEnergyWithParticle(particle2)).value_in(energyUnits) + pOuterCore[i] + pInner[i]
+                   sphGiant.potentialEnergyWithParticle(particle2) + pPartsCore).value_in(energyUnits) + pInner[i]
         eTot[i] = kTot[i] + pTot[i] + uGas[i]
         print "pTot: ", pTot[i], pGas[i],pOuterCore[i],pInner[i]
         print "kTot: ",kTot[i]
@@ -980,7 +980,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             angularGasCOM[i] = CalculateVectorSize(sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity)).value_in(energyUnits * units.s)
             angularTot[i] = CalculateVectorSize(sphGiant.GetAngularMomentum(centerOfMassPosition,centerOfMassVelocity)).value_in(energyUnits * units.s) \
                             + angularOuterCOM1[i] + angularOuterCOM2[i]
-        except:
+        except(Exception ex):
             print "could not calculate angular momenta, ", sys.exc_info()[0]
 
         print time.ctime(), "temperature_density_plotting of step ", i

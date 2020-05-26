@@ -90,3 +90,7 @@ def CalculateBinaryParameters(particle, sphGiant):
     aOuter1 = CalculateSemiMajor(binaryVelocityDifference, binarySeparation, binaryMass)
     eOuter1 = CalculateEccentricity(particle, sphGiant.innerGas)
     return innerMass, aOuter1.value_in(units.AU), eOuter1, CalculateVectorSize(binarySeparation).value_in(units.RSun)
+
+def CalculatePotentialEnergy(particle1, particle2):
+    return -constants.G * particle1.mass * particle2.mass \
+            / CalculateVectorSize(CalculateSeparation(particle1, particle2))

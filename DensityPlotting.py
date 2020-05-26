@@ -974,13 +974,15 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             comParticle.velocity = centerOfMassVelocity
 
             angularOuterCOM1[i] = ((particle1.mass*
-                                   CalculateSpecificMomentum(CalculateVelocityDifference(particle1,comParticle),CalculateSeparation(particle1,comParticle)))).value_in(energyUnits * units.s)
+                                   CalculateSpecificMomentum(CalculateVelocityDifference(particle1,comParticle),
+                                                             CalculateSeparation(particle1,comParticle)))).value_in(energyUnits * units.s)
             angularOuterCOM2[i] = CalculateVectorSize((particle2.mass *
-                                   CalculateSpecificMomentum(CalculateVelocityDifference(particle2, comParticle),CalculateSeparation(particle2, comParticle)))).value_in(energyUnits * units.s)
+                                   CalculateSpecificMomentum(CalculateVelocityDifference(particle2, comParticle),
+                                                             CalculateSeparation(particle2, comParticle)))).value_in(energyUnits * units.s)
             angularGasCOM[i] = CalculateVectorSize(sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity)).value_in(energyUnits * units.s)
             angularTot[i] = CalculateVectorSize(sphGiant.GetAngularMomentum(centerOfMassPosition,centerOfMassVelocity)).value_in(energyUnits * units.s) \
                             + angularOuterCOM1[i] + angularOuterCOM2[i]
-        except(Exception ex):
+        except:
             print "could not calculate angular momenta, ", sys.exc_info()[0]
 
         print time.ctime(), "temperature_density_plotting of step ", i

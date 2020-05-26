@@ -940,7 +940,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         pOuter[i] = -(constants.G*sphGiant.innerGas.mass*innerBinary.mass/
                       (tripleDistances[i] | units.RSun)).value_in(energyUnits)
         angularOuter[i] = CalculateVectorSize((innerBinary.mass * sphGiant.innerGas.mass *
-                           (constants.G*(aOuter[i] | units.AU)/(innerBinary.mass+sphGiant.innerGas.mass))**0.5))\
+                           (constants.G*aOuter/(innerBinary.mass+sphGiant.innerGas.mass))**0.5))\
                                 .value_in(energyUnits * units.s)
         #inner gas of particle 1
         innerMass1[i] , aOuters1[i], eOuters1[i], triple1Distances[i] = CalculateBinaryParameters(particle1, sphGiant)

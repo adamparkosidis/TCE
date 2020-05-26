@@ -939,8 +939,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         kOuter[i] = kInner[i] + sphGiant.innerGas.kineticEnergy.value_in(energyUnits)
         pOuter[i] = -(constants.G*sphGiant.innerGas.mass*innerBinary.mass/
                       (tripleDistances[i] | units.RSun)).value_in(energyUnits)
-        angularOuter[i] = CalculateVectorSize((innerBinary.mass * sphGiant.innerGas.mass *
-                           (constants.G*aOuter/(innerBinary.mass+sphGiant.innerGas.mass))**0.5))\
+        angularOuter[i] = (innerBinary.mass * sphGiant.innerGas.mass *
+                           (constants.G*aOuter/(innerBinary.mass+sphGiant.innerGas.mass))**0.5)\
                                 .value_in(energyUnits * units.s)
         #inner gas of particle 1
         innerMass1[i] , aOuters1[i], eOuters1[i], triple1Distances[i] = CalculateBinaryParameters(particle1, sphGiant)
@@ -948,8 +948,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                       0.5*particle1.mass*(particle1.vx**2+particle1.vy**2+particle1.vz**2)).value_in(energyUnits)
         pOuter1[i] = -(constants.G*sphGiant.innerGas.mass*particle1.mass/
                        (triple1Distances[i] | units.RSun)).value_in(energyUnits)
-        angularOuter1[i] = CalculateVectorSize((particle1.mass*sphGiant.innerGas.mass*
-                               (constants.G*(aOuters1[i] | units.AU)/(particle1.mass+sphGiant.innerGas.mass))**0.5)).value_in(energyUnits * units.s)
+        angularOuter1[i] = (particle1.mass*sphGiant.innerGas.mass*
+                               (constants.G*(aOuters1[i] | units.AU)/(particle1.mass+sphGiant.innerGas.mass))**0.5).value_in(energyUnits * units.s)
 
         #inner gas of particle2
         innerMass2[i] , aOuters2[i], eOuters2[i], triple2Distances[i] = CalculateBinaryParameters(particle2, sphGiant)
@@ -957,8 +957,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                       0.5*particle1.mass*(particle2.vx**2+particle2.vy**2+particle2.vz**2)).value_in(energyUnits)
         pOuter2[i] = (-constants.G*sphGiant.innerGas.mass*particle2.mass/
                       (triple2Distances[i] | units.RSun)).value_in(energyUnits)
-        angularOuter2[i] = CalculateVectorSize((particle2.mass*sphGiant.innerGas.mass*
-                           (constants.G*(aOuters2[i] | units.AU)/(particle2.mass+sphGiant.innerGas.mass))**0.5)).value_in(energyUnits * units.s)
+        angularOuter2[i] = (particle2.mass*sphGiant.innerGas.mass*
+                           (constants.G*(aOuters2[i] | units.AU)/(particle2.mass+sphGiant.innerGas.mass))**0.5).value_in(energyUnits * units.s)
 
         #real energies
         kGas[i] = sphGiant.gasKinetic.value_in(energyUnits)

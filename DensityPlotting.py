@@ -983,8 +983,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             comParticle.position = centerOfMassPosition
             comParticle.velocity = centerOfMassVelocity
 
-            angularOuterCOM1[i] = ((particle1.mass*
-                                   CalculateSpecificMomentum(CalculateVelocityDifference(particle1,comParticle),
+            angularOuterCOM1[i] = CalculateVectorSize(particle1.mass*
+                                   (CalculateSpecificMomentum(CalculateVelocityDifference(particle1,comParticle),
                                                              CalculateSeparation(particle1,comParticle)))).value_in(energyUnits * units.s)
             angularOuterCOM2[i] = CalculateVectorSize((particle2.mass *
                                    CalculateSpecificMomentum(CalculateVelocityDifference(particle2, comParticle),

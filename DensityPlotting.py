@@ -961,6 +961,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                            (constants.G*(aOuters2[i] | units.AU)/(particle2.mass+sphGiant.innerGas.mass))**0.5).value_in(energyUnits * units.s)
 
         #real energies
+        sphGiant.CalculateEnergies()
         kGas[i] = sphGiant.gasKinetic.value_in(energyUnits)
         uGas[i] = sphGiant.thermalEnergy.value_in(energyUnits)
         pGas[i] = sphGiant.gasPotential.value_in(energyUnits)
@@ -970,7 +971,6 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
 
 
         #total energies
-        sphGiant.CalculateEnergies()
         kTot[i] = (sphGiant.kineticEnergy + innerBinary.kineticEnergy).value_in(energyUnits)
         pTot[i] = (sphGiant.potentialEnergy + sphGiant.potentialEnergyWithParticle(particle1) +
                    sphGiant.potentialEnergyWithParticle(particle2) + pPartsCore).value_in(energyUnits) + pInner[i]

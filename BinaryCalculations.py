@@ -11,7 +11,14 @@ def get_relative_velocity_at_apastron(total_mass, semimajor_axis, ecc):
     return (constants.G * total_mass * ((1.0 - ecc)/(1.0 + ecc)) / semimajor_axis).sqrt()
 
 def VectorCross(v1,v2):
-    return [v1[1]*v2[2]-v1[2]*v2[1],v1[2]*v2[0]-v1[0]*v2[2],v1[0]*v2[1]-v1[1]*v2[0]]
+     vx = v1[1]*v2[2]-v1[2]*v2[1]
+     vy = v1[2]*v2[0]-v1[0]*v2[2]
+     vz = v1[0]*v2[1]-v1[1]*v2[0]
+     v = v1
+     v[0] = vx
+     v[1] = vy
+     v[2] = vz
+     return v
 
 def SqalarMul(v1,v2):
     return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2]

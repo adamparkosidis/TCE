@@ -239,7 +239,7 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
             starEnvelope.velocity = giant.velocity
 
             centerOfMassPos = GiantSPHCenterOfMassPosition(starEnvelope, starCore)
-            diffPosition = centerOfMassPos - giant.position
+            diffPosition = centerOfMassPos - giant.position ##minus initial sph center of mass!!
 
             starEnvelope.position -= diffPosition
             starCore.position -= diffPosition

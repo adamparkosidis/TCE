@@ -50,7 +50,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                 savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
     print sphStar.core_particle
     sphMetaData = StarModels.SphMetaData(sphStar)
-    pickle.dump(sphMetaData,open(savedPath+"/metaData.p", 'wb'), pickle.HIGHEST_PROTOCOL)
+    pickle.dump(sphMetaData,open(savedPath+"/relaxation/metaData.p", 'wb'), pickle.HIGHEST_PROTOCOL)
 
     print "Now having the sph star and the binaries, ready for relaxing"
     starEnvelope, dmStars = EvolveNBody.Run(totalMass= giantInSet.mass + innerBinary.stars.total_mass(),
@@ -66,7 +66,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     #starCore.radius = sphStar.core_particle.radius
     print starCore
     print "moving the main star back to the center"
-    diffPosition = GiantSPHCenterOfMassPosition(starEnvelope, starCore) - giantInSet.position
+    diffPosition = GiantSPHCenterOfMassPosition(starEnvelope, starCore) - sphMetaData.initialCOM - giantInSet.position
     #diffVelocity = GiantSPHCenterOfMassVelocity(starEnvelope, starCore) -giantInSet.velocity
     starEnvelope.position -= diffPosition
     starCore.position -= diffPosition
@@ -140,6 +140,14 @@ def Start(savedVersionPath = "/home/hilaglanz/Documents/80265", takeSavedState =
     if takeSavedState == "True":
         starMass, starEnvelope, starCore, binary, tripleSemmimajor, sphMetaData = \
             StarModels.TakeTripleSavedState(savedVersionPath, configurationFile, step= -1)
+        if step == -11: #remove this special stupid case, this is when the giant com was not at the giant position
+            try:
+                initialCOM = sphMetaData.initialCOM
+                initialCOMV = sphMetaData.initialCOMV
+                starEnvelope.position += initialCOM
+                starCore.position += initialCOM
+            except:
+                print "coldn't retrieve initial com"
     elif takeSavedState == "Evolve":
         starMass, starEnvelope, starCore, binary, tripleSemmimajor,sphMetaData = \
             StarModels.TakeTripleSavedState(savedVersionPath + "/evolution", configurationFile, step)

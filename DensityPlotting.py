@@ -149,9 +149,9 @@ class SphGiant:
         totalGiant.add_particles(self.gasParticles)
         totalGiant.add_particle(self.core)
         totGiant = totalGiant.copy()
-        if comPos != None:
+        if comPos is not None:
             totGiant.position -= comPos
-        if comV != None:
+        if comV is not None:
             totGiant.velocity -= comV
 
         return totGiant.total_angular_momentum()

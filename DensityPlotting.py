@@ -847,6 +847,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                        angularGasCOM, angularTot, localRadius=50.0|units.RSun,
                        toPlot = False, opposite= False, axesOriginInInnerBinaryCenterOfMass= False, timeStep=0.2):
     energyUnits = units.kg*(units.km**2) / units.s**2
+    specificAngularMomentumUnits = energyUnits * units.s / units.kg
 
     for i in [j - beginStep for j in chunk]:
         print time.ctime(), "step: ", i
@@ -982,13 +983,17 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             comParticle=Particle()
             comParticle.position = centerOfMassPosition
             comParticle.velocity = centerOfMassVelocity
-            angularCOM1 = particle1.mass*(CalculateSpecificMomentum(CalculateVelocityDifference(particle1,comParticle),
-                                                             CalculateSeparation(particle1,comParticle)))
-            angularOuterCOM1[i] = CalculateVectorSize([angularCOM1[0],angularCOM1[1],angularCOM1[2]]).value_in(energyUnits * units.s)
-            angularCOM2 = (particle2.mass *
-                                   CalculateSpecificMomentum(CalculateVelocityDifference(particle2, comParticle),
-                                                             CalculateSeparation(particle2, comParticle)))
-            angularOuterCOM2[i] = CalculateVectorSize([angularCOM2[0],angularCOM2[1],angularCOM2[2]]).value_in(energyUnits * units.s)
+            specificAngularCOM1 = CalculateSpecificMomentum(CalculateVelocityDifference(particle1,comParticle),
+                                                             CalculateSeparation(particle1,comParticle))
+            angularOuterCOM1[i] = particle1.mass.value_in(units.kg)*CalculateVectorSize([specificAngularCOM1[0].value_in(specificAngularMomentumUnits),
+                                                                      specificAngularCOM1[1].value_in(specificAngularMomentumUnits),
+                                                                      specificAngularCOM1[2].value_in(specificAngularMomentumUnits)])
+            specificAngularCOM2 =  CalculateSpecificMomentum(CalculateVelocityDifference(particle2, comParticle),
+                                                             CalculateSeparation(particle2, comParticle))
+            angularOuterCOM2[i] = particle2.mass.value_in(units.kg) * CalculateVectorSize([specificAngularCOM2[0].value_in(specificAngularMomentumUnits)
+                                                                                              ,specificAngularCOM2[1].value_in(specificAngularMomentumUnits)
+                                                                                              ,specificAngularCOM2[2].value_in(specificAngularMomentumUnits)
+                                                                                           ])
             angularGasCOM[i] = CalculateVectorSize(sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity)).value_in(energyUnits * units.s)
             angularTot[i] = CalculateVectorSize(sphGiant.GetAngularMomentum(centerOfMassPosition,centerOfMassVelocity)).value_in(energyUnits * units.s) \
                             + angularOuterCOM1[i] + angularOuterCOM2[i]

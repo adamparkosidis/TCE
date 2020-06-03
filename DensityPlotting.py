@@ -159,9 +159,9 @@ class SphGiant:
     def GetAngularMomentumOfGas(self, comPos=None, comV=None):
         gas = self.gasParticles.copy()
 
-        if comPos != None:
+        if comPos is not None:
             gas.position -= comPos
-        if comV != None:
+        if comV is not None:
             gas.velocity -= comV
 
         return gas.total_angular_momentum()

@@ -141,7 +141,8 @@ class SphGiant:
     def potentialEnergyWithParticle(self,particle):
         energy = 0.0 | units.kg*(units.m**2) / units.s**2
         for part in self.gasParticles:
-            energy += -1.0*constants.G*part.mass*particle.mass/(CalculateVectorSize(CalculateSeparation(particle,part))**2+part.epsilon**2)**0.5
+            #energy += -1.0*constants.G*part.mass*particle.mass/(CalculateVectorSize(CalculateSeparation(particle,part))**2+part.epsilon**2)**0.5
+            energy += -1.0*constants.G*part.mass*particle.mass/(CalculateVectorSize(CalculateSeparation(particle,part))**2)**0.5
         return energy
 
     def GetAngularMomentum(self,comPos=None,comV=None):
@@ -847,7 +848,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                        angularGasCOM, angularTot, localRadius=50.0|units.RSun,
                        toPlot = False, opposite= False, axesOriginInInnerBinaryCenterOfMass= False, timeStep=0.2):
     energyUnits = units.kg*(units.km**2) / units.s**2
-    specificAngularMomentumUnits = energyUnits * units.s / units.kg
+    specificAngularMomentumUnits = (energyUnits * units.s / units.kg) / 10000
 
     for i in [j - beginStep for j in chunk]:
         print time.ctime(), "step: ", i
@@ -934,7 +935,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
 
         kInner[i]= innerBinary.kineticEnergy.value_in(energyUnits)
         pInner[i] = innerBinary.potentialEnergy.value_in(energyUnits)
-        angularInner[i] = CalculateVectorSize(innerBinary.angularMomentum).value_in(energyUnits * units.s)
+        angularInner[i] = CalculateVectorSize(innerBinary.angularMomentum).value_in(specificAngularMomentumUnits * units.kg)
 
         #inner gas of the com of the inner binary
         kOuter[i] = kInner[i] + sphGiant.innerGas.kineticEnergy.value_in(energyUnits)
@@ -942,7 +943,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                       (tripleDistances[i] | units.RSun)).value_in(energyUnits)
         angularOuter[i] = (innerBinary.mass * sphGiant.innerGas.mass *
                            (constants.G*aOuter/(innerBinary.mass+sphGiant.innerGas.mass))**0.5)\
-                                .value_in(energyUnits * units.s)
+                                .value_in(specificAngularMomentumUnits * units.kg)
         #inner gas of particle 1
         innerMass1[i] , aOuters1[i], eOuters1[i], triple1Distances[i] = CalculateBinaryParameters(particle1, sphGiant)
         kOuter1[i] = (sphGiant.innerGas.kineticEnergy +
@@ -950,7 +951,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         pOuter1[i] = -(constants.G*sphGiant.innerGas.mass*particle1.mass/
                        (triple1Distances[i] | units.RSun)).value_in(energyUnits)
         angularOuter1[i] = (particle1.mass*sphGiant.innerGas.mass*
-                               (constants.G*(aOuters1[i] | units.AU)/(particle1.mass+sphGiant.innerGas.mass))**0.5).value_in(energyUnits * units.s)
+                               (constants.G*(aOuters1[i] | units.AU)/(particle1.mass+sphGiant.innerGas.mass))**0.5).value_in(specificAngularMomentumUnits* units.kg)
 
         #inner gas of particle2
         innerMass2[i] , aOuters2[i], eOuters2[i], triple2Distances[i] = CalculateBinaryParameters(particle2, sphGiant)
@@ -959,7 +960,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         pOuter2[i] = (-constants.G*sphGiant.innerGas.mass*particle2.mass/
                       (triple2Distances[i] | units.RSun)).value_in(energyUnits)
         angularOuter2[i] = (particle2.mass*sphGiant.innerGas.mass*
-                           (constants.G*(aOuters2[i] | units.AU)/(particle2.mass+sphGiant.innerGas.mass))**0.5).value_in(energyUnits * units.s)
+                           (constants.G*(aOuters2[i] | units.AU)/(particle2.mass+sphGiant.innerGas.mass))**0.5).value_in(specificAngularMomentumUnits * units.kg)
 
         #real energies
         sphGiant.CalculateEnergies()
@@ -994,8 +995,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                                                                                               ,specificAngularCOM2[1].value_in(specificAngularMomentumUnits)
                                                                                               ,specificAngularCOM2[2].value_in(specificAngularMomentumUnits)
                                                                                            ])
-            angularGasCOM[i] = CalculateVectorSize(sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity)).value_in(energyUnits * units.s)
-            angularTot[i] = CalculateVectorSize(sphGiant.GetAngularMomentum(centerOfMassPosition,centerOfMassVelocity)).value_in(energyUnits * units.s) \
+            angularGasCOM[i] = CalculateVectorSize(sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity)).value_in(specificAngularMomentumUnits * units.kg)
+            angularTot[i] = CalculateVectorSize(sphGiant.GetAngularMomentum(centerOfMassPosition,centerOfMassVelocity)).value_in(specificAngularMomentumUnits * units.kg) \
                             + angularOuterCOM1[i] + angularOuterCOM2[i]
         except:
             print "could not calculate angular momenta, ", sys.exc_info()[0]

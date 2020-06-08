@@ -843,7 +843,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                        aInners, aOuters, aOuters1, aOuters2,
                        eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, localDensity,
                        kInner, kOuter, kOuter1, kOuter2, pInner, pOuter, pOuter1, pOuter2,
-                       kGas, uGas, pGas, kCore, pOuterCore, kTot, pTot, eTot,
+                       kGas, uGas, pGas, kCore, pOuterCore, pCores, kTot, pTot, eTot,
                        angularInner, angularOuter,angularOuter1,angularOuter2, angularOuterCOM1, angularOuterCOM2,
                        angularGasCOM, angularTot, localRadius=50.0|units.RSun,
                        toPlot = False, opposite= False, axesOriginInInnerBinaryCenterOfMass= False, timeStep=0.2):
@@ -970,8 +970,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         kCore[i] = (0.5*sphGiant.core.mass*CalculateVectorSize(sphGiant.core.velocity)**2).value_in(energyUnits)
         pOuterCore[i] = (CalculatePotentialEnergy(sphGiant.core,innerBinary)).value_in(energyUnits)
         pPartsCore = CalculatePotentialEnergy(sphGiant.core, particle1) + CalculatePotentialEnergy(sphGiant.core, particle2)
-
-
+        pCores[i] = pPartsCore.value_in(energyUnits)
         #total energies
         kTot[i] = (sphGiant.kineticEnergy + innerBinary.kineticEnergy).value_in(energyUnits)
         pTot[i] = (sphGiant.potentialEnergy + sphGiant.potentialEnergyWithParticle(particle1) +
@@ -1137,6 +1136,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     pGas = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     kCore = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     pOuterCore = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    pCores = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     kTot = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     pTot = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     eTot = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
@@ -1152,7 +1152,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     angularTot = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
 
     #angularInner, angularOuter,angularOuter1,angularOuter2 angularOuterCOM1, angularOuterCOM2, angularGasCOM, angularTot
-    #kInner, kOuter, kOuter1, kOuter2, pInner, pOuter, pOuter1, pOuter2, uInner, uOuter, uOuter1, uOuter2, kGas, uGas, pGas, kCore, pOuterCore, kTot, pTot, uTot, eTot
+    #kInner, kOuter, kOuter1, kOuter2, pInner, pOuter, pOuter1, pOuter2, uInner, uOuter, uOuter1, uOuter2, kGas, uGas, pGas, kCore, pOuterCore, pCores, kTot, pTot, uTot, eTot
 
 
     cpus = multiprocessing.cpu_count() - 6
@@ -1180,6 +1180,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                                                                                   kInner, kOuter, kOuter1, kOuter2,
                                                                                   pInner, pOuter, pOuter1, pOuter2,
                                                                                   kGas, uGas, pGas, kCore, pOuterCore,
+                                                                                  pCores,
                                                                                   kTot, pTot,  eTot,
                                                                                   angularInner, angularOuter,
                                                                                   angularOuter1, angularOuter2,
@@ -1231,7 +1232,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                             (localDensity, "LocalDensity"),(kInner,"kInner"), (kOuter,"kOuter"), (kOuter1,"kOuter1"),
                             (kOuter2,"kOuter2"),(pInner,"pInner"), (pOuter,"pOuter"), (pOuter1,"pOuter1"),
                             (pOuter2,"pOuter2"),(kGas,"kGas"), (uGas,"uGas"), (pGas,"pGas"), (kCore,"kCore"),
-                            (pOuterCore,"pOuterCore"),(kTot,"kTot"), (pTot,"pTot"), (eTot,"eTot"),
+                            (pOuterCore,"pOuterCore"),(pCores,"pCores"), (kTot,"kTot"), (pTot,"pTot"), (eTot,"eTot"),
                             (angularInner,"angularInner"), (angularOuter,"angularOuter"), (angularOuter1,"angularOuter1"),
                             (angularOuter2,"angularOuter2"), (angularOuterCOM1,"angularOuterCOM1"),
                             (angularOuterCOM2,"angularOuterCOM2"), (angularGasCOM,"angularGasCOM"),

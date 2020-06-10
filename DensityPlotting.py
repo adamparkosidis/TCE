@@ -147,7 +147,7 @@ class SphGiant:
 
 
     def gravityWithParticle(self,particle):
-        force = VectorQuantity([0.0,0.0,0.0],units.kg*units.km/units.s**-2)
+        force = VectorQuantity([0.0,0.0,0.0],units.kg*units.km*units.s**-2)
         for part in self.gasParticles:
             f = -1.0 * constants.G * part.mass * particle.mass / (
                     (CalculateVectorSize(CalculateSeparation(particle, part)) ** 2) ** 0.5) ** 3

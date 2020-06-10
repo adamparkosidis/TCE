@@ -12,11 +12,11 @@ import h5py
 import argparse
 import matplotlib
 matplotlib.use('Agg')
-from amuse.units import units, constants, nbody_system
+from amuse.units import units, constants, nbody_system, quantities
 from amuse.units import *
 
 #from amuse.lab import *
-from amuse.units.quantities import AdaptingVectorQuantity
+from amuse.units.quantities import AdaptingVectorQuantity, VectorQuantity
 from amuse.datamodel import Particles, Particle
 from amuse.ext import sph_to_star
 from amuse.io import write_set_to_file, read_set_from_file
@@ -147,10 +147,14 @@ class SphGiant:
 
 
     def gravityWithParticle(self,particle):
-        force = (0.0 | units.m ** -1) * particle.mass * (particle.v) ** 2
+        force = VectorQuantity([0.0,0.0,0.0],units.kg*units.km/units.s**-2)
         for part in self.gasParticles:
-            force += -1.0 * constants.G * part.mass * particle.mass * (part.position - particle.position) / (
+            f = -1.0 * constants.G * part.mass * particle.mass / (
                     (CalculateVectorSize(CalculateSeparation(particle, part)) ** 2) ** 0.5) ** 3
+            force[0] += f * (part.x-particle.x)
+            force[1] += f * (part.y - particle.y)
+            force[2] += f * (part.z - particle.z)
+
         return force
 
     def GetAngularMomentum(self,comPos=None,comV=None):

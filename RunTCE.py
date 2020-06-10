@@ -59,6 +59,10 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                 savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
     print sphStar.core_particle
     sphMetaData = StarModels.SphMetaData(sphStar)
+    try:
+        os.makedirs(savedPath+"/relaxation")
+    except(OSError):
+        pass
     pickle.dump(sphMetaData,open(savedPath+"/relaxation/metaData.p", 'wb'), pickle.HIGHEST_PROTOCOL)
 
     print "Now having the sph star and the binaries, ready for relaxing"
@@ -108,7 +112,7 @@ def Start(savedVersionPath = "/home/hilaglanz/Documents/80265", takeSavedState =
     :return: None
     '''
     try:
-        os.makedirs(savedVersionPath + "/pics")
+        os.makedirs(savedVersionPath)
     except(OSError):
         pass
 

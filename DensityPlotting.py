@@ -702,20 +702,20 @@ def Plot1Axe(x, fileName, outputDir, timeStep= 1400.0/7000.0, beginStep = 0, toP
         xlabel('time[days]')
         native_plot.savefig(outputDir + '/' + fileName + 'time_' + str(beginTime) + "_to_" + str(beginTime + (len(x) - 1.0) * timeStep) + 'days.jpg')
 
-def PlotAdaptiveQuantities(arrayOfValueAndNamePairs, outputDir, beginStep = 0, timeStep= 1400.0/7000.0):
+def PlotAdaptiveQuantities(arrayOfValueAndNamePairs, outputDir, beginStep = 0, timeStep= 1400.0/7000.0, toPlot = False):
     for a in arrayOfValueAndNamePairs:
         if a[0]:
-            Plot1Axe(a[0], a[1], outputDir, timeStep, beginStep)
+            Plot1Axe(a[0], a[1], outputDir, timeStep, beginStep, toPlot)
 
-def PlotEccentricity(eccentricities, outputDir, beginStep = 0, timeStep= 1400.0/7000.0):
+def PlotEccentricity(eccentricities, outputDir, beginStep = 0, timeStep= 1400.0/7000.0, toPlot = False):
     for e in eccentricities:
         if e[0] != []:
-            Plot1Axe(e[0], e[1], outputDir, timeStep, beginStep)
+            Plot1Axe(e[0], e[1], outputDir, timeStep, beginStep, toPlot)
 
-def PlotBinaryDistance(distances, outputDir, beginStep = 0, timeStep= 1400.0/7000.0):
+def PlotBinaryDistance(distances, outputDir, beginStep = 0, timeStep= 1400.0/7000.0, toPlot = False):
     for d in distances:
         if d[0]:
-            Plot1Axe(d[0], d[1], outputDir, timeStep, beginStep)
+            Plot1Axe(d[0], d[1], outputDir, timeStep, beginStep, toPlot)
 
 def PlotQuadropole(Qxx,Qxy,Qxz,Qyx, Qyy,Qyz,Qzx,Qzy,Qzz, outputDir = 0, timeStep = 1400.0/70000.0, beginStep = 0):
     if len(Qxx) == 0:
@@ -947,7 +947,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         angularInner[i] = CalculateVectorSize(innerBinary.angularMomentum).value_in(specificAngularMomentumUnits * units.kg)
 
         force[i] = CalculateVectorSize(sphGiant.gravityWithParticle(particle1) + sphGiant.gravityWithParticle(particle2)).value_in(energyUnits/units.km)
-        
+
         #inner gas of the com of the inner binary
         kOuter[i] = kInner[i] + sphGiant.innerGas.kineticEnergy.value_in(energyUnits)
         pOuter[i] = -(constants.G*sphGiant.innerGas.mass*innerBinary.mass/
@@ -1236,12 +1236,12 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     separationStep = int(separationStep.value)
 
     PlotBinaryDistance([(newBinaryDistances, "InnerBinaryDistances"), (newTripleDistances, "tripleDistances"), (newTriple1Distances, "triple1Distances"),
-                        (newTriple2Distances, "triple2Distances")], outputDir + "/graphs", beginStep)
-    PlotAdaptiveQuantities([(newAInners,"aInners"),(newAOuters, "aOuters")], outputDir+"/graphs")
-    PlotAdaptiveQuantities([(newAOuters1, "aOuters1"), (newAOuters2, "aOuters2")], outputDir+ "/graphs", separationStep)
-    PlotEccentricity([(eInners, "eInners"), (eOuters, "eOuters")], outputDir + "/graphs", beginStep)
-    PlotEccentricity([(eOuters1, "eOuters1"), (eOuters2, "eOuters2")],outputDir + "/graphs", separationStep)
-    Plot1Axe(inclinations,"inclinations", outputDir+"/graphs", beginStep=beginStep)
+                        (newTriple2Distances, "triple2Distances")], outputDir + "/graphs", beginStep,timeStep,toPlot)
+    PlotAdaptiveQuantities([(newAInners,"aInners"),(newAOuters, "aOuters")], outputDir+"/graphs",beginStep,timeStep,toPlot)
+    PlotAdaptiveQuantities([(newAOuters1, "aOuters1"), (newAOuters2, "aOuters2")], outputDir+ "/graphs", separationStep,timeStep,toPlot)
+    PlotEccentricity([(eInners, "eInners"), (eOuters, "eOuters")], outputDir + "/graphs", beginStep, timeStep, toPlot)
+    PlotEccentricity([(eOuters1, "eOuters1"), (eOuters2, "eOuters2")],outputDir + "/graphs", separationStep,timeStep,toPlot)
+    Plot1Axe(inclinations,"inclinations", outputDir+"/graphs", beginStep=beginStep, toPlot=toPlot)
     PlotAdaptiveQuantities([(innerMass, "InnerMass"), (innerMass1, "InnerMass1"), (innerMass2, "InnerMass2"),
                             (localDensity, "LocalDensity"),(kInner,"kInner"), (kOuter,"kOuter"), (kOuter1,"kOuter1"),
                             (kOuter2,"kOuter2"),(pInner,"pInner"), (pOuter,"pOuter"), (pOuter1,"pOuter1"),
@@ -1251,7 +1251,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                             (angularInner,"angularInner"), (angularOuter,"angularOuter"), (angularOuter1,"angularOuter1"),
                             (angularOuter2,"angularOuter2"), (angularOuterCOM1,"angularOuterCOM1"),
                             (angularOuterCOM2,"angularOuterCOM2"), (angularGasCOM,"angularGasCOM"),
-                            (angularTot,"angularTot")], outputDir + "/graphs", beginStep)
+                            (angularTot,"angularTot")], outputDir + "/graphs", beginStep,timeStep, toPlot)
 
 def InitParser():
     parser = argparse.ArgumentParser(description='')

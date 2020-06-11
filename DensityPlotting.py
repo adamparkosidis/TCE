@@ -39,7 +39,7 @@ class Star:
             self.v = 0.0 | units.m / units.s
             self.mass = 0.0 | units.kg
 
-    def Star(self,particle1,particle2, comV=[0.0,0.0,0.0] | units.m/units.s)
+    def Star(self,particle1,particle2, comV=[0.0,0.0,0.0] | units.m/units.s):
         particles = Particles()
         part1=particle1.copy()
         particles.add_particle(part1)

@@ -39,7 +39,7 @@ class Star:
             self.v = 0.0 | units.m / units.s
             self.mass = 0.0 | units.kg
 
-    def Star(self,particle1,particle2):
+    def Star(self,particle1,particle2, comV=[0.0,0.0,0.0] | units.m/units.s)
         particles = Particles()
         part1=particle1.copy()
         particles.add_particle(part1)
@@ -63,8 +63,11 @@ class Star:
         self.velocityDifference = CalculateVelocityDifference(particle1,particle2)
         self.separation = CalculateSeparation(particle1,particle2)
         self.specificEnergy = CalculateSpecificEnergy(self.velocityDifference,self.separation,particle1,particle2)
-        self.kineticEnergy = particles.kinetic_energy()
+        print "inner specific energy: ", self.specificEnergy
         self.potentialEnergy = particles.potential_energy()
+        particles.velocity  -= comV
+        self.kineticEnergy = particles.kinetic_energy()
+        particles.velocity += comV
         particles.move_to_center()
         self.angularMomentum = particles.total_angular_momentum()
 
@@ -109,13 +112,18 @@ class SphGiant:
         self.gasKinetic = 0.0 | units.kg * (units.km ** 2) / units.s ** 2
         #self.angularMomentum = totalGiant.total_angular_momentum()
 
-    def CalculateEnergies(self):
-        self.gasKinetic = self.gasParticles.kinetic_energy()
-        self.kineticEnergy =  self.gasKinetic + 0.5*self.core.mass * CalculateVectorSize(self.core.velocity)**2
+    def CalculateEnergies(self,comV=None):
+        self.gasKinetic = self.GetGasKineticEnergy(comV)
+        if comV is not None:
+            corecopy= self.core.copy()
+            corecopy.velocity -= comV
+        else:
+            corecopy = self.core
+        self.coreKinetic = 0.5 * corecopy.mass * (CalculateVectorSize(corecopy.velocity))**2
+        self.kineticEnergy =  self.gasKinetic + self.coreKinetic
         self.thermalEnergy = self.gasParticles.thermal_energy()
         print "giant kinetic: ", self.kineticEnergy
         print "giant thermal: ", self.thermalEnergy
-        #self.GasPotentialEnergy()
         self.gasPotential = self.gasParticles.potential_energy()
         print "gas potential: ", self.gasPotential
         self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core)
@@ -168,6 +176,26 @@ class SphGiant:
             totGiant.velocity -= comV
 
         return totGiant.total_angular_momentum()
+
+    def GetKineticEnergy(self,comV=None):
+        totalGiant = Particles()
+        totalGiant.add_particles(self.gasParticles)
+        totalGiant.add_particle(self.core)
+        totGiant = totalGiant.copy()
+        if comV is not None:
+            totGiant.velocity -= comV
+
+        return totGiant.kinetic_energy()
+
+    def GetGasKineticEnergy(self,comV=None):
+        totalGiant = Particles()
+        totalGiant.add_particles(self.gasParticles)
+        totalGiant.add_particle(self.core)
+        totGiant = totalGiant.copy()
+        if comV is not None:
+            totGiant.velocity -= comV
+
+        return totGiant.kinetic_energy()
 
     def GetAngularMomentumOfGas(self, comPos=None, comV=None):
         gas = self.gasParticles.copy()
@@ -982,7 +1010,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         kGas[i] = sphGiant.gasKinetic.value_in(energyUnits)
         uGas[i] = sphGiant.thermalEnergy.value_in(energyUnits)
         pGas[i] = sphGiant.gasPotential.value_in(energyUnits)
-        kCore[i] = (0.5*sphGiant.core.mass*CalculateVectorSize(sphGiant.core.velocity)**2).value_in(energyUnits)
+        kCore[i] = sphGiant.coreKinetic.value_in(energyUnits)
         pOuterCore[i] = (CalculatePotentialEnergy(sphGiant.core,innerBinary)).value_in(energyUnits)
         pPartsCore = CalculatePotentialEnergy(sphGiant.core, particle1) + CalculatePotentialEnergy(sphGiant.core, particle2)
         pCores[i] = pPartsCore.value_in(energyUnits)

@@ -39,7 +39,7 @@ class Star:
             self.v = 0.0 | units.m / units.s
             self.mass = 0.0 | units.kg
 
-    def Star(self,particle1,particle2, comV=[0.0,0.0,0.0] | units.m/units.s):
+    def Star(self,particle1,particle2):
         particles = Particles()
         part1=particle1.copy()
         particles.add_particle(part1)
@@ -65,11 +65,12 @@ class Star:
         self.specificEnergy = CalculateSpecificEnergy(self.velocityDifference,self.separation,particle1,particle2)
         print "inner specific energy: ", self.specificEnergy
         self.potentialEnergy = particles.potential_energy()
-        particles.velocity  -= comV
         self.kineticEnergy = particles.kinetic_energy()
-        particles.velocity += comV
         particles.move_to_center()
         self.angularMomentum = particles.total_angular_momentum()
+
+
+
 
 class SphGiant:
     def __init__(self, gas_particles_file, dm_particles_file, opposite= False):
@@ -913,6 +914,10 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         print "center of mass position: ", centerOfMassPosition
         print "center of mass velocity: ", centerOfMassVelocity
 
+        comParticle = Particle()
+        comParticle.position = centerOfMassPosition
+        comParticle.velocity = centerOfMassVelocity
+
         triple1 = Star(particle1, sphGiant)
         triple2 = Star(particle2, sphGiant)
 
@@ -974,7 +979,12 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         localDensity[i] = sphGiant.localDensity.value_in(units.MSun/units.RSun**3)
         inclinations[i] = inclination
 
-        kInner[i]= innerBinary.kineticEnergy.value_in(energyUnits)
+        #kInner[i]= innerBinary.kineticEnergy.value_in(energyUnits)
+
+        kInner[i] = (0.5 * particle1.mass * CalculateVectorSize(
+            CalculateVelocityDifference(particle1, comParticle)) ** 2 +
+                     0.5 * particle2.mass * CalculateVectorSize(
+                    CalculateVelocityDifference(particle2, comParticle)) ** 2).value_in(energyUnits)
         pInner[i] = innerBinary.potentialEnergy.value_in(energyUnits)
         angularInner[i] = CalculateVectorSize(innerBinary.angularMomentum).value_in(specificAngularMomentumUnits * units.kg)
 
@@ -1006,7 +1016,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                            (constants.G*(aOuters2[i] | units.AU)/(particle2.mass+sphGiant.innerGas.mass))**0.5).value_in(specificAngularMomentumUnits * units.kg)
 
         #real energies
-        sphGiant.CalculateEnergies()
+        sphGiant.CalculateEnergies(centerOfMassVelocity)
         kGas[i] = sphGiant.gasKinetic.value_in(energyUnits)
         uGas[i] = sphGiant.thermalEnergy.value_in(energyUnits)
         pGas[i] = sphGiant.gasPotential.value_in(energyUnits)
@@ -1017,16 +1027,13 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         pPartGas[i] = (sphGiant.potentialEnergyWithParticle(particle1) +
                    sphGiant.potentialEnergyWithParticle(particle2)).value_in(energyUnits)
         #total energies
-        kTot[i] = (sphGiant.kineticEnergy + innerBinary.kineticEnergy).value_in(energyUnits)
+        kTot[i] = (sphGiant.kineticEnergy).value_in(energyUnits) + kInner[i]
         pTot[i] = sphGiant.potentialEnergy.value_in(energyUnits) + pInner[i] + pPartGas[i] + pCores[i]
         eTot[i] = kTot[i] + pTot[i] + uGas[i]
         print "pTot: ", pTot[i], pGas[i],pOuterCore[i],pInner[i]
         print "kTot: ",kTot[i]
         print "eTot: ", eTot[i]
         try:
-            comParticle=Particle()
-            comParticle.position = centerOfMassPosition
-            comParticle.velocity = centerOfMassVelocity
             specificAngularCOM1 = CalculateSpecificMomentum(CalculateVelocityDifference(particle1,comParticle),
                                                              CalculateSeparation(particle1,comParticle))
             angularOuterCOM1[i] = particle1.mass.value_in(units.kg)*CalculateVectorSize([specificAngularCOM1[0].value_in(specificAngularMomentumUnits),

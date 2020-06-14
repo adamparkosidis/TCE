@@ -114,14 +114,9 @@ class SphGiant:
         #self.angularMomentum = totalGiant.total_angular_momentum()
 
     def CalculateEnergies(self,comV=None):
-        self.gasKinetic = self.GetGasKineticEnergy(comV)
-        if comV is not None:
-            corecopy= self.core.copy()
-            corecopy.velocity -= comV
-        else:
-            corecopy = self.core
-        self.coreKinetic = 0.5 * corecopy.mass * (CalculateVectorSize(corecopy.velocity))**2
-        self.kineticEnergy =  self.gasKinetic + self.coreKinetic
+        self.gasKinetic = self.gasParticles.kinetic_enery()
+        self.coreKinetic = 0.5 * self.core.mass * (CalculateVectorSize(self.core.velocity))**2
+        self.kineticEnergy = self.gasKinetic + self.coreKinetic
         self.thermalEnergy = self.gasParticles.thermal_energy()
         print "giant kinetic: ", self.kineticEnergy
         print "giant thermal: ", self.thermalEnergy
@@ -177,26 +172,6 @@ class SphGiant:
             totGiant.velocity -= comV
 
         return totGiant.total_angular_momentum()
-
-    def GetKineticEnergy(self,comV=None):
-        totalGiant = Particles()
-        totalGiant.add_particles(self.gasParticles)
-        totalGiant.add_particle(self.core)
-        totGiant = totalGiant.copy()
-        if comV is not None:
-            totGiant.velocity -= comV
-
-        return totGiant.kinetic_energy()
-
-    def GetGasKineticEnergy(self,comV=None):
-        totalGiant = Particles()
-        totalGiant.add_particles(self.gasParticles)
-        totalGiant.add_particle(self.core)
-        totGiant = totalGiant.copy()
-        if comV is not None:
-            totGiant.velocity -= comV
-
-        return totGiant.kinetic_energy()
 
     def GetAngularMomentumOfGas(self, comPos=None, comV=None):
         gas = self.gasParticles.copy()
@@ -979,12 +954,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         localDensity[i] = sphGiant.localDensity.value_in(units.MSun/units.RSun**3)
         inclinations[i] = inclination
 
-        #kInner[i]= innerBinary.kineticEnergy.value_in(energyUnits)
-
-        kInner[i] = (0.5 * particle1.mass * CalculateVectorSize(
-            CalculateVelocityDifference(particle1, comParticle)) ** 2 +
-                     0.5 * particle2.mass * CalculateVectorSize(
-                    CalculateVelocityDifference(particle2, comParticle)) ** 2).value_in(energyUnits)
+        kInner[i]= innerBinary.kineticEnergy.value_in(energyUnits)
         pInner[i] = innerBinary.potentialEnergy.value_in(energyUnits)
         angularInner[i] = CalculateVectorSize(innerBinary.angularMomentum).value_in(specificAngularMomentumUnits * units.kg)
 
@@ -1016,13 +986,14 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                            (constants.G*(aOuters2[i] | units.AU)/(particle2.mass+sphGiant.innerGas.mass))**0.5).value_in(specificAngularMomentumUnits * units.kg)
 
         #real energies
-        sphGiant.CalculateEnergies(centerOfMassVelocity)
+        sphGiant.CalculateEnergies()
         kGas[i] = sphGiant.gasKinetic.value_in(energyUnits)
         uGas[i] = sphGiant.thermalEnergy.value_in(energyUnits)
         pGas[i] = sphGiant.gasPotential.value_in(energyUnits)
         kCore[i] = sphGiant.coreKinetic.value_in(energyUnits)
         pOuterCore[i] = (CalculatePotentialEnergy(sphGiant.core,innerBinary)).value_in(energyUnits)
-        pPartsCore = CalculatePotentialEnergy(sphGiant.core, particle1) + CalculatePotentialEnergy(sphGiant.core, particle2)
+        pPartsCore = CalculatePotentialEnergy(sphGiant.core, particle1) + \
+                     CalculatePotentialEnergy(sphGiant.core, particle2)
         pCores[i] = pPartsCore.value_in(energyUnits)
         pPartGas[i] = (sphGiant.potentialEnergyWithParticle(particle1) +
                    sphGiant.potentialEnergyWithParticle(particle2)).value_in(energyUnits)

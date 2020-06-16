@@ -68,6 +68,7 @@ class Star:
         self.kineticEnergy = particles.kinetic_energy()
         particles.move_to_center()
         self.angularMomentum = particles.total_angular_momentum()
+        self.omega = CalculateOmega(particles)
 
 
 
@@ -962,7 +963,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         kInner[i]= innerBinary.kineticEnergy.value_in(energyUnits)
         pInner[i] = innerBinary.potentialEnergy.value_in(energyUnits)
         angularInner[i] = CalculateVectorSize(innerBinary.angularMomentum).value_in(specificAngularMomentumUnits * units.kg)
-        omegaInner[i] = CalculateOmega(Particles(particles=[particle1,particle2])).value_in(energyUnits)
+        omegaInner[i] = innerBinary.omega.value_in(energyUnits)
 
         force[i] = CalculateVectorSize(sphGiant.gravityWithParticle(particle1) + sphGiant.gravityWithParticle(particle2)).value_in(energyUnits/units.km)
 
@@ -1034,10 +1035,11 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             angularToty = angularGiant[1] + angularOuterCOMy
             angularTotz = angularGiant[2] + angularOuterCOMz
             angularTot[i] = ((angularTotx**2 + angularToty**2 + angularTotz**2)**0.5).value_in(specificAngularMomentumUnits * units.kg)
-
-            omegaTot[i] = omegaInner[i] + omegaGiant[i] + \
-                       ((((angularOuterCOM1 | specificAngularMomentumUnits*units.kg)/separation1)**2)/particle1.mass).value_in(energyUnits)\
-                       + ((((angularOuterCOM2 | specificAngularMomentumUnits*units.kg)/separation2)**2)/particle2.mass).value_in(energyUnits)
+            comp = Particles(particles=[particle1,particle2])
+            comp.move_to_center()
+            comp.position -= comParticle.position
+            comp.velocity -=comParticle.velocity
+            omegaTot[i] = omegaInner[i] + omegaGiant[i] + CalculateOmega(comp).value_in(energyUnits)
             print "omega tot: ", omegaTot[i]
         except:
             print "could not calculate angular momenta, ", sys.exc_info()[0]

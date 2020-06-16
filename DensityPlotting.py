@@ -111,6 +111,7 @@ class SphGiant:
         self.potentialEnergy = 0.0 |units.kg*(units.km**2) / units.s**2
         self.gasPotential= 0.0 | units.kg * (units.km ** 2) / units.s ** 2
         self.gasKinetic = 0.0 | units.kg * (units.km ** 2) / units.s ** 2
+        self.omegaPotential = 0.0 | units.kg * (units.km ** 2) / units.s ** 2
         #self.angularMomentum = totalGiant.total_angular_momentum()
 
     def CalculateEnergies(self,comV=None):
@@ -170,7 +171,7 @@ class SphGiant:
             totGiant.position -= comPos
         if comV is not None:
             totGiant.velocity -= comV
-
+        self.omegaPotential = CalculateOmega(totGiant)
         return totGiant.total_angular_momentum()
 
     def GetAngularMomentumOfGas(self, comPos=None, comV=None):
@@ -182,6 +183,7 @@ class SphGiant:
             gas.velocity -= comV
 
         return gas.total_angular_momentum()
+
 
     def CalculateInnerSPH(self, relativeParticle, localRadius=50.0 | units.RSun):
         self.innerGas = Star(None, None)
@@ -860,7 +862,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                        aInners, aOuters, aOuters1, aOuters2,
                        eInners, eOuters, eOuters1, eOuters2, inclinations, innerMass, innerMass1, innerMass2, localDensity,
                        kInner, kOuter, kOuter1, kOuter2, pInner, pOuter, pOuter1, pOuter2,
-                       kGas, uGas, pGas, kCore, pOuterCore, pCores, pPartGas, force, kTot, pTot, eTot,
+                       kGas, uGas, pGas, kCore, pOuterCore, pCores, pPartGas, force, omegaInner, omegaGiant, omegaTot,
+                       kTot, pTot, eTot,
                        angularInner, angularOuter,angularOuter1,angularOuter2, angularOuterCOM1, angularOuterCOM2,
                        angularGasCOM, angularTot, localRadius=50.0|units.RSun,
                        toPlot = False, opposite= False, axesOriginInInnerBinaryCenterOfMass= False, timeStep=0.2):
@@ -957,6 +960,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         kInner[i]= innerBinary.kineticEnergy.value_in(energyUnits)
         pInner[i] = innerBinary.potentialEnergy.value_in(energyUnits)
         angularInner[i] = CalculateVectorSize(innerBinary.angularMomentum).value_in(specificAngularMomentumUnits * units.kg)
+        omegaInner[i] = CalculateOmega(Particles(particle1,particle2)).value_in(energyUnits)
 
         force[i] = CalculateVectorSize(sphGiant.gravityWithParticle(particle1) + sphGiant.gravityWithParticle(particle2)).value_in(energyUnits/units.km)
 
@@ -997,6 +1001,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         pCores[i] = pPartsCore.value_in(energyUnits)
         pPartGas[i] = (sphGiant.potentialEnergyWithParticle(particle1) +
                    sphGiant.potentialEnergyWithParticle(particle2)).value_in(energyUnits)
+        omegaGiant[i] = sphGiant.omegaPotential.value_in(energyUnits)
         #total energies
         kTot[i] = (sphGiant.kineticEnergy).value_in(energyUnits) + kInner[i]
         pTot[i] = sphGiant.potentialEnergy.value_in(energyUnits) + pInner[i] + pPartGas[i] + pCores[i]
@@ -1005,13 +1010,13 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         print "kTot: ",kTot[i]
         print "eTot: ", eTot[i]
         try:
-            specificAngularCOM1 = CalculateSpecificMomentum(CalculateVelocityDifference(particle1,comParticle),
-                                                             CalculateSeparation(particle1,comParticle))
+            separation1 = CalculateSeparation(particle1,comParticle)
+            specificAngularCOM1 = CalculateSpecificMomentum(CalculateVelocityDifference(particle1,comParticle), separation1)
             angularOuterCOM1[i] = particle1.mass.value_in(units.kg)*CalculateVectorSize([specificAngularCOM1[0].value_in(specificAngularMomentumUnits),
                                                                       specificAngularCOM1[1].value_in(specificAngularMomentumUnits),
                                                                       specificAngularCOM1[2].value_in(specificAngularMomentumUnits)])
-            specificAngularCOM2 =  CalculateSpecificMomentum(CalculateVelocityDifference(particle2, comParticle),
-                                                             CalculateSeparation(particle2, comParticle))
+            separation2 = CalculateSeparation(particle2, comParticle)
+            specificAngularCOM2 =  CalculateSpecificMomentum(CalculateVelocityDifference(particle2, comParticle),separation2)
             angularOuterCOM2[i] = particle2.mass.value_in(units.kg) * CalculateVectorSize([specificAngularCOM2[0].value_in(specificAngularMomentumUnits)
                                                                                               ,specificAngularCOM2[1].value_in(specificAngularMomentumUnits)
                                                                                               ,specificAngularCOM2[2].value_in(specificAngularMomentumUnits)
@@ -1019,6 +1024,11 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             angularGasCOM[i] = CalculateVectorSize(sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity)).value_in(specificAngularMomentumUnits * units.kg)
             angularTot[i] = CalculateVectorSize(sphGiant.GetAngularMomentum(centerOfMassPosition,centerOfMassVelocity)).value_in(specificAngularMomentumUnits * units.kg) \
                             + angularOuterCOM1[i] + angularOuterCOM2[i]
+
+            omegaTot[i] = omegaInner[i] + omegaGiant[i] + \
+                       ((((angularOuterCOM1 | specificAngularMomentumUnits)/separation1)**2)/particle1.mass).value_in(energyUnits)\
+                       + ((((angularOuterCOM2 | specificAngularMomentumUnits)/separation2)**2)/particle2.mass).value_in(energyUnits)
+            print "omega tot: ", omegaTot[i]
         except:
             print "could not calculate angular momenta, ", sys.exc_info()[0]
 
@@ -1161,6 +1171,9 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     pCores = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     pPartGas = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     force = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    omegaInner = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    omegaGiant = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    omegaTot = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     kTot = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     pTot = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     eTot = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
@@ -1176,7 +1189,8 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     angularTot = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
 
     #angularInner, angularOuter,angularOuter1,angularOuter2 angularOuterCOM1, angularOuterCOM2, angularGasCOM, angularTot
-    #kInner, kOuter, kOuter1, kOuter2, pInner, pOuter, pOuter1, pOuter2, uInner, uOuter, uOuter1, uOuter2, kGas, uGas, pGas, kCore, pOuterCore, pCores, pPartGas, force, kTot, pTot, uTot, eTot
+    #kInner, kOuter, kOuter1, kOuter2, pInner, pOuter, pOuter1, pOuter2, uInner, uOuter, uOuter1, uOuter2, kGas, uGas, pGas,
+    # kCore, pOuterCore, pCores, pPartGas, force, omegaInner, omegaGiant, omegaTot, kTot, pTot, uTot, eTot
 
 
     cpus = multiprocessing.cpu_count() - 6
@@ -1205,6 +1219,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                                                                                   pInner, pOuter, pOuter1, pOuter2,
                                                                                   kGas, uGas, pGas, kCore, pOuterCore,
                                                                                   pCores, pPartGas, force,
+                                                                                  omegaInner, omegaGiant, omegaTot,
                                                                                   kTot, pTot,  eTot,
                                                                                   angularInner, angularOuter,
                                                                                   angularOuter1, angularOuter2,
@@ -1257,6 +1272,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                             (kOuter2,"kOuter2"),(pInner,"pInner"), (pOuter,"pOuter"), (pOuter1,"pOuter1"),
                             (pOuter2,"pOuter2"),(kGas,"kGas"), (uGas,"uGas"), (pGas,"pGas"), (kCore,"kCore"),
                             (pOuterCore,"pOuterCore"),(pCores,"pCores"), (pPartGas,"pPartGas"), (force,"force"),
+                            (omegaInner,"omegaInner"), (omegaGiant,"omegaGiant"), (omegaTot,"omegaTot"),
                             (kTot,"kTot"), (pTot,"pTot"), (eTot,"eTot"),
                             (angularInner,"angularInner"), (angularOuter,"angularOuter"), (angularOuter1,"angularOuter1"),
                             (angularOuter2,"angularOuter2"), (angularOuterCOM1,"angularOuterCOM1"),

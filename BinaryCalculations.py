@@ -101,3 +101,8 @@ def CalculateBinaryParameters(particle, sphGiant):
 def CalculatePotentialEnergy(particle1, particle2):
     return -constants.G * particle1.mass * particle2.mass \
             / CalculateVectorSize(CalculateSeparation(particle1, particle2))
+
+
+def CalculateOmega(particles):
+        return -0.5 * (particles.mass.reshape((-1, 1)) * (particles.position.cross(particles.velocity)) ** 2 /
+                (particles.x*particles.x+particles.y*particles.y+particles.z*particles.z)).sum(axis=0)

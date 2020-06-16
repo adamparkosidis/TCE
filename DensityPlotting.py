@@ -960,7 +960,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         kInner[i]= innerBinary.kineticEnergy.value_in(energyUnits)
         pInner[i] = innerBinary.potentialEnergy.value_in(energyUnits)
         angularInner[i] = CalculateVectorSize(innerBinary.angularMomentum).value_in(specificAngularMomentumUnits * units.kg)
-        omegaInner[i] = CalculateOmega(Particles(particle1,particle2)).value_in(energyUnits)
+        omegaInner[i] = CalculateOmega(Particles(particles=[particle1,particle2])).value_in(energyUnits)
 
         force[i] = CalculateVectorSize(sphGiant.gravityWithParticle(particle1) + sphGiant.gravityWithParticle(particle2)).value_in(energyUnits/units.km)
 

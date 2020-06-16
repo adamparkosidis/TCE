@@ -114,7 +114,7 @@ class SphGiant:
         #self.angularMomentum = totalGiant.total_angular_momentum()
 
     def CalculateEnergies(self,comV=None):
-        self.gasKinetic = self.gasParticles.kinetic_enery()
+        self.gasKinetic = self.gasParticles.kinetic_energy()
         self.coreKinetic = 0.5 * self.core.mass * (CalculateVectorSize(self.core.velocity))**2
         self.kineticEnergy = self.gasKinetic + self.coreKinetic
         self.thermalEnergy = self.gasParticles.thermal_energy()

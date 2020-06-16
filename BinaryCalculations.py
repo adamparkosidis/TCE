@@ -104,5 +104,5 @@ def CalculatePotentialEnergy(particle1, particle2):
 
 
 def CalculateOmega(particles):
-    pos = particles.position / (particles.x*particles.x+particles.y*particles.y+particles.z*particles.z)**0.5
+    pos = (particles.x*particles.x+particles.y*particles.y+particles.z*particles.z)**-0.5 * particles.position
     return -0.5 * CalculateVectorSize((particles.mass.reshape((-1, 1)) * (pos.cross(particles.velocity))**2).sum(axis=0))

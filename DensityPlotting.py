@@ -143,11 +143,13 @@ class SphGiant:
             self.gasPotential -= particleEnergy
 
 
-    def potentialEnergyWithParticle(self,particle):
+    def potentialEnergyWithParticle(self,particle, epsilon = None):
         energy = 0.0 | units.kg*(units.m**2) / units.s**2
         for part in self.gasParticles:
-            #energy += -1.0*constants.G*part.mass*particle.mass/(CalculateVectorSize(CalculateSeparation(particle,part))**2+part.epsilon**2)**0.5
-            energy += -1.0*constants.G*part.mass*particle.mass/(CalculateVectorSize(CalculateSeparation(particle,part))**2)**0.5
+            if epsilon is not None:
+                energy += -1.0*constants.G*part.mass*particle.mass/(CalculateVectorSize(CalculateSeparation(particle,part))**2+epsilon**2)**0.5
+            else:
+                energy += -1.0*constants.G*part.mass*particle.mass/(CalculateVectorSize(CalculateSeparation(particle,part))**2+part.epsilon**2)**0.5
         return energy
 
 
@@ -864,7 +866,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                        kInner, kOuter, kOuter1, kOuter2, pInner, pOuter, pOuter1, pOuter2,
                        kGas, uGas, pGas, kCore, pOuterCore, pCores, pPartGas, force, omegaInner, omegaGiant, omegaTot,
                        kTot, pTot, eTot,
-                       angularInner, angularOuter,angularOuter1,angularOuter2, angularOuterCOM1, angularOuterCOM2,
+                       angularInner, angularOuter,angularOuter1,angularOuter2, angularOuterCOM1, angularOuterCOM2, angularOuterCOM,
                        angularGasCOM, angularTot, localRadius=50.0|units.RSun,
                        toPlot = False, opposite= False, axesOriginInInnerBinaryCenterOfMass= False, timeStep=0.2):
     energyUnits = units.kg*(units.km**2) / units.s**2
@@ -999,8 +1001,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         pPartsCore = CalculatePotentialEnergy(sphGiant.core, particle1) + \
                      CalculatePotentialEnergy(sphGiant.core, particle2)
         pCores[i] = pPartsCore.value_in(energyUnits)
-        pPartGas[i] = (sphGiant.potentialEnergyWithParticle(particle1) +
-                   sphGiant.potentialEnergyWithParticle(particle2)).value_in(energyUnits)
+        pPartGas[i] = (sphGiant.potentialEnergyWithParticle(particle1,sphGiant.core.radius/2.8) +
+                   sphGiant.potentialEnergyWithParticle(particle2,sphGiant.core.radius/2.8)).value_in(energyUnits)
         omegaGiant[i] = sphGiant.omegaPotential.value_in(energyUnits)
         #total energies
         kTot[i] = (sphGiant.kineticEnergy).value_in(energyUnits) + kInner[i]
@@ -1021,13 +1023,21 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                                                                                               ,specificAngularCOM2[1].value_in(specificAngularMomentumUnits)
                                                                                               ,specificAngularCOM2[2].value_in(specificAngularMomentumUnits)
                                                                                            ])
+            angularOuterCOMx = particle1.mass * specificAngularCOM1[0] + particle2.mass * specificAngularCOM2[0]
+            angularOuterCOMy = particle1.mass * specificAngularCOM1[1] + particle2.mass * specificAngularCOM2[1]
+            angularOuterCOMz = particle1.mass * specificAngularCOM1[2] + particle2.mass * specificAngularCOM2[2]
+            angularOuterCOM[i] = ((angularOuterCOMx**2+angularOuterCOMy**2+angularOuterCOMz**2)**0.5).value_in(specificAngularMomentumUnits * units.kg)
+
             angularGasCOM[i] = CalculateVectorSize(sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity)).value_in(specificAngularMomentumUnits * units.kg)
-            angularTot[i] = CalculateVectorSize(sphGiant.GetAngularMomentum(centerOfMassPosition,centerOfMassVelocity)).value_in(specificAngularMomentumUnits * units.kg) \
-                            + angularOuterCOM1[i] + angularOuterCOM2[i]
+            angularGiant = sphGiant.GetAngularMomentum(centerOfMassPosition,centerOfMassVelocity)
+            angularTotx = angularGiant[0] + angularOuterCOMx
+            angularToty = angularGiant[1] + angularOuterCOMy
+            angularTotz = angularGiant[2] + angularOuterCOMz
+            angularTot[i] = ((angularTotx**2 + angularToty**2 + angularTotz**2)**0.5).value_in(specificAngularMomentumUnits * units.kg)
 
             omegaTot[i] = omegaInner[i] + omegaGiant[i] + \
-                       ((((angularOuterCOM1 | specificAngularMomentumUnits)/separation1)**2)/particle1.mass).value_in(energyUnits)\
-                       + ((((angularOuterCOM2 | specificAngularMomentumUnits)/separation2)**2)/particle2.mass).value_in(energyUnits)
+                       ((((angularOuterCOM1 | specificAngularMomentumUnits*units.kg)/separation1)**2)/particle1.mass).value_in(energyUnits)\
+                       + ((((angularOuterCOM2 | specificAngularMomentumUnits*units.kg)/separation2)**2)/particle2.mass).value_in(energyUnits)
             print "omega tot: ", omegaTot[i]
         except:
             print "could not calculate angular momenta, ", sys.exc_info()[0]
@@ -1185,10 +1195,11 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     angularOuter2 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     angularOuterCOM1 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     angularOuterCOM2 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
+    angularOuterCOM = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     angularGasCOM = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     angularTot = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
 
-    #angularInner, angularOuter,angularOuter1,angularOuter2 angularOuterCOM1, angularOuterCOM2, angularGasCOM, angularTot
+    #angularInner, angularOuter,angularOuter1,angularOuter2 angularOuterCOM1, angularOuterCOM2, angularOuterCOM, angularGasCOM, angularTot
     #kInner, kOuter, kOuter1, kOuter2, pInner, pOuter, pOuter1, pOuter2, uInner, uOuter, uOuter1, uOuter2, kGas, uGas, pGas,
     # kCore, pOuterCore, pCores, pPartGas, force, omegaInner, omegaGiant, omegaTot, kTot, pTot, uTot, eTot
 
@@ -1224,7 +1235,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                                                                                   angularInner, angularOuter,
                                                                                   angularOuter1, angularOuter2,
                                                                                   angularOuterCOM1, angularOuterCOM2,
-                                                                                  angularGasCOM, angularTot,
+                                                                                  angularOuterCOM, angularGasCOM, angularTot,
                                                                                   localRadius, toPlot, opposite,
                                                                                   axesOriginInInnerBinaryCenterOfMass,
                                                                                   timeStep,)))
@@ -1276,7 +1287,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                             (kTot,"kTot"), (pTot,"pTot"), (eTot,"eTot"),
                             (angularInner,"angularInner"), (angularOuter,"angularOuter"), (angularOuter1,"angularOuter1"),
                             (angularOuter2,"angularOuter2"), (angularOuterCOM1,"angularOuterCOM1"),
-                            (angularOuterCOM2,"angularOuterCOM2"), (angularGasCOM,"angularGasCOM"),
+                            (angularOuterCOM2,"angularOuterCOM2"), (angularOuterCOM,"angularOuterCOM"), (angularGasCOM,"angularGasCOM"),
                             (angularTot,"angularTot")], outputDir + "/graphs", beginStep,timeStep, toPlot)
 
 def InitParser():

@@ -122,7 +122,7 @@ class SphGiant:
         self.thermalEnergy = self.gasParticles.thermal_energy()
         print "giant kinetic: ", self.kineticEnergy
         print "giant thermal: ", self.thermalEnergy
-        self.gasPotential = self.gasParticles.potential_energy()
+        self.gasPotential = self.self.GasPotentialEnergy()
         print "gas potential: ", self.gasPotential
         self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core)
         print "giant potential: ", self.potentialEnergy
@@ -131,18 +131,28 @@ class SphGiant:
 
     def GasPotentialEnergy(self):
         self.gasPotential = 0.0 |units.kg*(units.m**2) / units.s**2
-        for i in range(len(self.gasParticles)-1):
-            dx = self.gasParticles.x[i] - self.gasParticles.x[i+1:]
-            dy = self.gasParticles.y[i] - self.gasParticles.y[i+1:]
-            dz = self.gasParticles.z[i] - self.gasParticles.z[i+1:]
-            dr_squared = (dx*dx)+(dy*dy)+(dz*dz)
-            epsilon = self.gasParticles.epsilon[i+1:]
-            for j in range(len(epsilon)):
-                epsilon[j] = min(epsilon[j],self.gasParticles.epsilon[i])
-            dr = (dr_squared + epsilon*epsilon).sqrt()
-            particleEnergy = ((constants.G*self.gasParticles.mass[i] * self.gasParticles.mass[i+1:])/dr).sum()
-            self.gasPotential -= particleEnergy
+        mass = self.gasParticles.mass
+        x_vector = self.gasParticles.x
+        y_vector = self.gasParticles.y
+        z_vector = self.gasParticles.z
+        epsilon = self.gasParticles.epsilon
 
+        for i in range(len(self.gasParticles) - 1):
+            x = x_vector[i]
+            y = y_vector[i]
+            z = z_vector[i]
+            dx = x - x_vector[i + 1:]
+            dy = y - y_vector[i + 1:]
+            dz = z - z_vector[i + 1:]
+            dr_squared = (dx * dx) + (dy * dy) + (dz * dz)
+            e_squared = epsilon * epsilon
+            dr = (dr_squared + e_squared).sqrt()
+            m_m = mass[i] * mass[i + 1:]
+
+            energy_of_this_particle = constants.G * ((m_m / dr).sum())
+            self.gasPotential -= energy_of_this_particle
+
+        return self.gasPotential
 
     def potentialEnergyWithParticle(self,particle, epsilon = None):
         energy = 0.0 | units.kg*(units.m**2) / units.s**2

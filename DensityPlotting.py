@@ -1004,7 +1004,6 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         pCores[i] = pPartsCore.value_in(energyUnits)
         pPartGas[i] = (sphGiant.potentialEnergyWithParticle(particle1,sphGiant.core.radius/2.8) +
                    sphGiant.potentialEnergyWithParticle(particle2,sphGiant.core.radius/2.8)).value_in(energyUnits)
-        omegaGiant[i] = sphGiant.omegaPotential.value_in(energyUnits)
         #total energies
         kTot[i] = (sphGiant.kineticEnergy).value_in(energyUnits) + kInner[i]
         pTot[i] = sphGiant.potentialEnergy.value_in(energyUnits) + pInner[i] + pPartGas[i] + pCores[i]
@@ -1035,6 +1034,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             angularToty = angularGiant[1] + angularOuterCOMy
             angularTotz = angularGiant[2] + angularOuterCOMz
             angularTot[i] = ((angularTotx**2 + angularToty**2 + angularTotz**2)**0.5).value_in(specificAngularMomentumUnits * units.kg)
+            omegaGiant[i] = sphGiant.omegaPotential.value_in(energyUnits)
             comp = Particles(particles=[particle1,particle2])
             comp.move_to_center()
             comp.position -= comParticle.position

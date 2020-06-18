@@ -122,7 +122,7 @@ class SphGiant:
         self.thermalEnergy = self.gasParticles.thermal_energy()
         print "giant kinetic: ", self.kineticEnergy
         print "giant thermal: ", self.thermalEnergy
-        self.gasPotential = self.self.GasPotentialEnergy()
+        self.gasPotential = self.GasPotentialEnergy()
         print "gas potential: ", self.gasPotential
         self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core)
         print "giant potential: ", self.potentialEnergy
@@ -136,7 +136,7 @@ class SphGiant:
         y_vector = self.gasParticles.y
         z_vector = self.gasParticles.z
         epsilon = self.gasParticles.epsilon
-
+        ones = [1 for i in range(len(self.gasParticles))]
         for i in range(len(self.gasParticles) - 1):
             x = x_vector[i]
             y = y_vector[i]
@@ -145,7 +145,7 @@ class SphGiant:
             dy = y - y_vector[i + 1:]
             dz = z - z_vector[i + 1:]
             dr_squared = (dx * dx) + (dy * dy) + (dz * dz)
-            e_squared = epsilon * epsilon
+            e_squared = ones[i+1:]*epsilon[i]**2
             dr = (dr_squared + e_squared).sqrt()
             m_m = mass[i] * mass[i + 1:]
 
@@ -974,9 +974,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         pInner[i] = innerBinary.potentialEnergy.value_in(energyUnits)
         angularInner[i] = CalculateVectorSize(innerBinary.angularMomentum).value_in(specificAngularMomentumUnits * units.kg)
         omegaInner[i] = innerBinary.omega.value_in(energyUnits)
-
-        force[i] = CalculateVectorSize(sphGiant.gravityWithParticle(particle1) + sphGiant.gravityWithParticle(particle2)).value_in(energyUnits/units.km)
-
+        giantForce = sphGiant.gravityWithParticle(particle1) + sphGiant.gravityWithParticle(particle2)
+        force[i] = CalculateVectorSize(giantForce).value_in(energyUnits/units.km)
         #inner gas of the com of the inner binary
         kOuter[i] = kInner[i] + sphGiant.innerGas.kineticEnergy.value_in(energyUnits)
         pOuter[i] = -(constants.G*sphGiant.innerGas.mass*innerBinary.mass/

@@ -136,7 +136,6 @@ class SphGiant:
         y_vector = self.gasParticles.y
         z_vector = self.gasParticles.z
         epsilon = self.gasParticles.epsilon
-        ones = [1 for i in range(len(self.gasParticles))]
         for i in range(len(self.gasParticles) - 1):
             x = x_vector[i]
             y = y_vector[i]
@@ -145,8 +144,7 @@ class SphGiant:
             dy = y - y_vector[i + 1:]
             dz = z - z_vector[i + 1:]
             dr_squared = (dx * dx) + (dy * dy) + (dz * dz)
-            e_squared = ones[i+1:]*epsilon[i]**2
-            dr = (dr_squared + e_squared).sqrt()
+            dr = (dr_squared + epsilon[i+1:]**2).sqrt()
             m_m = mass[i] * mass[i + 1:]
 
             energy_of_this_particle = constants.G * ((m_m / dr).sum())

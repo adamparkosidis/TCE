@@ -171,6 +171,13 @@ class SphGiant:
             force[1] += f * (part.y - particle.y)
             force[2] += f * (part.z - particle.z)
 
+
+        f = -1.0 * constants.G * part.mass * particle.mass / (
+                (CalculateVectorSize(CalculateSeparation(particle, self.core)) ** 2) ** 0.5) ** 3
+        force[0] += f * (self.core.x-particle.x)
+        force[1] += f * (self.core.y - particle.y)
+        force[2] += f * (self.core.z - particle.z)
+
         return force
 
     def GetAngularMomentum(self,comPos=None,comV=None):

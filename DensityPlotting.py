@@ -283,6 +283,8 @@ class SphGiant:
         self.innerGas.position = (self.innerGas.xTot, self.innerGas.yTot, self.innerGas.zTot)
         if particlesAroundCenteral > 0:
             self.localDensity = self.localMass / ((4.0*constants.pi*localRadius**3)/3.0)
+        else:
+            self.localDensity = 0.0 | units.g / units.m**3
 
     def CountLeavingParticlesInsideRadius(self):
         self.leavingParticles = 0

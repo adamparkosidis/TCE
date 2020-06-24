@@ -6,6 +6,7 @@ import pickle
 
 from amuse.units import units, constants, nbody_system
 from amuse.units import *
+from amuse.units.quantities import AdaptingVectorQuantity, VectorQuantity
 from amuse.datamodel import Particles, Particle
 def get_relative_velocity_at_apastron(total_mass, semimajor_axis, ecc):
     return (constants.G * total_mass * ((1.0 - ecc)/(1.0 + ecc)) / semimajor_axis).sqrt()
@@ -106,3 +107,13 @@ def CalculatePotentialEnergy(particle1, particle2):
 def CalculateOmega(particles):
     r =  ((particles.x*particles.x+particles.y*particles.y+particles.z*particles.z)**0.5).reshape((-1,1))
     return -0.5 * CalculateVectorSize((particles.mass.reshape((-1, 1)) * (particles.position.cross(particles.velocity)/r)**2).sum(axis=0))
+
+def CalculateGravityForce(particle1, particle2):
+    force = VectorQuantity([0.0,0.0,0.0],units.kg*units.km*units.s**-2)
+    f = -1.0 * constants.G * particle1.mass * particle2.mass / (
+                (CalculateVectorSize(CalculateSeparation(particle2, particle1)) ** 2) ** 0.5) ** 3
+    force[0] += f * (particle1.x-particle2.x)
+    force[1] += f * (particle1.y - particle2.y)
+    force[2] += f * (particle1.z - particle2.z)
+
+    return force

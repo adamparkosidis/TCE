@@ -25,8 +25,8 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     giant = binary.stars[0]
 
     #put the giant in the center
-    binary.stars.position -= giant.position
-    binary.stars.velocity -= giant.velocity
+    #binary.stars.position -= giant.position
+    #binary.stars.velocity -= giant.velocity
 
     giant = binary.stars[0]
     print "binary: ", binary.stars
@@ -40,7 +40,8 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                              stars=binary.stars, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
                                               numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=5, takeCompanionInRelaxation= True)
-    binary.stars.move_to_center()
+    #binary.stars.move_to_center()
+    #giant = binary.stars[0]
     starCore = dmStars[0]
     starCore.radius = sphStar.core_particle.radius
 

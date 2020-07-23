@@ -48,8 +48,10 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     giantInSet = triple.add_particle(giant)
     innerBinary.stars = triple - giantInSet
 
-    triple.position -= giantInSet.position
-    triple.velocity -= giantInSet.velocity
+    triple.move_to_center()
+
+    #triple.position -= giantInSet.position
+    #triple.velocity -= giantInSet.velocity
 
     print triple
     print "triple center of mass: ", triple.center_of_mass()
@@ -72,9 +74,6 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
                                               numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath,
                                             saveAfterMinute=10, initialCOM=sphStar.initialCOM, initialCOMV=sphStar.initialCOMV)
-    print "inner binary before con moving to the origin: ", innerBinary
-    triple.move_to_center()
-    print "inner after: ", innerBinary
     starCore = dmStars[-1]
     #starCore.radius = sphStar.core_particle.radius
     print starCore

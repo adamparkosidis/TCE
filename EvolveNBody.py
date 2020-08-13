@@ -131,6 +131,15 @@ def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = 
     coupledSystem.add_system(hydroSystem, (kickFromBinary,), False)
     return coupledSystem
 
+def PrintEnergies(coupledSystem):
+    print "potential energy: ", coupledSystem.potential_energy
+    print "cores potential: ", coupledSystem.dm_particles.potential_energy()
+    for sys in coupledSystem.systems:
+        if sys.__class__.__name__ == Huayno.__name__:
+            print "potential on companions: ", coupledSystem.partners[sys]
+    print "kinetic energy: ", coupledSystem.kinetic_energy
+    print "thermal energy: ", coupledSystem.thermal_energy
+    print "total energy: ", coupledSystem.potential_energy + coupledSystem.kinetic_energy + coupledSystem.thermal_energy
 
 def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
         savedVersionPath="", saveAfterMinute=1, step=-1, relax=False,initialCOM=None,
@@ -193,6 +202,7 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
         StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse", gas)
         StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse", dm)
         print "pre state saved - {0}".format(savedVersionPath) + "/" + adding
+        PrintEnergies(coupledSystem)
 
     while currentTime < endTime:
         step += 1
@@ -228,6 +238,7 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
                 print "state saved - {0}".format(savedVersionPath) + "/" + adding
                 print coupledSystem.dm_particles
                 print len(coupledSystem.gas_particles)
+                PrintEnergies(coupledSystem)
                 currentSecond = time.time()
         dm = coupledSystem.dm_particles.copy()
         gas = coupledSystem.gas_particles.copy()

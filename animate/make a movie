@@ -1,0 +1,4 @@
+ffmpeg -framerate 25 -i plotting_%d.jpg -c:v libx264 -profile:v high -crf 20 -pix_fmt yuv420p movie.mp4
+
+trimm a movie:
+ffmpeg -i movie.mp4 -ss 00:00:00 -t 00:00:57 -async 1 -strict -2 cut.mp4

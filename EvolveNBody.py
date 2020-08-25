@@ -134,9 +134,12 @@ def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = 
 def PrintEnergies(coupledSystem):
     print "potential energy: ", coupledSystem.potential_energy
     print "cores potential: ", coupledSystem.dm_particles.potential_energy()
-    for sys in coupledSystem.systems:
-        if sys.__class__.__name__ == Huayno.__name__:
-            print "potential on companions: ", coupledSystem.partners[sys]
+    try:
+        for sys in coupledSystem.systems:
+            if sys.__class__.__name__ == Huayno.__name__:
+                print "potential on companions: ", coupledSystem.partners[sys]
+    except:
+        pass
     print "kinetic energy: ", coupledSystem.kinetic_energy
     print "thermal energy: ", coupledSystem.thermal_energy
     print "total energy: ", coupledSystem.potential_energy + coupledSystem.kinetic_energy + coupledSystem.thermal_energy

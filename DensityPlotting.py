@@ -12,6 +12,7 @@ import h5py
 import argparse
 import matplotlib
 matplotlib.use('Agg')
+from ctypes import *
 from amuse.units import units, constants, nbody_system, quantities
 from amuse.units import *
 
@@ -1089,7 +1090,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                 f.close()
             except:
                 pass
-from ctypes import *
+
 def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False, plotDust=True, dustRadius=700.0|units.RSun, timeStep=0.2):
     if lastStep == 0 : # no boundary on last step
         lastStep = len(gasFiles)

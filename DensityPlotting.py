@@ -294,7 +294,7 @@ class SphGiant:
         dynamicalVelocity= self.radius/self.dynamicalTime
         particlesExceedingMaxVelocity = 0
         velocityLimitMax = 0.0 | units.cm/units.s
-        specificPotentials = self.gasParticles.potential()
+        self.CalculateGasSpecificPotentials()
         specificKinetics = self.gasParticles.specific_kinetic_energy()
         for i, particle in enumerate(self.gasParticles):
             volume = (4.0 / 3.0) * constants.pi * particle.radius ** 3
@@ -305,7 +305,7 @@ class SphGiant:
                 particlesExceedingMaxVelocity += 1
 
             #specificEnergy = CalculateSpecificEnergy(CalculateVelocityDifference(particle,self.gas),CalculateSeparation(particle, self.gas), particle, self.gas)
-            specificEnergy = specificPotentials[i] + specificKinetics[i]
+            specificEnergy = self.gasSpesificPotentials[i] + specificKinetics[i]
             if specificEnergy > 0 |specificEnergy.unit:
                 self.leavingParticles += 1
                 self.totalUnboundedMass += particle.mass
@@ -313,6 +313,46 @@ class SphGiant:
         print "over speed ", particlesExceedingMaxVelocity*100.0 / len(self.gasParticles), "limit: ", velocityLimitMax
 
         return self.leavingParticles
+
+    def CalculateGasSpecificPotentials(self):
+        n = len(self.gasParticles)
+
+        max = 100000 * 100  # 100m floats
+        block_size = max // n
+        if block_size == 0:
+            block_size = 1  # if more than 100m particles, then do 1 by one
+
+        mass = self.gasParticles.mass
+        x_vector = self.gasParticles.x
+        y_vector = self.gasParticles.y
+        z_vector = self.gasParticles.z
+
+        potentials = VectorQuantity.zeros(len(mass), mass.unit / x_vector.unit)
+        inf_len = numpy.inf | x_vector.unit
+        offset = 0
+        newshape = (n, 1)
+        x_vector_r = x_vector.reshape(newshape)
+        y_vector_r = y_vector.reshape(newshape)
+        z_vector_r = z_vector.reshape(newshape)
+        mass_r = mass.reshape(newshape)
+        while offset < n:
+            if offset + block_size > n:
+                block_size = n - offset
+            x = x_vector[offset:offset + block_size]
+            y = y_vector[offset:offset + block_size]
+            z = z_vector[offset:offset + block_size]
+            indices = numpy.arange(block_size)
+            dx = x_vector_r - x
+            dy = y_vector_r - y
+            dz = z_vector_r - z
+            dr_squared = (dx * dx) + (dy * dy) + (dz * dz)
+            dr = (dr_squared).sqrt()
+            index = (indices + offset, indices)
+            dr[index] = inf_len
+            potentials += (mass[offset:offset + block_size] / dr).sum(axis=1)
+            offset += block_size
+
+        self.gasSpesificPotentials = -constants.G * potentials
 
     def FindSmallestCell(self):
         smallestRadius = self.gasParticles.total_radius()

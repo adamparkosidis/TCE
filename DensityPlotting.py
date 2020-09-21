@@ -131,6 +131,7 @@ class SphGiant:
         #self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core)
 
     def GasPotentialEnergy(self):
+        return self.gasParticles.potential_energy()
         self.gasPotential = 0.0 |units.kg*(units.m**2) / units.s**2
         mass = self.gasParticles.mass
         x_vector = self.gasParticles.x
@@ -293,7 +294,9 @@ class SphGiant:
         dynamicalVelocity= self.radius/self.dynamicalTime
         particlesExceedingMaxVelocity = 0
         velocityLimitMax = 0.0 | units.cm/units.s
-        for particle in self.gasParticles:
+        specificPotentials = self.gasParticles.potential()
+        specificKinetics = self.gasParticles.specific_kinetic_energy()
+        for i, particle in enumerate(self.gasParticles):
             volume = (4.0 / 3.0) * constants.pi * particle.radius ** 3
             particleSoundSpeed = ((5.0 / 3.0) * particle.pressure / (particle.mass / volume)) ** 0.5
             velocityLimit = min(dynamicalVelocity, particleSoundSpeed)
@@ -301,7 +304,8 @@ class SphGiant:
             if CalculateVectorSize(particle.velocity) > velocityLimit:
                 particlesExceedingMaxVelocity += 1
 
-            specificEnergy = CalculateSpecificEnergy(CalculateVelocityDifference(particle,self.gas),CalculateSeparation(particle, self.gas), particle, self.gas)
+            #specificEnergy = CalculateSpecificEnergy(CalculateVelocityDifference(particle,self.gas),CalculateSeparation(particle, self.gas), particle, self.gas)
+            specificEnergy = specificPotentials[i] + specificKinetics[i]
             if specificEnergy > 0 |specificEnergy.unit:
                 self.leavingParticles += 1
                 self.totalUnboundedMass += particle.mass

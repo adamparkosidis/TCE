@@ -11,6 +11,7 @@ import gc
 import h5py
 import argparse
 import matplotlib
+import numpy
 matplotlib.use('Agg')
 from ctypes import *
 from amuse.units import units, constants, nbody_system, quantities

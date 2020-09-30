@@ -251,7 +251,7 @@ class SphGiant:
         velocityAndMass = [vx * cmass, vy* cmass, vz * cmass]
         positionAndMass = [x * cmass, y * cmass, z * cmass]
         angularmomentum = CalculateSpecificMomentum((x,y,z),(vx,vy,vz))
-        if cmass != 0.0|units.MSun:
+        if cmass != 0.0:
             angularmomentum = [l*cmass for l in angularmomentum]
 
         particlesAroundCore = 0

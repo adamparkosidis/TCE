@@ -252,7 +252,7 @@ class SphGiant:
         positionAndMass = [x * cmass, y * cmass, z * cmass]
         angularmomentum = CalculateSpecificMomentum((x,y,z),(vx,vy,vz))
         if cmass != 0.0:
-            angularmomentum = [l*cmass for l in angularmomentum]
+            angularmomentum = [l*(cmass |units.MSun) for l in angularmomentum]
 
         particlesAroundCore = 0
         particlesAroundCenteral = 0
@@ -271,9 +271,9 @@ class SphGiant:
                 positionAndMass[1] += particle.y * pmass
                 positionAndMass[2] += particle.z * pmass
                 angularmomentumOfParticle = CalculateSpecificMomentum(particle.position, particle.velocity)
-                angularmomentum[0] += angularmomentumOfParticle[0] * pmass
-                angularmomentum[1] += angularmomentumOfParticle[1] * pmass
-                angularmomentum[2] += angularmomentumOfParticle[2] * pmass
+                angularmomentum[0] += angularmomentumOfParticle[0] * particle.mass
+                angularmomentum[1] += angularmomentumOfParticle[1] * particle.mass
+                angularmomentum[2] += angularmomentumOfParticle[2] * particle.mass
                 particlesAroundCore += 1
 
             if centeralParticle != None:

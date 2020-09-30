@@ -1198,7 +1198,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         else:
             chunkSize = 1
 
-    chunks = [xrange(i,i+chunkSize,skip) for i in xrange(beginStep,lastStep,chunkSize)]
+    chunks = [workingRange[i:i+chunkSize] for i in xrange(0,len(workingRange),chunkSize)]
     if len(chunks) > 1:
         lastChunkBegin = chunks[-2][-1] + 1
     else:

@@ -834,7 +834,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
     specificAngularMomentumUnits = (energyUnits * units.s / units.kg) / 10000
     for index,step in enumerate(chunk):
         i = beginStep + index
-        #print "step #",i
+        print "step #",i
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[step])
         dm_particles_file = None
         if len(dmFiles) > 0:
@@ -1211,7 +1211,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     i=0
     for chunk in chunks:
         processes.append(multiprocessing.Process(target= AnalyzeBinaryChunk,args=(savingDir,gasFiles,dmFiles,outputDir,
-                                                                                  chunk, vmin, vmax, beginStep,
+                                                                                  chunk, vmin, vmax, i,
                                                                                   binaryDistances, semmimajors,
                                                                                   eccentricities, innerMass,
                                                                                   innerAngularMomenta,

@@ -832,12 +832,13 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
                        toPlot = False, plotDust=False, dustRadius= 340.0 | units.RSun, timeStep=0.2):
     energyUnits = units.kg * (units.km ** 2) / units.s ** 2
     specificAngularMomentumUnits = (energyUnits * units.s / units.kg) / 10000
-    for i in [j - beginStep for j in chunk]:
+    for index,step in enumerate(chunk):
+        i = beginStep + index
         #print "step #",i
-        gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i + beginStep])
+        gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[step])
         dm_particles_file = None
         if len(dmFiles) > 0:
-            dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i + beginStep])
+            dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[step])
         #binaryDistances = AdaptingVectorQuantity()
         #eccentricities = []
         sphGiant = SphGiant(gas_particles_file, dm_particles_file, opposite=True)
@@ -861,7 +862,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             binary = Star(sphPointStar, sphPointStar)
         print binary.position, binary.vx,binary.vy,binary.vz
         if CalculateVectorSize(CalculateSeparation(sphGiant.core,companion)) < min(sphGiant.core.radius,companion.radius):
-            print "merger between companion and the giant! step: ", i + beginStep
+            print "merger between companion and the giant! step: ", step
             #break
 
         for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
@@ -875,7 +876,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
         parts.add_particles(sphGiant.gasParticles)
         parts.add_particle(companion)
 
-        print "com: ", parts.center_of_mass(),  i + beginStep
+        print "com: ", parts.center_of_mass(),  step
         print "com v: ", parts.center_of_mass_velocity(), i
         centerOfMassPosition = parts.center_of_mass()
         centerOfMassVelocity = parts.center_of_mass_velocity()
@@ -922,7 +923,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 
             #check if the binary is breaking up
             if newBinarySpecificEnergy > 0 | (units.m **2 / units.s **2):
-                print "binary is breaking up", binary.specificEnergy, i + beginStep
+                print "binary is breaking up", binary.specificEnergy, step
 
             Qxx_g,Qxy_g,Qxz_g,Qyx_g,Qyy_g,Qyz_g,Qzx_g,Qzy_g,Qzz_g = sphGiant.CalculateQuadropoleMoment()
             Qxx_p,Qxy_p,Qxz_p,Qyx_p,Qyy_p,Qyz_p,Qzx_p,Qzy_p,Qzz_p = CalculateQuadropoleMomentOfParticle(companion) # add the companion to the calculation
@@ -940,12 +941,12 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 
 
 
-        temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
+        temperature_density_plot(sphGiant, step, outputDir, toPlot)
 
         if toPlot:
-            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep , outputDir, vmin, vmax, plotDust= plotDust, dustRadius=dustRadius, timeStep=timeStep)
-            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep , outputDir, vmin, vmax, plotDust= plotDust, dustRadius=dustRadius, side_on=True, timeStep=timeStep)
-            PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion, i + beginStep, outputDir, vmin, vmax, timeStep=timeStep)
+            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, step , outputDir, vmin, vmax, plotDust= plotDust, dustRadius=dustRadius, timeStep=timeStep)
+            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, step, outputDir, vmin, vmax, plotDust= plotDust, dustRadius=dustRadius, side_on=True, timeStep=timeStep)
+            PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion, step, outputDir, vmin, vmax, timeStep=timeStep)
 
     for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
         try:
@@ -1207,6 +1208,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
 
     processes = []
     print chunks
+    i=0
     for chunk in chunks:
         processes.append(multiprocessing.Process(target= AnalyzeBinaryChunk,args=(savingDir,gasFiles,dmFiles,outputDir,
                                                                                   chunk, vmin, vmax, beginStep,
@@ -1218,6 +1220,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                                                                                   Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
                                                                                   toPlot,
                                                                                   plotDust,dustRadius,timeStep,)))
+        i += chunkSize
         #pool.map()
     for p in processes:
         p.start()

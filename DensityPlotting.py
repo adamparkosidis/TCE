@@ -227,6 +227,8 @@ class SphGiant:
 
         self.innerGas.vxTot , self.innerGas.vyTot , self.innerGas.vzTot = ( 0.0 , 0.0, 0.0 )| units.m * units.s**-1
         self.innerGas.xTot , self.innerGas.yTot , self.innerGas.zTot = ( 0.0 , 0.0, 0.0 )| units.m
+        self.innerGas.lxTot, self.innerGas.lyTot, self.innerGas.lzTot = (0.0, 0.0, 0.0) | (units.g * units.m**2 * units.s ** -1)
+
         self.localMass = 0.0 | units.MSun
         if includeCore:
             self.innerGas.mass = self.core.mass
@@ -248,6 +250,10 @@ class SphGiant:
 
         velocityAndMass = [vx * cmass, vy* cmass, vz * cmass]
         positionAndMass = [x * cmass, y * cmass, z * cmass]
+        angularmomentum = CalculateSpecificMomentum((x,y,z),(vx,vy,vz))
+        if cmass != 0.0|units.MSun:
+            angularmomentum = [l*cmass for l in angularmomentum]
+
         particlesAroundCore = 0
         particlesAroundCenteral = 0
         i = 0
@@ -264,6 +270,10 @@ class SphGiant:
                 positionAndMass[0] += particle.x * pmass
                 positionAndMass[1] += particle.y * pmass
                 positionAndMass[2] += particle.z * pmass
+                angularmomentumOfParticle = CalculateSpecificMomentum(particle.position, particle.velocity)
+                angularmomentum[0] += angularmomentumOfParticle[0] * pmass
+                angularmomentum[1] += angularmomentumOfParticle[1] * pmass
+                angularmomentum[2] += angularmomentumOfParticle[2] * pmass
                 particlesAroundCore += 1
 
             if centeralParticle != None:
@@ -282,8 +292,15 @@ class SphGiant:
             self.innerGas.xTot = positionAndMass[0] / totalMass
             self.innerGas.yTot = positionAndMass[1] / totalMass
             self.innerGas.zTot = positionAndMass[2] / totalMass
+
+            self.innerGas.lxTot = angularmomentum[0]
+            self.innerGas.lyTot = angularmomentum[1]
+            self.innerGas.lzTot = angularmomentum[2]
+
         self.innerGas.v = (self.innerGas.vxTot, self.innerGas.vyTot, self.innerGas.vzTot)
         self.innerGas.position = (self.innerGas.xTot, self.innerGas.yTot, self.innerGas.zTot)
+        self.innerGas.angularMomentum =  (self.innerGas.lxTot, self.innerGas.lyTot, self.innerGas.lzTot)
+
         if particlesAroundCenteral > 0:
             self.localDensity = self.localMass / ((4.0*constants.pi*localRadius**3)/3.0)
         else:
@@ -703,7 +720,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
     pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
     if not side_on:
-        cbar = pynbody_sph.image(pyndata, resolution=2000,width=width.value_in(length_unit), units='m_p cm^-2',
+        cbar = pynbody_sph.image(pyndata, resolution=2000,width=width.value_in(length_unit), units='g cm^-3',
                                  vmin= vmin, vmax= vmax, cmap="hot", title = str(i * timeStep) + " days")
         UnitlessArgs.current_plot = native_plot.gca()
         '''native_plot.xlim(xmax=2, xmin=-10)
@@ -722,7 +739,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
             circle_with_radius(core.x, core.y,dustRadius, fill=False, color='white', linestyle= 'dashed', linewidth=3.0)
     else:
         outputDir += "/side_on"
-        cbar = pynbody_sph.sideon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax, cmap="hot", title = str(i * 0.2) + " days")
+        cbar = pynbody_sph.sideon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='g cm^-3',vmin= vmin, vmax= vmax, cmap="hot", title = str(i * 0.2) + " days")
         UnitlessArgs.current_plot = native_plot.gca()
         native_plot.ylabel('z[AU]')
         if core.mass != 0 | units.MSun:
@@ -751,7 +768,7 @@ def PlotVelocity(sphGiant,core,binary,step, outputDir, vmin, vmax, timeStep = 0.
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
     pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
-    pynbody_sph.velocity_image(pyndata, width=width.value_in(length_unit), units='m_p cm^-2',vmin= vmin, vmax= vmax,
+    pynbody_sph.velocity_image(pyndata, width=width.value_in(length_unit), units='g cm^-3',vmin= vmin, vmax= vmax,
                                title = str(step * timeStep) + " days")
     UnitlessArgs.current_plot = native_plot.gca()
     #print core.mass
@@ -809,9 +826,12 @@ def PlotQuadropole(Qxx,Qxy,Qxz,Qyx, Qyy,Qyz,Qzx,Qzy,Qzz, outputDir = 0, timeStep
         textFile.write('\r\n')
     textFile.close()
 
-def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, beginStep, binaryDistances,semmimajors,eccentricities, innerMass,
+def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, beginStep, binaryDistances,semmimajors,
+                       eccentricities, innerMass, innerAngularMomenta, companionAngularMometa, giantAngularMomenta,
                        Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
                        toPlot = False, plotDust=False, dustRadius= 340.0 | units.RSun, timeStep=0.2):
+    energyUnits = units.kg * (units.km ** 2) / units.s ** 2
+    specificAngularMomentumUnits = (energyUnits * units.s / units.kg) / 10000
     for i in [j - beginStep for j in chunk]:
         #print "step #",i
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i + beginStep])
@@ -873,8 +893,8 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 
         #print [CalculateVectorSize(part.velocity).as_quantity_in(units.m / units.s) for part in sphGiant.gasParticles]
         if isBinary:
-            #semmimajor = CalculateSemiMajor(CalculateVelocityDifference(companion, sphGiant.core), CalculateSeparation(companion, sphGiant.core),companion.mass + sphGiant.core.mass).as_quantity_in(units.AU)
-            #CalculateEccentricity(companion, sphGiant.core)
+            semmimajor = CalculateSemiMajor(CalculateVelocityDifference(companion, sphGiant.core), CalculateSeparation(companion, sphGiant.core),companion.mass + sphGiant.core.mass).as_quantity_in(units.AU)
+            CalculateEccentricity(companion, sphGiant.core)
             #check if the companion is inside, take into account only the inner mass of the companion's orbit
             sphGiant.CalculateInnerSPH(companion)
             #print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
@@ -888,7 +908,17 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             eccentricity = CalculateEccentricity(companion, sphGiant.innerGas)
             eccentricities[i] = eccentricity
             binaryDistances[i] = CalculateVectorSize(newBinarySeparation).value_in(units.RSun)
+            specificAngularCOM = CalculateSpecificMomentum(companion.velocity, newBinarySeparation)
+            companionAngularMometa[i] = companion.mass.value_in(units.kg) * CalculateVectorSize(
+                [specificAngularCOM[0].value_in(specificAngularMomentumUnits),
+                 specificAngularCOM[1].value_in(specificAngularMomentumUnits),
+                 specificAngularCOM[2].value_in(specificAngularMomentumUnits)])
+
+
+            giantAngularMomenta[i] = CalculateVectorSize(
+                sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity)).value_in(specificAngularMomentumUnits * units.kg)
             semmimajors[i] = semmimajor.value_in(units.AU)
+            innerAngularMomenta[i] = CalculateVectorSize(sphGiant.innerGas.angularMomentum).value_in(specificAngularMomentumUnits* units.kg)
 
             #check if the binary is breaking up
             if newBinarySpecificEnergy > 0 | (units.m **2 / units.s **2):
@@ -1136,40 +1166,44 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             except:
                 pass
 
-def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False, plotDust=True, dustRadius=700.0|units.RSun, timeStep=0.2):
+def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False, skip=1,plotDust=False, dustRadius=700.0|units.RSun, timeStep=0.2):
     if lastStep == 0 : # no boundary on last step
         lastStep = len(gasFiles)
     else:
         lastStep=min(lastStep, len(dmFiles))
     print lastStep
-    binaryDistances = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
-    semmimajors = multiprocessing.Array('f', [0.0 for i in range(beginStep, lastStep)])
-    eccentricities = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
-    innerMass = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
-    Qxx = multiprocessing.Array(c_float, [0.0 for i in range(beginStep,lastStep)])
-    Qxy = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
-    Qxz = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
-    Qyx = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
-    Qyy = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
-    Qyz = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
-    Qzx = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
-    Qzy = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
-    Qzz = multiprocessing.Array('f', [0.0 for i in range(beginStep,lastStep)])
+    workingRange = range(beginStep, lastStep,skip)
+    binaryDistances = multiprocessing.Array('f', [-1.0 for i in workingRange])
+    semmimajors = multiprocessing.Array('f', [0.0 for i in workingRange])
+    eccentricities = multiprocessing.Array('f', [-1.0 for i in workingRange])
+    innerMass = multiprocessing.Array('f', [-1.0 for i in workingRange])
+    innerAngularMomenta = multiprocessing.Array('f', [-1.0 for i in workingRange])
+    companionAngularMometa = multiprocessing.Array('f', [-1.0 for i in workingRange])
+    giantAngularMomenta = multiprocessing.Array('f', [-1.0 for i in workingRange])
+    Qxx = multiprocessing.Array(c_float, [0.0 for i in workingRange])
+    Qxy = multiprocessing.Array('f', [0.0 for i in workingRange])
+    Qxz = multiprocessing.Array('f', [0.0 for i in workingRange])
+    Qyx = multiprocessing.Array('f', [0.0 for i in workingRange])
+    Qyy = multiprocessing.Array('f', [0.0 for i in workingRange])
+    Qyz = multiprocessing.Array('f', [0.0 for i in workingRange])
+    Qzx = multiprocessing.Array('f', [0.0 for i in workingRange])
+    Qzy = multiprocessing.Array('f', [0.0 for i in workingRange])
+    Qzz = multiprocessing.Array('f', [0.0 for i in workingRange])
 
-    chunkSize = (lastStep - beginStep) / 8
-    #chunkSize= (lastStep-beginStep)/(multiprocessing.cpu_count()-6)
+    #chunkSize = (lastStep - beginStep) / 8
+    chunkSize= len(workingRange)/(multiprocessing.cpu_count()-1)
     if chunkSize == 0:
         if lastStep - beginStep == 0:
             return
         else:
             chunkSize = 1
 
-    chunks = [xrange(i,i+chunkSize) for i in xrange(beginStep,lastStep,chunkSize)]
+    chunks = [xrange(i,i+chunkSize,skip) for i in xrange(beginStep,lastStep,chunkSize)]
     if len(chunks) > 1:
         lastChunkBegin = chunks[-2][-1] + 1
     else:
         lastChunkBegin = 0
-    chunks[-1]= xrange(lastChunkBegin,lastStep)
+    chunks[-1]= xrange(lastChunkBegin,lastStep,skip)
 
     processes = []
     print chunks
@@ -1177,7 +1211,11 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         processes.append(multiprocessing.Process(target= AnalyzeBinaryChunk,args=(savingDir,gasFiles,dmFiles,outputDir,
                                                                                   chunk, vmin, vmax, beginStep,
                                                                                   binaryDistances, semmimajors,
-                                                                                  eccentricities, innerMass, Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
+                                                                                  eccentricities, innerMass,
+                                                                                  innerAngularMomenta,
+                                                                                  companionAngularMometa,
+                                                                                  giantAngularMomenta,
+                                                                                  Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
                                                                                   toPlot,
                                                                                   plotDust,dustRadius,timeStep,)))
         #pool.map()
@@ -1198,7 +1236,8 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     PlotBinaryDistance([(newBinaryDistances, "InnerBinaryDistances")], outputDir + "/graphs", beginStep)
     PlotAdaptiveQuantities([(newSemmimajors ,"aInners")], outputDir+"/graphs", beginStep)
     PlotEccentricity([(eccentricities, "eInners")], outputDir + "/graphs", beginStep)
-    PlotAdaptiveQuantities([(innerMass, "InnerMass")], outputDir + "/graphs", beginStep)
+    PlotAdaptiveQuantities([(innerMass, "InnerMass"),(innerMass,"innerMass"),(innerAngularMomenta,"innerAngularMomenta")
+                               ,(companionAngularMometa,"companionAngularMometa")], outputDir + "/graphs", beginStep)
     PlotQuadropole(Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,outputDir+"/graphs",timeStep,beginStep)
 
 

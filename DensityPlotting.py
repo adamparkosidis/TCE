@@ -831,7 +831,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
                        Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
                        toPlot = False, plotDust=False, dustRadius= 340.0 | units.RSun, timeStep=0.2):
     energyUnits = units.kg * (units.km ** 2) / units.s ** 2
-    specificAngularMomentumUnits = (energyUnits * units.s / units.kg) / 1000000
+    specificAngularMomentumUnits = (energyUnits * units.s / units.kg) / 10.0**10
     for index,step in enumerate(chunk):
         i = beginStep + index
         print "step #",i
@@ -858,7 +858,6 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
         else:
             isBinary=False
             binary = Star(sphPointStar, sphPointStar)
-        print binary.position, binary.vx,binary.vy,binary.vz
         if CalculateVectorSize(CalculateSeparation(sphGiant.core,companion)) < min(sphGiant.core.radius,companion.radius):
             print "merger between companion and the giant! step: ", step
             #break
@@ -868,7 +867,6 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
                 f.close()
             except:
                 pass
-        print CalculateVectorSize(sphGiant.v).as_quantity_in(units.m / units.s)
         parts = Particles()
         parts.add_particle(sphGiant.core)
         parts.add_particles(sphGiant.gasParticles)
@@ -908,6 +906,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             eccentricities[i] = eccentricity
             binaryDistances[i] = CalculateVectorSize(newBinarySeparation).value_in(units.RSun)
             specificAngularCOM = CalculateSpecificMomentum(companion.velocity, newBinarySeparation)
+            print specificAngularCOM
             companionAngularMometa[i] = companion.mass.value_in(units.kg) * CalculateVectorSize(
                 [specificAngularCOM[0].value_in(specificAngularMomentumUnits),
                  specificAngularCOM[1].value_in(specificAngularMomentumUnits),
@@ -1195,12 +1194,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         else:
             chunkSize = 1
 
-    chunks = [workingRange[i:i+chunkSize] for i in xrange(0,len(workingRange),chunkSize)]
-    if len(chunks) > 1:
-        lastChunkBegin = chunks[-2][-1] + 1
-    else:
-        lastChunkBegin = 0
-    chunks[-1]= xrange(lastChunkBegin,lastStep,skip)
+    chunks = [workingRange[i:i+min(chunkSize,len(workingRange)-i)] for i in xrange(0,len(workingRange),chunkSize)]
 
     processes = []
     print chunks
@@ -1235,7 +1229,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     PlotBinaryDistance([(newBinaryDistances, "InnerBinaryDistances")], outputDir + "/graphs", beginStep)
     PlotAdaptiveQuantities([(newSemmimajors ,"aInners")], outputDir+"/graphs", beginStep)
     PlotEccentricity([(eccentricities, "eInners")], outputDir + "/graphs", beginStep)
-    PlotAdaptiveQuantities([(innerMass, "InnerMass"),(innerMass,"innerMass"),(innerAngularMomenta,"innerAngularMomenta")
+    PlotAdaptiveQuantities([(innerMass, "InnerMass"),(innerAngularMomenta,"innerAngularMomenta")
                                ,(companionAngularMometa,"companionAngularMometa"),(giantAngularMomenta,"giantAngularMomenta")]
                            , outputDir + "/graphs", beginStep)
     PlotQuadropole(Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,outputDir+"/graphs",timeStep,beginStep)

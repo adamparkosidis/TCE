@@ -831,7 +831,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
                        Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
                        toPlot = False, plotDust=False, dustRadius= 340.0 | units.RSun, timeStep=0.2):
     energyUnits = units.kg * (units.km ** 2) / units.s ** 2
-    specificAngularMomentumUnits = (energyUnits * units.s / units.kg) / 10000
+    specificAngularMomentumUnits = (energyUnits * units.s / units.kg) / 1000000
     for index,step in enumerate(chunk):
         i = beginStep + index
         print "step #",i
@@ -839,8 +839,6 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
         dm_particles_file = None
         if len(dmFiles) > 0:
             dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[step])
-        #binaryDistances = AdaptingVectorQuantity()
-        #eccentricities = []
         sphGiant = SphGiant(gas_particles_file, dm_particles_file, opposite=True)
         sphPointStar = Particle()
         sphPointStar.position = sphGiant.position
@@ -914,8 +912,6 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
                 [specificAngularCOM[0].value_in(specificAngularMomentumUnits),
                  specificAngularCOM[1].value_in(specificAngularMomentumUnits),
                  specificAngularCOM[2].value_in(specificAngularMomentumUnits)])
-
-
             giantAngularMomenta[i] = CalculateVectorSize(
                 sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity)).value_in(specificAngularMomentumUnits * units.kg)
             semmimajors[i] = semmimajor.value_in(units.AU)
@@ -1240,7 +1236,8 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     PlotAdaptiveQuantities([(newSemmimajors ,"aInners")], outputDir+"/graphs", beginStep)
     PlotEccentricity([(eccentricities, "eInners")], outputDir + "/graphs", beginStep)
     PlotAdaptiveQuantities([(innerMass, "InnerMass"),(innerMass,"innerMass"),(innerAngularMomenta,"innerAngularMomenta")
-                               ,(companionAngularMometa,"companionAngularMometa")], outputDir + "/graphs", beginStep)
+                               ,(companionAngularMometa,"companionAngularMometa"),(giantAngularMomenta,"giantAngularMomenta")]
+                           , outputDir + "/graphs", beginStep)
     PlotQuadropole(Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,outputDir+"/graphs",timeStep,beginStep)
 
 

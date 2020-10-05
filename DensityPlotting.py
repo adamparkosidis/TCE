@@ -452,6 +452,14 @@ class SphGiant:
                Qzx.value_in(units.m**2 * units.kg * units.s**-2),Qzy.value_in(units.m**2 * units.kg * units.s**-2),\
                Qzz.value_in(units.m**2 * units.kg * units.s**-2)
 
+class MultiProcessArrayWithUnits:
+    def __init__(self,size,units):
+        self.array = multiprocessing.Array('f', [-1.0 for i in range(size)])
+        self.units = units
+
+    def plot(self, filename, outputDir,timeStep, beginStep, toPlot):
+        Plot1Axe(AdaptingVectorQuantity([a for a in self.array], self.units),filename, outputDir,timeStep, beginStep, toPlot)
+
 def LoadBinaries(file, opposite= False):
     load = read_set_from_file(file, format='amuse')
     #print load
@@ -826,12 +834,13 @@ def PlotQuadropole(Qxx,Qxy,Qxz,Qyx, Qyy,Qyz,Qzx,Qzy,Qzz, outputDir = 0, timeStep
         textFile.write('\r\n')
     textFile.close()
 
-def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, beginStep, binaryDistances,semmimajors,
-                       eccentricities, innerMass, innerAngularMomenta, companionAngularMometa, giantAngularMomenta,
+def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, beginStep, binaryDistances,binaryDistancesUnits,
+                       semmimajors,semmimajorsUnits, eccentricities, innerMass, innerMassUnits, innerAngularMomenta,
+                       innerAngularMomentaUnits, companionAngularMometa, companionAngularMometaUnits,
+                       giantAngularMomenta, giantAngularMomentaUnits,
                        Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
                        toPlot = False, plotDust=False, dustRadius= 340.0 | units.RSun, timeStep=0.2):
-    energyUnits = units.kg * (units.km ** 2) / units.s ** 2
-    specificAngularMomentumUnits = (energyUnits * units.s / units.kg) / 10.0**10
+
     for index,step in enumerate(chunk):
         i = beginStep + index
         print "step #",i
@@ -895,7 +904,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             #check if the companion is inside, take into account only the inner mass of the companion's orbit
             sphGiant.CalculateInnerSPH(companion)
             #print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
-            innerMass[i] = sphGiant.innerGas.mass.value_in(units.MSun)
+            innerMass[i] = sphGiant.innerGas.mass.value_in(innerMassUnits)
 
             newBinaryVelocityDifference = CalculateVelocityDifference(companion, sphGiant.innerGas)
             newBinarySeparation = CalculateSeparation(companion, sphGiant.innerGas)
@@ -904,17 +913,15 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             semmimajor = CalculateSemiMajor(newBinaryVelocityDifference, newBinarySeparation, newBinaryMass).as_quantity_in(units.AU)
             eccentricity = CalculateEccentricity(companion, sphGiant.innerGas)
             eccentricities[i] = eccentricity
-            binaryDistances[i] = CalculateVectorSize(newBinarySeparation).value_in(units.RSun)
+            binaryDistances[i] = CalculateVectorSize(newBinarySeparation).value_in(binaryDistancesUnits)
             specificAngularCOM = CalculateSpecificMomentum(companion.velocity, newBinarySeparation)
-            print specificAngularCOM
             companionAngularMometa[i] = companion.mass.value_in(units.kg) * CalculateVectorSize(
-                [specificAngularCOM[0].value_in(specificAngularMomentumUnits),
-                 specificAngularCOM[1].value_in(specificAngularMomentumUnits),
-                 specificAngularCOM[2].value_in(specificAngularMomentumUnits)])
+                [specificAngularCOM[0], specificAngularCOM[1], specificAngularCOM[2]]).value_in(companionAngularMometaUnits / units.kg)
+            print companionAngularMometa[i], specificAngularCOM[2], specificAngularCOM[2]*companion.mass
             giantAngularMomenta[i] = CalculateVectorSize(
-                sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity)).value_in(specificAngularMomentumUnits * units.kg)
-            semmimajors[i] = semmimajor.value_in(units.AU)
-            innerAngularMomenta[i] = CalculateVectorSize(sphGiant.innerGas.angularMomentum).value_in(specificAngularMomentumUnits* units.kg)
+                sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity)).value_in(giantAngularMomentaUnits)
+            semmimajors[i] = semmimajor.value_in(semmimajorsUnits)
+            innerAngularMomenta[i] = CalculateVectorSize(sphGiant.innerGas.angularMomentum).value_in(innerAngularMomentaUnits)
 
             #check if the binary is breaking up
             if newBinarySpecificEnergy > 0 | (units.m **2 / units.s **2):
@@ -1169,13 +1176,16 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         lastStep=min(lastStep, len(dmFiles))
     print lastStep
     workingRange = range(beginStep, lastStep,skip)
-    binaryDistances = multiprocessing.Array('f', [-1.0 for i in workingRange])
-    semmimajors = multiprocessing.Array('f', [0.0 for i in workingRange])
-    eccentricities = multiprocessing.Array('f', [-1.0 for i in workingRange])
-    innerMass = multiprocessing.Array('f', [-1.0 for i in workingRange])
-    innerAngularMomenta = multiprocessing.Array('f', [-1.0 for i in workingRange])
-    companionAngularMometa = multiprocessing.Array('f', [-1.0 for i in workingRange])
-    giantAngularMomenta = multiprocessing.Array('f', [-1.0 for i in workingRange])
+    energyUnits = units.kg*(units.km**2)/(units.s**2)
+    angularMomentaUnits = energyUnits * units.s * 10000
+
+    binaryDistances = MultiProcessArrayWithUnits(len(workingRange),units.RSun)
+    semmimajors = MultiProcessArrayWithUnits(len(workingRange),units.AU)
+    eccentricities = MultiProcessArrayWithUnits(len(workingRange),None)
+    innerMass = MultiProcessArrayWithUnits(len(workingRange),units.MSun)
+    innerAngularMomenta = MultiProcessArrayWithUnits(len(workingRange),angularMomentaUnits)
+    companionAngularMometa = MultiProcessArrayWithUnits(len(workingRange),angularMomentaUnits)
+    giantAngularMomenta = MultiProcessArrayWithUnits(len(workingRange),angularMomentaUnits)
     Qxx = multiprocessing.Array(c_float, [0.0 for i in workingRange])
     Qxy = multiprocessing.Array('f', [0.0 for i in workingRange])
     Qxz = multiprocessing.Array('f', [0.0 for i in workingRange])
@@ -1202,11 +1212,13 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     for chunk in chunks:
         processes.append(multiprocessing.Process(target= AnalyzeBinaryChunk,args=(savingDir,gasFiles,dmFiles,outputDir,
                                                                                   chunk, vmin, vmax, i,
-                                                                                  binaryDistances, semmimajors,
-                                                                                  eccentricities, innerMass,
-                                                                                  innerAngularMomenta,
-                                                                                  companionAngularMometa,
-                                                                                  giantAngularMomenta,
+                                                                                  binaryDistances.array, binaryDistances.units,
+                                                                                  semmimajors.array, semmimajors.units,
+                                                                                  eccentricities.array,
+                                                                                  innerMass.array, innerMass.units,
+                                                                                  innerAngularMomenta.array, innerAngularMomenta.units,
+                                                                                  companionAngularMometa.array, companionAngularMometa.units,
+                                                                                  giantAngularMomenta.array, giantAngularMomenta.units,
                                                                                   Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
                                                                                   toPlot,
                                                                                   plotDust,dustRadius,timeStep,)))
@@ -1217,21 +1229,14 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     for p in processes:
         p.join()
 
-    newBinaryDistances = AdaptingVectorQuantity()
-    newSemmimajors = AdaptingVectorQuantity()
-    newInnerMass = AdaptingVectorQuantity()
+    binaryDistances.plot("InnerBinaryDistances", outputDir + "/graphs",timeStep,beginStep,False)
+    semmimajors.plot("aInners", outputDir + "/graphs",timeStep,beginStep,False)
+    innerMass.plot("InnerMass", outputDir + "/graphs",timeStep,beginStep,False)
+    eccentricities.plot("eInners", outputDir + "/graphs",timeStep,beginStep,False)
+    innerAngularMomenta.plot("innerAngularMomenta", outputDir + "/graphs",timeStep,beginStep,False)
+    companionAngularMometa.plot("companionAngularMometa", outputDir + "/graphs",timeStep,beginStep,False)
+    giantAngularMomenta.plot("giantAngularMomenta", outputDir + "/graphs",timeStep,beginStep,False)
 
-    for j in xrange(len(binaryDistances) - 1):
-        newBinaryDistances.append(float(binaryDistances[j]) | units.RSun)
-        newSemmimajors.append(float(semmimajors[j]) | units.AU)
-        newInnerMass.append(float(innerMass[j]) | units.MSun)
-    #print newBinaryDistances
-    PlotBinaryDistance([(newBinaryDistances, "InnerBinaryDistances")], outputDir + "/graphs", beginStep)
-    PlotAdaptiveQuantities([(newSemmimajors ,"aInners")], outputDir+"/graphs", beginStep)
-    PlotEccentricity([(eccentricities, "eInners")], outputDir + "/graphs", beginStep)
-    PlotAdaptiveQuantities([(innerMass, "InnerMass"),(innerAngularMomenta,"innerAngularMomenta")
-                               ,(companionAngularMometa,"companionAngularMometa"),(giantAngularMomenta,"giantAngularMomenta")]
-                           , outputDir + "/graphs", beginStep)
     PlotQuadropole(Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,outputDir+"/graphs",timeStep,beginStep)
 
 

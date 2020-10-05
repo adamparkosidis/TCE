@@ -458,7 +458,12 @@ class MultiProcessArrayWithUnits:
         self.units = units
 
     def plot(self, filename, outputDir,timeStep, beginStep, toPlot):
-        Plot1Axe(AdaptingVectorQuantity([a for a in self.array], self.units),filename, outputDir,timeStep, beginStep, toPlot)
+        if self.units is None:
+            array = [a for a in self.array]
+        else:
+            array = AdaptingVectorQuantity([a for a in self.array], self.units)
+
+        Plot1Axe(array,filename, outputDir,timeStep, beginStep, toPlot)
 
 def LoadBinaries(file, opposite= False):
     load = read_set_from_file(file, format='amuse')

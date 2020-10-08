@@ -69,6 +69,7 @@ class SphStar:
             os.makedirs(savingPath)
         except(OSError):
             pass
+        mainStar.reset_number_of_backups_in_a_row()
         while mainStar.radius < self.radius or \
                 (self.radius.value_in(units.RSun) == 0 and
                      self.CheckLimitType(mainStar.stellar_type.value_in(units.stellar_type))):
@@ -83,7 +84,7 @@ class SphStar:
                     if mainStar.stellar_type.value_in(units.stellar_type)!= oldStellarType:
                         oldStellarType = mainStar.stellar_type.value_in(units.stellar_type)
                         print mainStar.stellar_type, mainStar.radius, maxRadii
-                    evolutionType.reset_number_of_backups_in_a_row()
+                    mainStar.reset_number_of_backups_in_a_row()
                     mainStar.evolve_one_step()
                 except Exception as e:
                     print "could not evolve further", e

@@ -1541,7 +1541,7 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
         os.makedirs(outputDir + "/radial_profile")
     except(OSError):
         pass
-    gasFiles, dmFiles, numberOfCompanion = InitializeSnapshots(savingDir, args.toCompare,args.beginStep)
+    gasFiles, dmFiles, numberOfCompanion = InitializeSnapshots(savingDir, toCompare,args.beginStep)
 
     if numberOfCompanion <= 2: #binary
         print "analyzing binary"

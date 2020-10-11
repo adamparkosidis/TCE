@@ -1511,8 +1511,9 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
     args=parser.parse_args()
     savingDir = os.path.join(args.source_dir, args.savingDir)
     outputDir = os.path.join(savingDir,"pics")
+    toCompare = (args.savingDir == "snapshots")
     print "plotting to " +  outputDir + " plot- " + str(args.plot) +  " from " +  args.savingDir +" begin step = " , args.beginStep , \
-        " vmin, vmax = " , args.vmin, args.vmax, "special comparing = ", args.toCompare, "axes at the origin? ", \
+        " vmin, vmax = " , args.vmin, args.vmax, "special comparing = ", toCompare, "axes at the origin? ", \
         args.axesOriginInInnerBinaryCenterOfMass, "opossite? ", args.opposite, "timeStep= ", args.timeStep, "localRadius= ",args.localRadius
     '''savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, axesOriginInInnerBinaryCenterOfMass, \
         opposite, timeStep, localRadius = GetArgs(args)

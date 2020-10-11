@@ -1402,14 +1402,16 @@ def InitParser():
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('--beginStep', type=int,  help='first step', default=0)
     parser.add_argument('--lastStep', type=int,  help='last step', default=0)
-    parser.add_argument('--time_step', type=float,  help='time between files in days', default=0.2)
+    parser.add_argument('--timeStep', type=float,  help='time between files in days', default=0.2)
     parser.add_argument('--source_dir', type=str,  help='path to amuse files directory', default= sys.args[0])
-    parser.add_argument('--snapshots_dir', type=str,  help='path to amuse files directory', default= "evolution")
+    parser.add_argument('--savingDir', type=str,  help='path to output directory', default= "evolution")
     parser.add_argument('--vmin', type=float,  help='minimum  density plotting', default=1e16)
     parser.add_argument('--vmax', type=float,  help='maximum  density plotting', default=1e34)
     parser.add_argument('--plot', type=bool,  help='do you want to plot profiles?', default=False)
     parser.add_argument('--axesOriginInInnerBinaryCenterOfMass', type=bool,  help='do you want to plot the inner binary at the origin?', default=False)
     parser.add_argument('--opposite', type=bool,  help='do you want the main star to be a part of the inner binary?', default=False)
+    parser.add_argument('--localRadius', type=float,  help='maximum  density plotting', default=50.0)
+    parser.add_argument('--cpus', type=int,  help='number of cpus', default=10)
 
     return parser
 
@@ -1505,13 +1507,19 @@ def compare(st1, st2):
 
 
 def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0,1e16,1e34, 1]):
-    #parser=InitParser()
-    #args=parser.parse_args()
-    savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, axesOriginInInnerBinaryCenterOfMass, \
+    parser=InitParser()
+    args=parser.parse_args()
+    savingDir = os.path.join(args.source_dir, args.savingDir)
+    outputDir = os.path.join(savingDir,"pics")
+    print "plotting to " +  outputDir + " plot- " + str(args.plot) +  " from " +  args.savingDir +" begin step = " , args.beginStep , \
+        " vmin, vmax = " , args.vmin, args.vmax, "special comparing = ", args.toCompare, "axes at the origin? ", \
+        args.axesOriginInInnerBinaryCenterOfMass, "opossite? ", args.opposite, "timeStep= ", args.timeStep, "localRadius= ",args.localRadius
+    '''savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, axesOriginInInnerBinaryCenterOfMass, \
         opposite, timeStep, localRadius = GetArgs(args)
     print "plotting to " +  outputDir + " plot- " + str(plot) +  " from " +  savingDir +" begin step = " , beginStep , \
         " vmin, vmax = " , vmin, vmax, "special comparing = ", toCompare, "axes at the origin? ", \
         axesOriginInInnerBinaryCenterOfMass, "opossite? ", opposite, "timeStep= ", timeStep, "localRadius= ",localRadius
+    '''
     try:
         os.makedirs(outputDir)
     except(OSError):
@@ -1532,14 +1540,18 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
         os.makedirs(outputDir + "/radial_profile")
     except(OSError):
         pass
-    gasFiles, dmFiles, numberOfCompanion = InitializeSnapshots(savingDir, toCompare,beginStep)
+    gasFiles, dmFiles, numberOfCompanion = InitializeSnapshots(savingDir, args.toCompare,args.beginStep)
 
     if numberOfCompanion <= 2: #binary
         print "analyzing binary"
-        AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, plot, plotDust=False, timeStep=timeStep)
+        AnalyzeBinary(beginStep=args.beginStep,lastStep=args.lastStep, dmFiles=dmFiles, gasFiles=gasFiles,
+                      savingDir=savingDir, outputDir=outputDir, vmin=args.vmin, vmax=args.vmax, toPlot=args.plot,
+                      plotDust=False, timeStep=args.timeStep, cpus= args.cpus)
     elif numberOfCompanion ==3: #triple
-        AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, localRadius,
-                      plot, opposite, axesOriginInInnerBinaryCenterOfMass, timeStep=timeStep)
+        AnalyzeTriple(beginStep=args.beginStep, lastStep=args.lastStep, dmFiles=dmFiles, gasFiles=gasFiles,
+                      savingDir=savingDir, outputDir=outputDir, vmin=args.vmin, vmax=args.vmax, localRadius=args.localRadius,
+                      toPlot=args.plot, opposite=args.opposite,
+                      axesOriginInInnerBinaryCenterOfMass=args.axesOriginInInnerBinaryCenterOfMass, timeStep=args.timeStep)
 
 if __name__ == "__main__":
     for arg in sys.argv:

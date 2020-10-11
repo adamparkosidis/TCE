@@ -919,12 +919,12 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             eccentricity = CalculateEccentricity(companion, sphGiant.innerGas)
             eccentricities[i] = eccentricity
             binaryDistances[i] = CalculateVectorSize(newBinarySeparation).value_in(binaryDistancesUnits)
-            specificAngularCOM = CalculateSpecificMomentum(companion.velocity, newBinarySeparation)
+            specificAngularCOM = CalculateSpecificMomentum(companion.velocity, CalculateVectorSize(companion.position))
             companionAngularMomenta[i] = companion.mass.value_in(units.kg) * CalculateVectorSize(
                 [specificAngularCOM[0], specificAngularCOM[1], specificAngularCOM[2]]).value_in(companionAngularMomentaUnits / units.kg)
             print companionAngularMomenta[i], specificAngularCOM[2], specificAngularCOM[2]*companion.mass
             giantAngularMomenta[i] = CalculateVectorSize(
-                sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity)).value_in(giantAngularMomentaUnits)
+                sphGiant.GetAngularMomentum()).value_in(giantAngularMomentaUnits)
             semmimajors[i] = semmimajor.value_in(semmimajorsUnits)
             innerAngularMomenta[i] = CalculateVectorSize(sphGiant.innerGas.angularMomentum).value_in(innerAngularMomentaUnits)
 
@@ -1174,7 +1174,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             except:
                 pass
 
-def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False, skip=1,plotDust=False, dustRadius=700.0|units.RSun, timeStep=0.2):
+def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False,cpus=10, skip=1,plotDust=False, dustRadius=700.0|units.RSun, timeStep=0.2):
     if lastStep == 0 : # no boundary on last step
         lastStep = len(gasFiles)
     else:
@@ -1202,7 +1202,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     Qzz = multiprocessing.Array('f', [0.0 for i in workingRange])
 
     #chunkSize = (lastStep - beginStep) / 8
-    chunkSize= len(workingRange)/(multiprocessing.cpu_count()-1)
+    chunkSize= len(workingRange)/cpus
     if chunkSize == 0:
         if lastStep - beginStep == 0:
             return

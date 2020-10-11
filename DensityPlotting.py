@@ -919,7 +919,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             eccentricity = CalculateEccentricity(companion, sphGiant.innerGas)
             eccentricities[i] = eccentricity
             binaryDistances[i] = CalculateVectorSize(newBinarySeparation).value_in(binaryDistancesUnits)
-            specificAngularCOM = CalculateSpecificMomentum(companion.velocity, CalculateVectorSize(companion.position))
+            specificAngularCOM = CalculateSpecificMomentum(companion.velocity, companion.position)
             companionAngularMomenta[i] = companion.mass.value_in(units.kg) * CalculateVectorSize(
                 [specificAngularCOM[0], specificAngularCOM[1], specificAngularCOM[2]]).value_in(companionAngularMomentaUnits / units.kg)
             print companionAngularMomenta[i], specificAngularCOM[2], specificAngularCOM[2]*companion.mass

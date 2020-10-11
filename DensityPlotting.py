@@ -752,7 +752,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
             circle_with_radius(core.x, core.y,dustRadius, fill=False, color='white', linestyle= 'dashed', linewidth=3.0)
     else:
         outputDir += "/side_on"
-        cbar = pynbody_sph.sideon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='g cm^-3',vmin= vmin, vmax= vmax, cmap="hot", title = str(i * 0.2) + " days")
+        cbar = pynbody_sph.sideon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='g cm^-3',vmin= vmin, vmax= vmax, cmap="hot", title = str(i * timeStep) + " days")
         UnitlessArgs.current_plot = native_plot.gca()
         native_plot.ylabel('z[AU]')
         if core.mass != 0 | units.MSun:
@@ -1214,7 +1214,6 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     processes = []
     print chunks
     i=0
-    timeStep = timeStep * skip
     for chunk in chunks:
         processes.append(multiprocessing.Process(target= AnalyzeBinaryChunk,args=(savingDir,gasFiles,dmFiles,outputDir,
                                                                                   chunk, vmin, vmax, i,

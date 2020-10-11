@@ -1403,7 +1403,7 @@ def InitParser():
     parser.add_argument('--beginStep', type=int,  help='first step', default=0)
     parser.add_argument('--lastStep', type=int,  help='last step', default=0)
     parser.add_argument('--timeStep', type=float,  help='time between files in days', default=0.2)
-    parser.add_argument('--source_dir', type=str,  help='path to amuse files directory', default= sys.args[0])
+    parser.add_argument('--source_dir', type=str,  help='path to amuse files directory', default= sys.argv[0])
     parser.add_argument('--savingDir', type=str,  help='path to output directory', default= "evolution")
     parser.add_argument('--vmin', type=float,  help='minimum  density plotting', default=1e16)
     parser.add_argument('--vmax', type=float,  help='maximum  density plotting', default=1e34)

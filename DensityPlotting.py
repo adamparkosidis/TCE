@@ -1234,15 +1234,15 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     for p in processes:
         p.join()
 
-    binaryDistances.plot("InnerBinaryDistances", outputDir + "/graphs",timeStep,beginStep,False)
-    semmimajors.plot("aInners", outputDir + "/graphs",timeStep,beginStep,False)
-    innerMass.plot("InnerMass", outputDir + "/graphs",timeStep,beginStep,False)
-    eccentricities.plot("eInners", outputDir + "/graphs",timeStep,beginStep,False)
-    innerAngularMomenta.plot("innerAngularMomenta", outputDir + "/graphs",timeStep,beginStep,False)
-    companionAngularMomenta.plot("companionAngularMomenta", outputDir + "/graphs",timeStep,beginStep,False)
-    giantAngularMomenta.plot("giantAngularMomenta", outputDir + "/graphs",timeStep,beginStep,False)
+    binaryDistances.plot("InnerBinaryDistances", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
+    semmimajors.plot("aInners", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
+    innerMass.plot("InnerMass", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
+    eccentricities.plot("eInners", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
+    innerAngularMomenta.plot("innerAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
+    companionAngularMomenta.plot("companionAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
+    giantAngularMomenta.plot("giantAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
 
-    PlotQuadropole(Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,outputDir+"/graphs",timeStep,beginStep)
+    PlotQuadropole(Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,outputDir+"/graphs",timeStep*skip,beginStep/skip)
 
 
 def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, localRadius=50.0 | units.RSun

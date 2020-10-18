@@ -872,38 +872,41 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
         else:
             isBinary=False
             binary = Star(sphPointStar, sphPointStar)
-        if CalculateVectorSize(CalculateSeparation(sphGiant.core,companion)) < min(sphGiant.core.radius,companion.radius):
-            print "merger between companion and the giant! step: ", step
-            #break
 
-        for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
-            try:
-                f.close()
-            except:
-                pass
-        parts = Particles()
-        parts.add_particle(sphGiant.core)
-        parts.add_particles(sphGiant.gasParticles)
-        parts.add_particle(companion)
-
-        print "com: ", parts.center_of_mass(),  step
-        print "com v: ", parts.center_of_mass_velocity(), i
-        centerOfMassPosition = parts.center_of_mass()
-        centerOfMassVelocity = parts.center_of_mass_velocity()
-        sphGiant.gasParticles.position -= centerOfMassPosition
-        sphGiant.gasParticles.velocity -= centerOfMassVelocity
-        sphGiant.core.position -= centerOfMassPosition
-        sphGiant.core.velocity -= centerOfMassVelocity
-
-        companion.position -= centerOfMassPosition
-        companion.velocity -= centerOfMassVelocity
-
-        sphGiant.CountLeavingParticlesInsideRadius()
-        print "leaving particles: ", sphGiant.leavingParticles
-        print "unbounded mass: ", sphGiant.totalUnboundedMass
 
         #print [CalculateVectorSize(part.velocity).as_quantity_in(units.m / units.s) for part in sphGiant.gasParticles]
         if isBinary:
+            if CalculateVectorSize(CalculateSeparation(sphGiant.core, companion)) < min(sphGiant.core.radius,
+                                                                                        companion.radius):
+                print "merger between companion and the giant! step: ", step
+                # break
+
+            for f in [obj for obj in gc.get_objects() if isinstance(obj, h5py.File)]:
+                try:
+                    f.close()
+                except:
+                    pass
+            parts = Particles()
+            parts.add_particle(sphGiant.core)
+            parts.add_particles(sphGiant.gasParticles)
+            parts.add_particle(companion)
+
+            print "com: ", parts.center_of_mass(), step
+            print "com v: ", parts.center_of_mass_velocity(), i
+            centerOfMassPosition = parts.center_of_mass()
+            centerOfMassVelocity = parts.center_of_mass_velocity()
+            sphGiant.gasParticles.position -= centerOfMassPosition
+            sphGiant.gasParticles.velocity -= centerOfMassVelocity
+            sphGiant.core.position -= centerOfMassPosition
+            sphGiant.core.velocity -= centerOfMassVelocity
+
+            companion.position -= centerOfMassPosition
+            companion.velocity -= centerOfMassVelocity
+
+            sphGiant.CountLeavingParticlesInsideRadius()
+            print "leaving particles: ", sphGiant.leavingParticles
+            print "unbounded mass: ", sphGiant.totalUnboundedMass
+            
             semmimajor = CalculateSemiMajor(CalculateVelocityDifference(companion, sphGiant.core), CalculateSeparation(companion, sphGiant.core),companion.mass + sphGiant.core.mass).as_quantity_in(units.AU)
             CalculateEccentricity(companion, sphGiant.core)
             #check if the companion is inside, take into account only the inner mass of the companion's orbit

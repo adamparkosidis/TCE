@@ -125,6 +125,8 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
     except(OSError):
         pass
     if takeSavedState == "Single":#continue the relaxation but without forcing the com to stay in place
+        if step > -1:
+            savedVersionPath=savedVersionPath+"/evolution"
         starEnvelope, starCore, binary, semmimajor, sphMetaData = \
             StarModels.TakeBinarySavedState(savedVersionPath, configurationFile, step= step)
         outputDirectory = savedVersionPath + "/codes_output_{0}".format(str(time.localtime().tm_year) + "-" +

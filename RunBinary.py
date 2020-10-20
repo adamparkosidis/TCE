@@ -147,7 +147,7 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
                                   sphMetaData.numberOfWorkers, outputDirectory=outputDirectory + "/hydro")
 
 
-        EvolveNBody.RunSystem(system,sphMetaData.relaxationTime,sphMetaData.relaxationTimeSteps,savedVersionPath,0,-1,False)
+        EvolveNBody.RunSystem(system,sphMetaData.relaxationTime,sphMetaData.relaxationTimeSteps,savedVersionPath,0,step,False)
 
         print "****************** Simulation Completed ******************"
         return

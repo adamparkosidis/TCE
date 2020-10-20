@@ -299,8 +299,12 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
         print load
         starCore=load[0]
         starMass = starEnvelope.total_mass() + starCore.mass
-        binary = Binary(particles=Particles(2, particles=[load[0], load[1]]))
-        print "binary loaded: ", binary.stars
+        if len(load) > 1:
+            binary = Binary(particles=Particles(2, particles=[load[0], load[1]]))
+            print "binary loaded: ", binary.stars
+        else:
+            binary = None
+            print "continue run of a single star and no binary"
         sphMetaData = pickle.load(open(savedVersionPath + "/../metaData.p", "rb"))
     else:
         starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
@@ -341,6 +345,7 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
         print "core: ", starCore.position
         print "sph velocity: ", GiantSPHCenterOfMassVelocity(starEnvelope,starCore)
         sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
+
     return starEnvelope, starCore, binary, binary.semimajorAxis, sphMetaData
 
 def SaveState(savedVersionPath, starMass, starEnvelope, dms, tripleSemmimajor, sphMetaData):

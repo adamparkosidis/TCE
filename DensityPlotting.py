@@ -849,6 +849,12 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
     for index,step in enumerate(chunk):
         i = beginStep + index
         print "step #",i
+
+        for f in [obj for obj in gc.get_objects() if isinstance(obj, h5py.File)]:
+            try:
+                f.close()
+            except:
+                pass
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[step])
         dm_particles_file = None
         if len(dmFiles) > 0:
@@ -881,11 +887,6 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
                 print "merger between companion and the giant! step: ", step
                 # break
 
-            for f in [obj for obj in gc.get_objects() if isinstance(obj, h5py.File)]:
-                try:
-                    f.close()
-                except:
-                    pass
             parts = Particles()
             parts.add_particle(sphGiant.core)
             parts.add_particles(sphGiant.gasParticles)
@@ -906,7 +907,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             sphGiant.CountLeavingParticlesInsideRadius()
             print "leaving particles: ", sphGiant.leavingParticles
             print "unbounded mass: ", sphGiant.totalUnboundedMass
-            
+
             semmimajor = CalculateSemiMajor(CalculateVelocityDifference(companion, sphGiant.core), CalculateSeparation(companion, sphGiant.core),companion.mass + sphGiant.core.mass).as_quantity_in(units.AU)
             CalculateEccentricity(companion, sphGiant.core)
             #check if the companion is inside, take into account only the inner mass of the companion's orbit

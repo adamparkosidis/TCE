@@ -303,7 +303,7 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
             binary = Binary(particles=Particles(2, particles=[load[0], load[1]]))
             print "binary loaded: ", binary.stars
         else:
-            binary = None
+            binary = Binary(configurationFile, configurationSection="Binary")
             print "continue run of a single star and no binary"
         sphMetaData = pickle.load(open(savedVersionPath + "/../metaData.p", "rb"))
     else:

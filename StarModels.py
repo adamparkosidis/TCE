@@ -319,8 +319,8 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
         print "sph com: ", GiantSPHCenterOfMassPosition(starEnvelope,starCore)
         print "sph velocity: ", GiantSPHCenterOfMassVelocity(starEnvelope,starCore)
 
-        #binary.stars.position -= binary.stars[0].position
-        #binary.stars.velocity -= binary.stars[0].velocity
+        binary.stars.position -= binary.stars[0].position
+        binary.stars.velocity -= binary.stars[0].velocity
 
         print "binary loaded: ", binary.stars
         #changing according to before relaxation
@@ -344,6 +344,7 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 ):
         print "sph com: ", GiantSPHCenterOfMassPosition(starEnvelope,starCore)
         print "core: ", starCore.position
         print "sph velocity: ", GiantSPHCenterOfMassVelocity(starEnvelope,starCore)
+        print "some sph velocities: ", starEnvelope.velocity[0], starEnvelope.velocity[-1]
         sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
 
     return starEnvelope, starCore, binary, binary.semimajorAxis, sphMetaData

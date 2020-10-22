@@ -40,8 +40,10 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                              stars=binary.stars, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,
                                               numberOfWorkers= sphStar.numberOfWorkers, savedVersionPath=savedPath, saveAfterMinute=5, takeCompanionInRelaxation= True)
+    '''
     binary.stars.move_to_center()
     giant = binary.stars[0]
+    '''
     starCore = dmStars[0]
     starCore.radius = sphStar.core_particle.radius
 
@@ -53,15 +55,9 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     print "diff position: ", diffPosition
     starEnvelope.position -= diffPosition
     starCore.position -= diffPosition
-    '''
-    print "changing position ", GiantSPHCenterOfMassPosition(starEnvelope, starCore)
-    
-    diffVelocity = GiantSPHCenterOfMassVelocity(starEnvelope, starCore) - giant.velocity
-    starEnvelope.velocity -= diffVelocity
-    starCore.velocity -= diffVelocity
-    '''
     starEnvelope.velocity = giant.velocity
     starCore.velocity = giant.velocity
+
     #save state after relaxation
     StarModels.SaveState(savedPath, starEnvelope.total_mass() + starCore.mass, starEnvelope, dmStars, binary.semimajorAxis, sphMetaData)
 
@@ -125,10 +121,15 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
     except(OSError):
         pass
     if takeSavedState == "Single":#continue the relaxation but without forcing the com to stay in place
+        loadingStep = -1
+        savedModelPath = savedVersionPath
+
         if step > -1:
-            savedVersionPath=savedVersionPath+"/evolution"
+            savedModelPath=savedVersionPath+"/evolution"
+            loadingStep = step
+
         starEnvelope, starCore, binary, semmimajor, sphMetaData = \
-            StarModels.TakeBinarySavedState(savedVersionPath, configurationFile, step= step)
+            StarModels.TakeBinarySavedState(savedModelPath, configurationFile, step= loadingStep)
         outputDirectory = savedVersionPath + "/codes_output_{0}".format(str(time.localtime().tm_year) + "-" +
                                                                         str(time.localtime().tm_mon) + "-" + str(
             time.localtime().tm_mday) + "-" +

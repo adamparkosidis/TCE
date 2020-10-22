@@ -877,7 +877,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             binary = Star(companion, sphPointStar)
         else:
             isBinary=False
-            binary = Star(sphPointStar, sphPointStar)
+            #binary = Star(sphPointStar, sphPointStar)
 
 
         #print [CalculateVectorSize(part.velocity).as_quantity_in(units.m / units.s) for part in sphGiant.gasParticles]

@@ -725,7 +725,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
     if not HAS_PYNBODY:
         print "problem plotting"
         return
-    figure = pyplot.figure(figsize=(18,18))
+    #figure = pyplot.figure(figsize=(18,18))
     #width = 0.08 * sphGiant.position.lengths_squared().amax().sqrt()
     #width = 5.0 * sphGiant.position.lengths_squared().amax().sqrt()
     #width = 4.0 | units.AU
@@ -764,7 +764,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
             circle_with_radius(core.x, core.z,dustRadius, fill=False, color='white', linestyle= 'dashed', linewidth=3.0)
     #native_plot.colorbar(fontsize=20.0)
     native_plot.xlabel('x[AU]')
-    matplotlib.rcParams.update({'font.size': 36, 'font.family': 'Serif'})
+    matplotlib.rcParams.update({'font.size': 25, 'font.family': 'Serif'})
     #pyplot.rc('text', usetex=True)
     #cbar.ax.set_yticklabels(cbar
     # .ax.get_yticklabels(), fontsize=24)

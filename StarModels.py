@@ -1,5 +1,6 @@
 import ConfigParser
 import numpy
+import time
 import pickle
 import math
 import os
@@ -117,7 +118,11 @@ class SphStar:
         evolve with (default) MESA or other
         :return: the star after has been created with MESA
         '''
-        evolutionType = code()
+        evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
+                     .format(str(time.localtime().tm_year) + "-" +
+                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
+                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
+                            str(time.localtime().tm_sec)))
         print "evolving with MESA"
         mainStar = evolutionType.particles.add_particle(self.pointStar)
         print "particle added, current radius = ", mainStar.radius.as_quantity_in(units.AU), "target radius = ", self.pointStar.radius

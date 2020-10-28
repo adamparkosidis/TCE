@@ -162,7 +162,7 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
         starEnvelope, starCore, binary, semmimajor,sphMetaData = \
             StarModels.TakeBinarySavedState(savedVersionPath + "/evolution", configurationFile, step)
     elif takeSavedState == "Relax": # this option is currently supported only for the circumstellar case, for the other need to form the companions
-        starMass, starEnvelope, starCore, binary, tripleSemmimajor,sphMetaData = \
+        starEnvelope, starCore, binary, semmimajor,sphMetaData = \
             StarModels.TakeBinarySavedState(savedVersionPath + "/relaxation", configurationFile, step=step)
         relax=True
         simulationTime = sphMetaData.relaxationTime
@@ -188,7 +188,7 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
     EvolveNBody.EvolveBinary(totalMass= binary.stars.total_mass(),
                     semmiMajor= semmimajor, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=binary.stars,
-                    endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
+                    endTime= simulationTime, timeSteps= simulationTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
                     savedVersionPath=savedVersionPath,relax= relax)
 
     print "****************** Simulation Completed ******************"

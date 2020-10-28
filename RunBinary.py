@@ -120,6 +120,7 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
         os.makedirs(savedVersionPath + "/pics")
     except(OSError):
         pass
+    relax = False
     if takeSavedState == "Single":#continue the relaxation but without forcing the com to stay in place
         loadingStep = -1
         savedModelPath = savedVersionPath
@@ -160,6 +161,17 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
     elif takeSavedState == "Evolve":
         starEnvelope, starCore, binary, semmimajor,sphMetaData = \
             StarModels.TakeBinarySavedState(savedVersionPath + "/evolution", configurationFile, step)
+    elif takeSavedState == "Relax": # this option is currently supported only for the circumstellar case, for the other need to form the companions
+        starMass, starEnvelope, starCore, binary, tripleSemmimajor,sphMetaData = \
+            StarModels.TakeBinarySavedState(savedVersionPath + "/relaxation", configurationFile, step=step)
+        relax=True
+        simulationTime = sphMetaData.relaxationTime
+        simulationTimeSteps = sphMetaData.relaxationTimeSteps
+        try:
+            initialCOM = sphMetaData.initialCOM
+            initialCOMV = sphMetaData.initialCOMV
+        except:
+            print "couldn't rertrieve initial com"
     else:
         if takeSavedState == "Mesa":
             starEnvelope, starCore, binary, semmimajor, sphMetaData = CreateBinarySystem(configurationFile, savedVersionPath, takeSavedMesa= True)
@@ -167,12 +179,17 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
         else:
             starEnvelope, starCore, binary, semmimajor, sphMetaData = CreateBinarySystem(configurationFile, savedVersionPath)
 
+        step = -1
+    if simulationTime is None:
+        simulationTime = sphMetaData.evolutionTime
+        simulationTimeSteps= sphMetaData.evolutionTimeSteps
+
     # creating the NBody system with the 3 and evolving
     EvolveNBody.EvolveBinary(totalMass= binary.stars.total_mass(),
                     semmiMajor= semmimajor, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=binary.stars,
                     endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
-                    savedVersionPath=savedVersionPath,relax= False)
+                    savedVersionPath=savedVersionPath,relax= relax)
 
     print "****************** Simulation Completed ******************"
 

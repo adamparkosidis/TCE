@@ -224,7 +224,7 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
             # check if there is a merger - don't continue
             if CheckMerger(coupledSystem.dm_particles):
                 coupledSystem.stop()
-                return gas, dm
+                return coupledSystem.gas_particles, coupledSystem.dm_particles
             #    sinks.accrete(coupledSystem.gas_particles)
 
         coupledSystem.evolve_model(currentSimulationTime + timeStep)
@@ -243,8 +243,8 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
                 print len(coupledSystem.gas_particles)
                 PrintEnergies(coupledSystem)
                 currentSecond = time.time()
-        dm = coupledSystem.dm_particles.copy()
-        gas = coupledSystem.gas_particles.copy()
+        #dm = coupledSystem.dm_particles.copy()
+        #gas = coupledSystem.gas_particles.copy()
 
         # if not relax:
         #    print "masses: ", sinks.mass.as_quantity_in(units.MSun)

@@ -121,6 +121,10 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
     except(OSError):
         pass
     relax = False
+    simulationTime = None
+    simulationTimeSteps = None
+    initialCOM = None
+    initialCOMV = None
     if takeSavedState == "Single":#continue the relaxation but without forcing the com to stay in place
         loadingStep = -1
         savedModelPath = savedVersionPath
@@ -189,7 +193,8 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
                     semmiMajor= semmimajor, sphEnvelope= starEnvelope,
                     sphCore=starCore, stars=binary.stars,
                     endTime= simulationTime, timeSteps= simulationTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
-                    savedVersionPath=savedVersionPath,relax= relax)
+                    savedVersionPath=savedVersionPath,relax= relax, initialCOM=initialCOM,
+                    initialCOMV=initialCOMV)
 
     print "****************** Simulation Completed ******************"
 

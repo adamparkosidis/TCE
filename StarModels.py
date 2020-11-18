@@ -410,9 +410,6 @@ class Star:
         self.star.position = self.semiMajorAxis * (1 + self.eccentricity) * ([1, 0, 0] | units.none)
         self.savedPath = savedMesaStarPath
         gas_particles, core_particles = self.GetRelaxedSphModel(takeSavedMesa)
-        native_plot.figure(figsize=(60, 60), dpi=100)
-        sph_particles_plot(gas_particles)
-        #native_plot.show()
 
         self.envelope = gas_particles
         self.core = core_particles
@@ -453,8 +450,9 @@ class Star:
                                self.relaxationTimeSteps, savedVersionPath= self.savedPath, relax= True)
         #return sphStar
 
-def     GetRelativeVelocityAtApastron(total_mass, semimajor_axis, ecc):
+def GetRelativeVelocityAtApastron(total_mass, semimajor_axis, ecc):
     return (constants.G * total_mass * ((1.0 - ecc)/(1.0 + ecc)) / semimajor_axis).sqrt()
+
 
 def CalculateTotalMass(particles):
     mass = 0.0 | units.MSun
@@ -484,24 +482,38 @@ class Binary:
             self.radius = [float(parser.get(configurationSection, "radius1")) | units.AU,
                       float(parser.get(configurationSection, "radius2")) | units.AU]
             if parser.has_option(configurationSection, "transposeAngle"):
-                self.angle =  math.radians(float(parser.get(configurationSection, "transposeAngle")))
+                self.angle = math.radians(float(parser.get(configurationSection, "transposeAngle")))
             else:
                 self.angle = 0.0
+            if parser.has_option(configurationSection, "beginAtRocheLobeFilling"):
+                beginAtRocheLobeFilling = bool(parser.get(configurationSection,"beginAtRocheLobeFilling"))
+            else:
+                beginAtRocheLobeFilling = False
 
             stars = Particles(2)
             stars.mass = masses
-
             stars.position = [0.0, 0.0, 0.0] | units.AU
             stars.velocity = [0.0, 0.0, 0.0] | units.km / units.s
-            apasteron=self.semimajorAxis * (1 + self.eccentricity)
-            stars[1].x = -apasteron * math.sin(self.angle)
-            stars[1].y = apasteron * math.cos(self.angle)
-            stars[1].vx = -math.cos(self.inclination)*GetRelativeVelocityAtApastron(
-                stars.total_mass(), self.semimajorAxis, self.eccentricity) * math.cos(self.angle)
-            stars[1].vy = -math.cos(self.inclination)*GetRelativeVelocityAtApastron(
-                stars.total_mass(), self.semimajorAxis, self.eccentricity) * math.sin(self.angle)
-            stars[1].vz = math.sin(self.inclination)*GetRelativeVelocityAtApastron(
-                stars.total_mass(), self.semimajorAxis, self.eccentricity)
+            if not beginAtRocheLobeFilling or self.eccentricity == 0.0: #begin at apocenter distance
+                apasteron = self.semimajorAxis * (1 + self.eccentricity)
+                initialSeparation = apasteron
+            else:
+                initialSeparation = self.stars.radius[0] / self.CalculateRocheLobeRadius()
+
+            orbitalPhase = math.acos(self.semimajorAxis * (1-self.eccentricity**2) /
+                                     (self.eccentricity * initialSeparation) - 1.0 / self.eccentricity)
+
+            stars[1].x = -initialSeparation * math.sin(self.angle)
+            stars[1].y = initialSeparation * math.cos(self.angle)
+
+            [relativeRadialVelocity, relativeTangentialVelocity] = self.GetRelativeVelocityAtAngel(orbitalPhase)
+
+            stars[1].vx = math.cos(self.inclination) * math.cos(self.angle) * (relativeTangentialVelocity * math.cos(orbitalPhase) -
+                                                         relativeRadialVelocity * math.sin(orbitalPhase))
+            stars[1].vy = math.cos(self.inclination) * math.sin(self.angle) * (relativeTangentialVelocity * math.sin(orbitalPhase) +
+                                                         relativeRadialVelocity * math.cos(orbitalPhase))
+            stars[1].vz = math.sin(self.inclination) * (relativeTangentialVelocity**2 + relativeRadialVelocity**2)**0.5
+
             print self.inclination
             print stars[1].vx, stars[1].vz
             print self.semimajorAxis, self.eccentricity, stars.total_mass()
@@ -551,5 +563,16 @@ class Binary:
 
     def total_mass(self):
         return self.stars.total_mass()
+
+    def CalculateRocheLobeRadius(self):
+        #from Eggleton 1983
+        q = self.stars.mass[0]/self.stars.mass[1]
+        return 0.49 * (q**(2.0/3.0)) / (0.6 * (q**(2.0/3.0)) + math.log(1 + (q**(1.0/3.0))))
+
+    def GetRelativeVelocityAtAngel(self, orbitalPhase):
+        coefficient = (constants.G * self.total_mass() / (self.semimajorAxis* (1 - self.eccentricity ** 2))).sqrt()
+        vTangelntail = coefficient * (1 + self.eccentricity * math.cos(orbitalPhase))
+        vRadial = coefficient * self.eccentricity * math.sin(orbitalPhase)
+        return [vRadial, vTangelntail]
 
 

@@ -101,7 +101,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = F
     star2Core = dmStars1[-1]
     sph2MetaData = StarModels.SphMetaData(sphStar2)
     #saved state
-    StarModels.SaveState(savedPath + "/sph2", binary.mass, star1Envelope, dmStars2, binary.semimajorAxis, sph1MetaData)
+    StarModels.SaveState(savedPath + "/sph2", binary.mass, star1Envelope, dmStars2, binary.semimajorAxis, sph2MetaData)
     print "second sph star is relaxed and saved"
 
     return [star1Envelope, star2Envelope], [star1Core,star2Core] , binary, binary.semimajorAxis, sph1MetaData

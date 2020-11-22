@@ -513,8 +513,8 @@ class Binary:
                                                             ((self.semimajorAxis * self.eccentricity)**2) *
                                                             (math.sin(orbitalPhase)**2)).sqrt()
 
-            stars[1].x = relative_x * math.sin(self.angle) + relative_y * math.cos(self.angle)
-            stars[1].y = -relative_x * math.cos(self.angle) + relative_y * math.sin(self.angle)
+            stars[1].x = relative_x * math.cos(self.angle) + relative_y * math.sin(self.angle)
+            stars[1].y = -relative_x * math.sin(self.angle) + relative_y * math.cos(self.angle)
 
             [relativeRadialVelocity, relativeTangentialVelocity] = self.GetRelativeVelocityAtAngel(orbitalPhase)
 

@@ -63,7 +63,7 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
 
         step = -1
 
-    system = EvolveNBody.DynamicsForBinarySystem(Huayno,binary.semimajorAxis,binary,savedVersionPath)
+    system = EvolveNBody.DynamicsForBinarySystem(Huayno,binary.semimajorAxis,binary.stars,savedVersionPath)
 
     # creating the NBody system with the binary and evolving
     EvolveNBody.Run(totalMass=binary.stars.total_mass(),

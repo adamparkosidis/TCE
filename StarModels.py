@@ -499,7 +499,7 @@ class Binary:
                 apasteron = self.semimajorAxis * (1 + self.eccentricity)
                 initialSeparation = apasteron
             else:
-                initialSeparation = self.stars.radius[0] / self.CalculateRocheLobeRadius()
+                initialSeparation = self.radius[0] / self.CalculateRocheLobeRadius()
 
             orbitalPhase = -1.0 * math.acos(self.semimajorAxis * (1-self.eccentricity**2) /
                                      (self.eccentricity * initialSeparation) - 1.0 / self.eccentricity)

@@ -175,8 +175,13 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
         currentTime = step * timeStep
 
     coupledSystem = system
-    dm = coupledSystem.dm_particles.copy()
-    gas = coupledSystem.gas_particles.copy()
+    try:
+        dm = coupledSystem.dm_particles.copy()
+        gas = coupledSystem.gas_particles.copy()
+    except(Exception):
+        coupledSystem.dm_particles = coupledSystem.particles
+        dm = coupledSystem.particles.copy()
+        gas = None
 
     if initialCOM is None:
         if relax and step==-1:
@@ -202,8 +207,12 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
     print "evolving from step ", step + 1
     #print "beggining time: ", coupledSystem.time + currentTime
     if step == -1:
-        StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse", gas)
-        StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse", dm)
+        try:
+            StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse", gas)
+            StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse", dm)
+        except(Exception)
+            print "didnt save gas"
+            StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse", coupledSystem.particles)
         print "pre state saved - {0}".format(savedVersionPath) + "/" + adding
         PrintEnergies(coupledSystem)
 
@@ -234,13 +243,17 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
         currentSimulationTime += timeStep
         if (time.time() - currentSecond) > saveAfterMinute * 60:
             if savedVersionPath != "":
-                StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step),
-                                   coupledSystem.gas_particles)
-                StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step),
+                try:
+                    StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step),
+                                       coupledSystem.gas_particles)
+                    StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step),
                                   coupledSystem.dm_particles)
+                except(Exception):
+                    print "didnt save gas"
+                    StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step),
+                                  coupledSystem.particles)
                 print "state saved - {0}".format(savedVersionPath) + "/" + adding
                 print coupledSystem.dm_particles
-                print len(coupledSystem.gas_particles)
                 PrintEnergies(coupledSystem)
                 currentSecond = time.time()
         #dm = coupledSystem.dm_particles.copy()

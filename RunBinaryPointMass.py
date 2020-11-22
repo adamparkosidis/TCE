@@ -2,16 +2,10 @@ import pickle
 import os, time
 import sys
 
-from amuse.community.gadget2.interface import Gadget2
 from amuse.community.huayno.interface import Huayno
 from amuse.units import units
 from amuse.units.units import *
-from amuse.plot import native_plot, sph_particles_plot
-from amuse.ext.star_to_sph import pickle_stellar_model, unpickle_stellar_structure
-from amuse.datamodel import Particles
-from amuse.io import read_set_from_file
 import StarModels
-from StarModels import GiantSPHCenterOfMassVelocity, GiantSPHCenterOfMassPosition
 import EvolveNBody
 
 

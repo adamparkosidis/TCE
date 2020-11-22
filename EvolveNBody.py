@@ -210,7 +210,7 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
         try:
             StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse", gas)
             StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse", dm)
-        except(Exception)
+        except(Exception):
             print "didnt save gas"
             StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse", coupledSystem.particles)
         print "pre state saved - {0}".format(savedVersionPath) + "/" + adding

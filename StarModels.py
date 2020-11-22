@@ -503,15 +503,17 @@ class Binary:
 
             orbitalPhase = -1.0 * math.acos(self.semimajorAxis * (1-self.eccentricity**2) /
                                      (self.eccentricity * initialSeparation) - 1.0 / self.eccentricity)
-
+            print "orbitalPhase: ", orbitalPhase, "s: ", (initialSeparation**2 -
+                                                            ((self.semimajorAxis * self.eccentricity)**2) *
+                                                            (math.sin(orbitalPhase)**2))
             relative_x = -self.semimajorAxis * self.eccentricity * math.sin(orbitalPhase) * math.cos(orbitalPhase) + \
                          math.sin(orbitalPhase) * (initialSeparation**2 -
                                                             ((self.semimajorAxis * self.eccentricity)**2) *
-                                                            (math.sin(orbitalPhase)**2)).sqrt()
+                                                            (math.sin(orbitalPhase)**2))**0.5
             relative_y = self.semimajorAxis * self.eccentricity * (math.sin(orbitalPhase)**2) + \
                          math.cos(orbitalPhase) * (initialSeparation**2 -
                                                             ((self.semimajorAxis * self.eccentricity)**2) *
-                                                            (math.sin(orbitalPhase)**2)).sqrt()
+                                                            (math.sin(orbitalPhase)**2))**0.5
 
             stars[1].x = relative_x * math.cos(self.angle) + relative_y * math.sin(self.angle)
             stars[1].y = -relative_x * math.sin(self.angle) + relative_y * math.cos(self.angle)

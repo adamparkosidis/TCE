@@ -519,7 +519,7 @@ class Binary:
             stars[1].x = relative_x * math.cos(self.angle) + relative_y * math.sin(self.angle)
             stars[1].y = -relative_x * math.sin(self.angle) + relative_y * math.cos(self.angle)
 
-            relative_vx = -relativeTangentialVelocity * math.cos(orbitalPhase) - \
+            relative_vx = relativeTangentialVelocity * math.cos(orbitalPhase) - \
                           relativeRadialVelocity * math.sin((math.pi-orbitalPhase)%(2*math.pi))
             relative_vy = relativeTangentialVelocity * math.sin((math.pi-orbitalPhase)%(2*math.pi)) + \
                            relativeRadialVelocity * math.cos(orbitalPhase)

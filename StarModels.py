@@ -506,28 +506,18 @@ class Binary:
             print "orbitalPhase: ", orbitalPhase, "s: ", (initialSeparation**2 -
                                                             ((self.semimajorAxis * self.eccentricity)**2) *
                                                             (math.sin((math.pi-orbitalPhase)%(2*math.pi))**2))
-            relative_x = -self.semimajorAxis * self.eccentricity * math.sin((math.pi-orbitalPhase)%(2*math.pi)) * math.cos(orbitalPhase) + \
-                         math.sin((math.pi-orbitalPhase)%(2*math.pi)) * (initialSeparation**2 -
-                                                            ((self.semimajorAxis * self.eccentricity)**2) *
-                                                            (math.sin((math.pi-orbitalPhase)%(2*math.pi))**2))**0.5
-            relative_y = -self.semimajorAxis * self.eccentricity * (math.sin((math.pi-orbitalPhase)%(2*math.pi))**2) - \
-                         math.cos(orbitalPhase) * (initialSeparation**2 -
-                                                            ((self.semimajorAxis * self.eccentricity)**2) *
-                                                            (math.sin((math.pi-orbitalPhase)%(2*math.pi))**2))**0.5
-            [relativeRadialVelocity, relativeTangentialVelocity] = self.GetRelativeVelocityAtAngel(orbitalPhase)
+            relative_x = initialSeparation * math.sin((math.pi-orbitalPhase)%(2*math.pi))
+            relative_y = initialSeparation * math.cos(orbitalPhase)
+
+            [relative_vy, relative_vx] = self.GetRelativeVelocityAtAngel(orbitalPhase)
 
             stars[1].x = relative_x * math.cos(self.angle) + relative_y * math.sin(self.angle)
             stars[1].y = -relative_x * math.sin(self.angle) + relative_y * math.cos(self.angle)
 
-            relative_vx = relativeTangentialVelocity * math.cos(orbitalPhase) - \
-                          relativeRadialVelocity * math.sin((math.pi-orbitalPhase)%(2*math.pi))
-            relative_vy = relativeTangentialVelocity * math.sin((math.pi-orbitalPhase)%(2*math.pi)) + \
-                           relativeRadialVelocity * math.cos(orbitalPhase)
-
             stars[1].vx = math.cos(self.inclination) * (relative_vx * math.cos(self.angle) - relative_vy * math.sin(self.angle))
             stars[1].vy = math.cos(self.inclination) * (relative_vy * math.cos(self.angle) + relative_vx * math.sin(self.angle))
             stars[1].vz = math.sin(self.inclination) * (
-                    relativeTangentialVelocity ** 2 + relativeRadialVelocity ** 2) ** 0.5
+                    relative_vx ** 2 + relative_vy ** 2) ** 0.5
 
 
             print self.inclination

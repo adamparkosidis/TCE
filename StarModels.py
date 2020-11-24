@@ -540,6 +540,7 @@ class Binary:
         oldMass = self.total_mass()
         self.stars.mass = newMasses
         self.stars.velocity = self.stars.velocity * (self.total_mass() / oldMass).sqrt()
+        print "updated mass and velocities" , self.stars
 
     def LoadBinary(self, particles):
 

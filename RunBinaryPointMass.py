@@ -27,7 +27,7 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     sphStar = StarModels.SphStar(giant, configurationFile, configurationSection="MainStar",
                                  savedMesaStarPath=savedPath, takeSavedMesa=takeSavedMesa)
     metaData = StarModels.SphMetaData(sphStar)
-    binary.stars[0].mass = sphStar.particles.total_mass()
+    binary.SetMass([sphStar.particles.total_mass(), binary.stars[1].mass]) # so the velocities are also updated
     binary.stars[0].epsilon = 10 * sphStar.core_particle.radius
 
     print "binary: ", binary.stars

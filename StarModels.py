@@ -536,6 +536,11 @@ class Binary:
         self.position = self.stars.center_of_mass()
         self.x, self.y, self.z = self.position #TODO: check this
 
+    def SetMass(self,newMasses):
+        oldMass = self.total_mass()
+        self.stars.mass = newMasses
+        self.stars.velocity = self.stars.velocity * (self.total_mass() / oldMass).sqrt()
+
     def LoadBinary(self, particles):
 
         print "loading binary "

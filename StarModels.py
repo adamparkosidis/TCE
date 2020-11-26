@@ -492,9 +492,9 @@ class Binary:
             if parser.has_option(configurationSection, "beginAtRocheLobeFilling"):
                 self.beginAtRocheLobeFilling = bool(parser.get(configurationSection,"beginAtRocheLobeFilling"))
                 if parser.has_option(configurationSection, "RocheLobeFactor"):
-                    self.RocheLobeFactor = int(parser.get(configurationSection,"RocheLobeFactor")) # if want to start more distant then when the Roche lobe overflows
+                    self.RocheLobeFactor = float(parser.get(configurationSection,"RocheLobeFactor")) # if want to start more distant then when the Roche lobe overflows
                 else:
-                    self.RocheLobeFactor = 1
+                    self.RocheLobeFactor = 1.0
             else:
                 self.beginAtRocheLobeFilling = False
 
@@ -511,7 +511,7 @@ class Binary:
                 initialSeparation = self.RocheLobeFactor * self.radius[0] / self.CalculateRocheLobeRadius()
                 orbitalPhase = -1.0 * math.acos(self.semimajorAxis * (1-self.eccentricity**2) /
                                          (self.eccentricity * initialSeparation) - 1.0 / self.eccentricity)
-            print "orbitalPhase: ", orbitalPhase
+            print "orbitalPhase: ", orbitalPhase, "initial separation: ", initialSeparation.as_quantity_in(units.RSun)
             relative_x = initialSeparation * math.sin((math.pi-orbitalPhase)%(2*math.pi))
             relative_y = -initialSeparation * math.cos(orbitalPhase)
 

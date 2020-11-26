@@ -843,6 +843,8 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
                        semmimajors,semmimajorsUnits, eccentricities, innerMass, innerMassUnits, innerAngularMomenta,
                        innerAngularMomentaUnits, companionAngularMomenta, companionAngularMomentaUnits,
                        giantAngularMomenta, giantAngularMomentaUnits,
+                       gasAngularMomenta, gasAngularMomentaUnits,
+                       totAngularMomenta, totAngularMomentaUnits,
                        Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
                        toPlot = False, plotDust=False, dustRadius= 340.0 | units.RSun, timeStep=0.2):
 
@@ -927,8 +929,17 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             companionAngularMomenta[i] = companion.mass.value_in(units.kg) * CalculateVectorSize(
                 [specificAngularCOM[0], specificAngularCOM[1], specificAngularCOM[2]]).value_in(companionAngularMomentaUnits / units.kg)
             print companionAngularMomenta[i], specificAngularCOM[2], specificAngularCOM[2]*companion.mass
-            giantAngularMomenta[i] = CalculateVectorSize(
-                sphGiant.GetAngularMomentum()).value_in(giantAngularMomentaUnits)
+            currentGasAngularMomenta = sphGiant.GetAngularMomentumOfGas()
+            gasAngularMomenta[i] = CalculateVectorSize(currentGasAngularMomenta).value_in(gasAngularMomentaUnits)
+            coreAngularMomenta = CalculateSpecificMomentum(sphGiant.core.velocity,sphGiant.core.position) * sphGiant.core.mass
+            giantAngularMomentax = coreAngularMomenta[0] + currentGasAngularMomenta[0]
+            giantAngularMomentay = coreAngularMomenta[1] + currentGasAngularMomenta[1]
+            giantAngularMomentaz = coreAngularMomenta[2] + currentGasAngularMomenta[2]
+            giantAngularMomenta[i] = CalculateVectorSize([giantAngularMomentax,giantAngularMomentay,giantAngularMomentaz]).value_in(giantAngularMomentaUnits)
+            angularTotx = giantAngularMomentax + specificAngularCOM[0] * companion.mass
+            angularToty = giantAngularMomentay + specificAngularCOM[1] * companion.mass
+            angularTotz = giantAngularMomentaz + specificAngularCOM[2] * companion.mass
+            totAngularMomenta[i] = ((angularTotx**2 + angularToty**2 + angularTotz**2)**0.5).value_in(totAngularMomentaUnits)
             semmimajors[i] = semmimajor.value_in(semmimajorsUnits)
             innerAngularMomenta[i] = CalculateVectorSize(sphGiant.innerGas.angularMomentum).value_in(innerAngularMomentaUnits)
 
@@ -1195,6 +1206,8 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     innerAngularMomenta = MultiProcessArrayWithUnits(len(workingRange),angularMomentaUnits)
     companionAngularMomenta = MultiProcessArrayWithUnits(len(workingRange),angularMomentaUnits)
     giantAngularMomenta = MultiProcessArrayWithUnits(len(workingRange),angularMomentaUnits)
+    gasAngularMomenta = MultiProcessArrayWithUnits(len(workingRange),angularMomentaUnits)
+    totAngularMomenta = MultiProcessArrayWithUnits(len(workingRange),angularMomentaUnits)
     Qxx = multiprocessing.Array(c_float, [0.0 for i in workingRange])
     Qxy = multiprocessing.Array('f', [0.0 for i in workingRange])
     Qxz = multiprocessing.Array('f', [0.0 for i in workingRange])
@@ -1228,6 +1241,8 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                                                                                   innerAngularMomenta.array, innerAngularMomenta.units,
                                                                                   companionAngularMomenta.array, companionAngularMomenta.units,
                                                                                   giantAngularMomenta.array, giantAngularMomenta.units,
+                                                                                  gasAngularMomenta.array, gasAngularMomenta.units,
+                                                                                  totAngularMomenta.array, totAngularMomenta.units,
                                                                                   Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
                                                                                   toPlot,
                                                                                   plotDust,dustRadius,timeStep,)))

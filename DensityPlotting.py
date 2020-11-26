@@ -1426,9 +1426,9 @@ def InitParser():
     parser.add_argument('--savingDir', type=str,  help='path to output directory', default= "evolution")
     parser.add_argument('--vmin', type=float,  help='minimum  density plotting', default=1e16)
     parser.add_argument('--vmax', type=float,  help='maximum  density plotting', default=1e34)
-    parser.add_argument('--plot', type=bool,  help='do you want to plot profiles?', default=False)
-    parser.add_argument('--axesOriginInInnerBinaryCenterOfMass', type=bool,  help='do you want to plot the inner binary at the origin?', default=False)
-    parser.add_argument('--opposite', type=bool,  help='do you want the main star to be a part of the inner binary?', default=False)
+    parser.add_argument('--plot', type=lambda x: (str(x).lower() in ['true', '1', 'yes']),  help='do you want to plot profiles?', default=False)
+    parser.add_argument('--axesOriginInInnerBinaryCenterOfMass', type=lambda x: (str(x).lower() in ['true', '1', 'yes']),  help='do you want to plot the inner binary at the origin?', default=False)
+    parser.add_argument('--opposite', type=lambda x: (str(x).lower() in ['true', '1', 'yes']),  help='do you want the main star to be a part of the inner binary?', default=False)
     parser.add_argument('--localRadius', type=float,  help='maximum  density plotting', default=50.0)
     parser.add_argument('--cpus', type=int,  help='number of cpus', default=10)
     return parser

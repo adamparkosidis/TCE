@@ -62,7 +62,8 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     print sphStar.core_particle
     sphMetaData = StarModels.SphMetaData(sphStar)
     oldOuterVelocity = outerBinary.stars[1].velocity
-    outerBinary.SetMass([sphStar.particles.total_mass(), outerBinary.stars[1].mass])
+    outerBinary.stars[0].mass = sphStar.particles.total_mass()
+    outerBinary.UpdateWithMassChange()
     innerBinary.stars.velocity -= (oldOuterVelocity - outerBinary.stars[1].velocity)
 
     triple.move_to_center()
@@ -70,7 +71,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     print triple
     print "triple center of mass: ", triple.center_of_mass()
     print "triple center of mass velocity: ", triple.center_of_mass_velocity()
-    
+
     try:
         os.makedirs(savedPath+"/relaxation")
     except(OSError):

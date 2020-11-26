@@ -488,16 +488,16 @@ class Binary:
             else:
                 self.angle = 0.0
             if parser.has_option(configurationSection, "beginAtRocheLobeFilling"):
-                beginAtRocheLobeFilling = bool(parser.get(configurationSection,"beginAtRocheLobeFilling"))
+                self.beginAtRocheLobeFilling = bool(parser.get(configurationSection,"beginAtRocheLobeFilling"))
             else:
-                beginAtRocheLobeFilling = False
+                self.beginAtRocheLobeFilling = False
 
             stars = Particles(2)
             stars.mass = masses
             self.stars = stars
             stars.position = [0.0, 0.0, 0.0] | units.AU
             stars.velocity = [0.0, 0.0, 0.0] | units.km / units.s
-            if not beginAtRocheLobeFilling or self.eccentricity == 0.0: #begin at apocenter distance
+            if not self.beginAtRocheLobeFilling or self.eccentricity == 0.0: #begin at apocenter distance
                 apasteron = self.semimajorAxis * (1 + self.eccentricity)
                 initialSeparation = apasteron
                 orbitalPhase = -math.pi
@@ -505,9 +505,7 @@ class Binary:
                 initialSeparation = self.radius[0] / self.CalculateRocheLobeRadius()
                 orbitalPhase = -1.0 * math.acos(self.semimajorAxis * (1-self.eccentricity**2) /
                                          (self.eccentricity * initialSeparation) - 1.0 / self.eccentricity)
-            print "orbitalPhase: ", orbitalPhase, "s: ", (initialSeparation**2 -
-                                                            ((self.semimajorAxis * self.eccentricity)**2) *
-                                                            (math.sin((math.pi-orbitalPhase)%(2*math.pi))**2))
+            print "orbitalPhase: ", orbitalPhase
             relative_x = initialSeparation * math.sin((math.pi-orbitalPhase)%(2*math.pi))
             relative_y = -initialSeparation * math.cos(orbitalPhase)
 
@@ -538,11 +536,35 @@ class Binary:
         self.position = self.stars.center_of_mass()
         self.x, self.y, self.z = self.position #TODO: check this
 
-    def SetMass(self,newMasses):
-        oldMass = self.total_mass()
-        self.stars.mass = newMasses
-        self.stars.velocity = self.stars.velocity * (self.total_mass() / oldMass)**0.5
-        print "updated mass and velocities" , self.stars
+    def UpdateWithMassChange(self):
+        if not self.beginAtRocheLobeFilling or self.eccentricity == 0.0:  # begin at apocenter distance
+            apasteron = self.semimajorAxis * (1 + self.eccentricity)
+            initialSeparation = apasteron
+            orbitalPhase = -math.pi
+        else:
+            initialSeparation = self.radius[0] / self.CalculateRocheLobeRadius()
+            orbitalPhase = -1.0 * math.acos(self.semimajorAxis * (1 - self.eccentricity ** 2) /
+                                            (self.eccentricity * initialSeparation) - 1.0 / self.eccentricity)
+        print "orbitalPhase: ", orbitalPhase
+        relative_x = initialSeparation * math.sin((math.pi - orbitalPhase) % (2 * math.pi))
+        relative_y = -initialSeparation * math.cos(orbitalPhase)
+
+        [relative_vy, relative_vx] = self.GetRelativeVelocityAtAngel(orbitalPhase)
+
+        self.stars[1].x = relative_x * math.cos(self.angle) - relative_y * math.sin(self.angle)
+        self.stars[1].y = relative_x * math.sin(self.angle) + relative_y * math.cos(self.angle)
+
+        self.stars[1].vx = math.cos(self.inclination) * (
+                    relative_vx * math.cos(self.angle) - relative_vy * math.sin(self.angle))
+        self.stars[1].vy = math.cos(self.inclination) * (
+                    relative_vy * math.cos(self.angle) + relative_vx * math.sin(self.angle))
+        self.stars[1].vz = math.sin(self.inclination) * (
+                relative_vx ** 2 + relative_vy ** 2) ** 0.5
+
+        print "updated mass positions, and velocities" , self.stars
+        self.stars.move_to_center()
+        print "after moving to center: ", self.stars
+
 
     def LoadBinary(self, particles):
 

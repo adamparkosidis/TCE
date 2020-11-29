@@ -186,7 +186,7 @@ def InitParser():
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('--saving_path', type=str, required=True,  help='path for saving models')
     parser.add_argument('--configuration_file', type=str,  help='path to where to config file is located', default="")
-    
+
     return parser
 
 if __name__ == "__main__":
@@ -197,9 +197,10 @@ if __name__ == "__main__":
         if len(configuration_files) > 1:
             print "cant figure out which configuration file to use"
             raise Exception("too many confing files")
-        configuration_file = configuration_files[0]
+        configuration_file = os.path.join(args.saving_path,configuration_files[0])
     else:
         configuration_file = args.configuration_file
+    print "taking config file: ", configuration_file
     Start(savedVersionPath = args.saving_path, takeSavedState = False, step = -1, configurationFile = configuration_file)
     #Start(savedVersionPath="/vol/sci/astro/bigdata/glanz/amuse10/savings/MesaModels/HotJupiter", takeSavedState=False,step=-1,configurationFile="/vol/sci/astro/bigdata/glanz/amuse10/savings/MesaModels/HotJupiter/HJConfiguration.ini")
 

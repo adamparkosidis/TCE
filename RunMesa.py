@@ -1,5 +1,6 @@
 import os
 import time
+import argparse
 import pickle
 import ConfigParser
 from amuse.units import units, constants
@@ -38,7 +39,7 @@ class SphStar:
                                             base_grid_options=dict(type="fcc"))
         self.gas_particles = self.sphStar.gas_particles
         self.core_particle = self.sphStar.core_particle
-        
+
     def CalculateBindingEnergy(self, star):
         mass_profile = star.get_mass_profile()
         cumulative_mass_profile = star.get_cumulative_mass_profile()
@@ -46,6 +47,8 @@ class SphStar:
         radius_profile = star.get_radius_profile()
         E = 0.0 |units.erg
         for i in range(len(mass_profile)):
+            if cumulative_mass_profile[i] <= star.core_mass:
+                continue
             E += (thermal_energy_profile[i] -constants.G*(cumulative_mass_profile[i] | units.MSun)/radius_profile[i])*(mass_profile[i] | units.MSun)
             print cumulative_mass_profile[i], mass_profile[i], radius_profile[i]
 
@@ -96,7 +99,7 @@ class SphStar:
                         maxRadii = mainStar.radius
                     if mainStar.stellar_type.value_in(units.stellar_type)!= oldStellarType:
                         oldStellarType = mainStar.stellar_type.value_in(units.stellar_type)
-                        print mainStar.stellar_type, mainStar.radius, maxRadii
+                        #print mainStar.stellar_type, mainStar.radius, maxRadii
                         E = self.CalculateBindingEnergy(mainStar)
                         print "E=", E
                         print "lamda=", (-constants.G*mainStar.mass*(mainStar.mass-mainStar.core_mass)/mainStar.radius) / E
@@ -179,8 +182,23 @@ def Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels"
 
     print "****************** Simulation Completed ******************"
 
+def InitParser():
+    parser = argparse.ArgumentParser(description='')
+    parser.add_argument('--saving_path', type=str, required=True,  help='path for saving models')
+    parser.add_argument('--configuration_file', type=str,  help='path to where to config file is located', default="")
+
 if __name__ == "__main__":
-    Start(savedVersionPath = "/vol/sci/astro/bigdata/glanz/amuse10/savings/MesaModels/10AGB", takeSavedState = False, step = -1, configurationFile = "/vol/sci/astro/bigdata/glanz/amuse10/savings/MesaModels/10AGB/10AGBConfiguration.ini")
+    parser = InitParser()
+    args = parser.parse_args()
+    if args.configuration_file == "":
+        configuration_files = [config_file for config_file in os.listdir(args.saving_path) if "Configuration.ini" in config_file]
+        if len(configuration_files) > 1:
+            print "cant figure out which configuration file to use"
+            return
+        configuration_file = configuration_files[0]
+    else:
+        configuration_file = args.configuration_file
+    Start(savedVersionPath = args.saving_path, takeSavedState = False, step = -1, configurationFile = configuration_file)
     #Start(savedVersionPath="/vol/sci/astro/bigdata/glanz/amuse10/savings/MesaModels/HotJupiter", takeSavedState=False,step=-1,configurationFile="/vol/sci/astro/bigdata/glanz/amuse10/savings/MesaModels/HotJupiter/HJConfiguration.ini")
 
     #Start(savedVersionPath = "/home/hilaglanz/Dropbox/TCE/plots/MesaModels",savedMesaPath = "/home/hilaglanz/Dropbox/TCE/plots/MesaModels/1_0AGB/MESA_0.663429839586_5", takeSavedState = "True", step = -1, configurationFile = "/home/hilaglanz/Dropbox/TCE/plots/MesaModels/1AGBConfiguration.ini")

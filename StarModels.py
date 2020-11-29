@@ -225,18 +225,16 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
         innerBinary = Binary(configurationFile, configurationSection="InnerBinary")
 
         starMass = starEnvelope.total_mass() + starCore.mass
-        # the inner binary's center of mass is the second star of the outer binary. so move the center of mass to that place.
-        innerBinary.stars.position += outerBinary.stars[1].position
-        innerBinary.stars.velocity += outerBinary.stars[1].velocity
+
 
         if opposite:#0 star of the inner binary is the giant, not the core
             # we now move the system so the giant will be in the middle
-            '''giantPossitionDiff = innerBinary.stars[0].position
-            giantVelocityDiff = innerBinary.stars[0].velocity
-            innerBinary.stars.position -= giantPossitionDiff
-            innerBinary.stars.velocity -= giantVelocityDiff
-            outerBinary.stars.position -= giantPossitionDiff
-            outerBinary.stars.velocity -= giantVelocityDiff'''
+            innerBinary.stars[0].mass = starMass
+            innerBinary.UpdateWithMassChange()
+
+            # the inner binary's center of mass is the second star of the outer binary. so move the center of mass to that place.
+            innerBinary.stars.position += outerBinary.stars[1].position
+            innerBinary.stars.velocity += outerBinary.stars[1].velocity
 
             giant.position = innerBinary.stars[0].position
             giant.velocity = innerBinary.stars[0].velocity
@@ -254,6 +252,12 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
             #return starMass, starEnvelope, starCore, innerBinary, outerBinary, sphMetaData
 
         else:
+            outerBinary.stars[0].mass = starMass
+            outerBinary.UpdateWithMassChange()
+            # the inner binary's center of mass is the second star of the outer binary. so move the center of mass to that place.
+            innerBinary.stars.position += outerBinary.stars[1].position
+            innerBinary.stars.velocity += outerBinary.stars[1].velocity
+
             giant.position = outerBinary.stars[0].position
             giant.velocity = outerBinary.stars[0].velocity
 

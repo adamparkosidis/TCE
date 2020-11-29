@@ -194,7 +194,7 @@ if __name__ == "__main__":
         configuration_files = [config_file for config_file in os.listdir(args.saving_path) if "Configuration.ini" in config_file]
         if len(configuration_files) > 1:
             print "cant figure out which configuration file to use"
-            return
+            raise Exception("too many confing files")
         configuration_file = configuration_files[0]
     else:
         configuration_file = args.configuration_file

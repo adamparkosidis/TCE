@@ -65,7 +65,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     outerBinary.stars[0].mass = sphStar.particles.total_mass()
     outerBinary.UpdateWithMassChange()
     innerBinary.stars.velocity -= (oldOuterVelocity - outerBinary.stars[1].velocity)
-
+    giantInSet.velocity = outerBinary[0].velocity
     triple.move_to_center()
 
     print triple
@@ -79,7 +79,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     pickle.dump(sphMetaData,open(savedPath+"/relaxation/metaData.p", 'wb'), pickle.HIGHEST_PROTOCOL)
 
     print "Now having the sph star and the binaries, ready for relaxing"
-    starEnvelope, dmStars = EvolveNBody.Run(totalMass= giantInSet.mass + innerBinary.stars.total_mass(),
+    starEnvelope, dmStars = EvolveNBody.Run(totalMass= outerBinary.stars[0].mass + innerBinary.stars.total_mass(),
                     semmiMajor= outerBinary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
                                              stars=innerBinary.stars, endTime= sphStar.relaxationTime,
                                              timeSteps= sphStar.relaxationTimeSteps, relax=True,

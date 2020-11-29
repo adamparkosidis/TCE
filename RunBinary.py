@@ -23,12 +23,6 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     binary = StarModels.Binary(configurationFile, configurationSection="Binary")
     binary.stars.radius = binary.radius
     giant = binary.stars[0]
-
-    #put the giant in the center
-    binary.stars.position -= giant.position
-    binary.stars.velocity -= giant.velocity
-
-    giant = binary.stars[0]
     print "binary: ", binary.stars
 
     #create the sph giant
@@ -36,6 +30,11 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
                                 savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
     binary.stars[0].mass = sphStar.particles.total_mass()
     binary.UpdateWithMassChange()
+
+    #put the giant in the center
+    binary.stars.position -= giant.position
+    binary.stars.velocity -= giant.velocity
+
     print "Now having the sph star and the binaries, ready for relaxing"
     starEnvelope, dmStars = EvolveNBody.EvolveBinary(totalMass= binary.stars.total_mass(),
                     semmiMajor= binary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,

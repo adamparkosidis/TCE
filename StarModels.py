@@ -561,6 +561,9 @@ class Binary:
 
         [relative_vy, relative_vx] = self.GetRelativeVelocityAtAngel(orbitalPhase)
 
+        self.stars.position = [0.0, 0.0, 0.0] | units.AU
+        self.stars.velocity = [0.0, 0.0, 0.0] | units.km / units.s
+
         self.stars[1].x = relative_x * math.cos(self.angle) - relative_y * math.sin(self.angle)
         self.stars[1].y = relative_x * math.sin(self.angle) + relative_y * math.cos(self.angle)
 

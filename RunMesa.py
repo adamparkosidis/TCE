@@ -2,7 +2,7 @@ import os
 import time
 import pickle
 import ConfigParser
-from amuse.units import units
+from amuse.units import units, constants
 from amuse.lab import *
 from amuse.community.mesa.interface import MESA
 import StarModels
@@ -38,10 +38,22 @@ class SphStar:
                                             base_grid_options=dict(type="fcc"))
         self.gas_particles = self.sphStar.gas_particles
         self.core_particle = self.sphStar.core_particle
+    def CalculateBindingEnergy(self, star):
+        mass_profile = star.get_mass_profile()
+        cumulative_mass_profile = star.get_cumulative_mass_profile()
+        thermal_energy_profile = star.get_thermal_energy_profile()
+        radius_profile = star.get_radius_profile()
+        E = 0.0 |units.erg
+        for i in range(len(mass_profile)):
+            E += (-constants.G*cumulative_mass_profile[i]/radius_profile[i] + thermal_energy_profile[i])*mass_profile[i]
+            print cumulative_mass_profile[i], mass_profile[i], radius_profile[i]
+
+        return E
+
     def CheckLimitType(self, starType):
             return starType >= 16 or starType == 7 or starType < self.stellar_type.value_in(units.stellar_type)
 
-    def  EvolveStarWithStellarCode(self, code = MESA, savingPath = "", stellar_type= 3 | units.stellar_type ):
+    def EvolveStarWithStellarCode(self, code = MESA, savingPath = "", stellar_type= 3 | units.stellar_type ):
         '''
         evolve with (default) MESA or other
         :return: the star after has been created with MESA
@@ -84,6 +96,9 @@ class SphStar:
                     if mainStar.stellar_type.value_in(units.stellar_type)!= oldStellarType:
                         oldStellarType = mainStar.stellar_type.value_in(units.stellar_type)
                         print mainStar.stellar_type, mainStar.radius, maxRadii
+                        E = self.CalculateBindingEnergy(mainStar)
+                        print "E=", E
+                        print "lamda=", (-constants.G*mainStar.mass*(mainStar.mass-mainStar.core_mass)/mainStar.radius) / E
                     mainStar.reset_number_of_backups_in_a_row()
                     mainStar.evolve_one_step()
                 except Exception as e:

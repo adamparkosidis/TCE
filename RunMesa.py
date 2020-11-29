@@ -38,6 +38,7 @@ class SphStar:
                                             base_grid_options=dict(type="fcc"))
         self.gas_particles = self.sphStar.gas_particles
         self.core_particle = self.sphStar.core_particle
+        
     def CalculateBindingEnergy(self, star):
         mass_profile = star.get_mass_profile()
         cumulative_mass_profile = star.get_cumulative_mass_profile()

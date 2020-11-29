@@ -186,6 +186,8 @@ def InitParser():
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('--saving_path', type=str, required=True,  help='path for saving models')
     parser.add_argument('--configuration_file', type=str,  help='path to where to config file is located', default="")
+    
+    return parser
 
 if __name__ == "__main__":
     parser = InitParser()

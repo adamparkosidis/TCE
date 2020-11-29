@@ -131,6 +131,9 @@ class SphStar:
             times.append(mainStar.age)
             if mainStar.stellar_type.value_in(units.stellar_type) != oldStellarType:
                 print mainStar.stellar_type, mainStar.radius , maxRadii
+                E = self.CalculateBindingEnergy(mainStar)
+                print "E=", E
+                print "lamda=", (-constants.G*mainStar.mass*(mainStar.mass-mainStar.core_mass)/mainStar.radius) / E
                 #save a pickle of all the mesa properties
                 if not os.path.isfile(savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type))):
                     pickle_stellar_model(mainStar, savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type)))

@@ -47,9 +47,9 @@ class SphStar:
         radius_profile = star.get_radius_profile()
         E = 0.0 |units.erg
         for i in range(len(mass_profile)):
-            if (cumulative_mass_profile[i] | units.MSun) < star.core_mass:
+            if (cumulative_mass_profile[i] * star.mass) < star.core_mass:
                 continue
-            E += (thermal_energy_profile[i] -constants.G*(cumulative_mass_profile[i] | units.MSun)/radius_profile[i])*(mass_profile[i] | units.MSun)
+            E += (thermal_energy_profile[i] -constants.G*(cumulative_mass_profile[i] * star.mass)/radius_profile[i])*(mass_profile[i] * star.mass)
 
         return E
 

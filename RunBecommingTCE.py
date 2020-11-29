@@ -19,7 +19,6 @@ import StarModels
 import EvolveNBody
 
 
-
 def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, takeSavedMesa = False):
     '''
     creating the TCE
@@ -34,11 +33,18 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     #now setting up the giant (want it to be relaxed and spinning)
     outerBinary = StarModels.Binary(configurationFile, configurationSection="OuterBinary")
 
-    #the inner binary's center of mass is the second star of the outer binary. so move the center of mass to that place.
+
+    sphStar = StarModels.SphStar(giant,configurationFile,configurationSection="MainStar",
+                                savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
+
+    innerBinary.stars[0].mass = sphStar.particles.total_mass()
+    innerBinary.UpdateWithMassChange()
+
+    # the inner binary's center of mass is the second star of the outer binary. so move the center of mass to that place.
     innerBinary.stars.position += outerBinary.stars[1].position
     innerBinary.stars.velocity += outerBinary.stars[1].velocity
 
-    #we now move the system so the giant will be in the middle
+    # we now move the system so the giant will be in the middle
     giantPossitionDiff = innerBinary.stars[0].position
     giantVelocityDiff = innerBinary.stars[0].velocity
     innerBinary.stars.position -= giantPossitionDiff
@@ -48,9 +54,6 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
     giant.position = innerBinary.stars[0].position
     giant.velocity = innerBinary.stars[0].velocity
-
-    sphStar = StarModels.SphStar(giant,configurationFile,configurationSection="MainStar",
-                                savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
 
     print "Now having the sph star and the binaries, ready for relaxing"
     outputDirectory = savedPath + "/codes_output_{0}".format(str(time.localtime().tm_year) + "-" +

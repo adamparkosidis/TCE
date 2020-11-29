@@ -37,7 +37,20 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     outerBinary = StarModels.Binary(configurationFile, configurationSection="OuterBinary")
     #notice that the giant is the binary.stars[0], the companions are the next
 
-    #the inner binary's center of mass is the second star of the outer binary. so move the center of mass to that place.
+
+
+    #triple.position -= giantInSet.position
+    #triple.velocity -= giantInSet.velocity
+
+
+    sphStar = StarModels.SphStar(giant,configurationFile,configurationSection="MainStar",
+                                savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
+    print sphStar.core_particle
+    sphMetaData = StarModels.SphMetaData(sphStar)
+    outerBinary.stars[0].mass = sphStar.particles.total_mass()
+    outerBinary.UpdateWithMassChange()
+
+    # the inner binary's center of mass is the second star of the outer binary. so move the center of mass to that place.
     innerBinary.stars.position += outerBinary.stars[1].position
     innerBinary.stars.velocity += outerBinary.stars[1].velocity
 
@@ -48,24 +61,6 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     giantInSet = triple.add_particle(giant)
     innerBinary.stars = triple - giantInSet
 
-    triple.move_to_center()
-
-    #triple.position -= giantInSet.position
-    #triple.velocity -= giantInSet.velocity
-
-    print triple
-    print "triple center of mass: ", triple.center_of_mass()
-    print "triple center of mass velocity: ", triple.center_of_mass_velocity()
-
-    sphStar = StarModels.SphStar(giantInSet,configurationFile,configurationSection="MainStar",
-                                savedMesaStarPath = savedPath, takeSavedMesa=takeSavedMesa)
-    print sphStar.core_particle
-    sphMetaData = StarModels.SphMetaData(sphStar)
-    oldOuterVelocity = outerBinary.stars[1].velocity
-    outerBinary.stars[0].mass = sphStar.particles.total_mass()
-    outerBinary.UpdateWithMassChange()
-    innerBinary.stars.velocity -= (oldOuterVelocity - outerBinary.stars[1].velocity)
-    giantInSet.velocity = outerBinary[0].velocity
     triple.move_to_center()
 
     print triple

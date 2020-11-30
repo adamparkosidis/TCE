@@ -62,10 +62,12 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
         starEnvelope, starCore, binary, semmimajor,metaData = \
             StarModels.TakeBinarySavedState(savedVersionPath, configurationFile, step)
         binary.stars[0].mass = starEnvelope.total_mass() + starCore.mass
-        binary.stars[0].position = (starEnvelope.center_of_mass() * starEnvelope.mass +
-                                    starCore.position * starCore.mass)/binary.stars[0].mass
-        binary.stars[0].velocity = (starEnvelope.center_of_mass_velocity() * starEnvelope.mass +
-                                    starCore.velocity * starCore.mass)/binary.stars[0].mass
+        binary.stars[0].position = StarModels.GiantSPHCenterOfMassPosition(starEnvelope, starCore)
+        binary.stars[0].velocity = StarModels.GiantSPHCenterOfMassVelocity(starEnvelope, starCore)
+        separation = binary.separation()
+        radius = starEnvelope.total_radius()
+        print "initial separation= ", separation, "current giant radius= ", radius
+        print "Roche-Lobe factor= ", separation*binary.CalculateRocheLobeRadius() / radius
 
     else:
         if takeSavedState == "Mesa":

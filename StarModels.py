@@ -216,6 +216,9 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
             except:
                 if not opposite:
                     innerBinary = Binary(configurationFile, configurationSection="InnerBinary")
+                    outerBinary.stars[0].mass = starEnvelope.total_mass() + starCore.mass
+                    outerBinary.UpdateWithMassChange()
+
                     innerBinary.stars.position += outerBinary.stars[1].position
                     innerBinary.stars.velocity += outerBinary.stars[1].velocity
                     giant.position = outerBinary.stars[0].position
@@ -554,7 +557,7 @@ class Binary:
             self.stars = stars
             print "after moving:", self.stars
         else:
-            self.LoadBinary(particles)
+            self.LoadBinary(particles, configurationFile, configurationSection)
         self.velocity = self.stars.center_of_mass_velocity()
         self.vx, self.vy, self.vz = self.velocity
         self.position = self.stars.center_of_mass()
@@ -593,17 +596,24 @@ class Binary:
         print "after moving to center: ", self.stars
 
 
-    def LoadBinary(self, particles):
-
+    def LoadBinary(self, particles, configurationFile="", configurationSection=""):
         print "loading binary "
         self.stars = particles
         masses = [particles[0].mass,particles[1].mass]
         self.radius = particles.radius
         velocityDifference = BinaryCalculations.CalculateVelocityDifference(self.stars[0], self.stars[1])
         separation = BinaryCalculations.CalculateSeparation(self.stars[0], self.stars[1])
-        mass = particles.total_mass()
-
-        self.semimajorAxis = BinaryCalculations.CalculateSemiMajor(velocityDifference,separation,mass)
+        self.semimajorAxis = None
+        try:
+            if configurationFile != "":
+                parser = ConfigParser.ConfigParser()
+                parser.read(configurationFile)
+                self.semimajorAxis = float(parser.get(configurationSection, "semmimajor")) | units.AU
+        except:
+            print "could get initial semmimajor axis"
+        if self.semimajorAxis is None:
+            mass = particles.total_mass()
+            self.semimajorAxis = BinaryCalculations.CalculateSemiMajor(velocityDifference,separation,mass)
         self.inclination = math.radians(BinaryCalculations.CalculateInclination((0,0,0) | (units.m / units.s),(0,0,0)| units.m,
                                                                    velocityDifference, separation))
         self.eccentricity =BinaryCalculations.CalculateEccentricity(self.stars[0],self.stars[1])

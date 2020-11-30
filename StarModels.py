@@ -111,9 +111,21 @@ class SphStar:
             print "sph center of mass: ", self.initialCOM
             print "sph center of mass velocity: ", self.initialCOMV
 
+    def CalculateBindingEnergy(self, star):
+        mass_profile = star.get_mass_profile()
+        cumulative_mass_profile = star.get_cumulative_mass_profile()
+        thermal_energy_profile = star.get_thermal_energy_profile()
+        radius_profile = star.get_radius_profile()
+        E = 0.0 | units.erg
+        for i in range(len(mass_profile)):
+            if (cumulative_mass_profile[i] * star.mass) < star.core_mass:
+                continue
+            E += (thermal_energy_profile[i] - constants.G * (cumulative_mass_profile[i] * star.mass) / radius_profile[
+                i]) * (mass_profile[i] * star.mass)
 
+        return E
 
-    def  EvolveStarWithStellarCode(self, code = MESA, savingPath = ""):
+    def EvolveStarWithStellarCode(self, code = MESA, savingPath = ""):
         '''
         evolve with (default) MESA or other
         :return: the star after has been created with MESA
@@ -140,6 +152,8 @@ class SphStar:
         pickle_stellar_model(mainStar, savingPath + "/" + code.__name__)
         print "star saved to: ", savingPath + "/" + code.__name__ , "mass: ",mainStar.mass, "stellar type:", mainStar.stellar_type
         print "core mass from " + code.__name__ + " is ", mainStar.core_mass
+        Ebin = self.CalculateBindingEnergy(mainStar)
+        print "binding energy= ", Ebin, " lambda= ", -(constants.G*mainStar.mass*(mainStar.mass-mainStar.core_mass)/mainStar.radius)/Ebin
         return mainStar
 
 class SphMetaData:

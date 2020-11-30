@@ -53,9 +53,20 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
     if takeSavedState == "True":
         starEnvelope, starCore, binary, semmimajor, metaData = \
             StarModels.TakeBinarySavedState(savedVersionPath, configurationFile, step= -1)
+        binary.stars[0].mass = starEnvelope.total_mass() + starCore.mass
+        binary.stars[0].position = (starEnvelope.center_of_mass() * starEnvelope.mass +
+                                    starCore.position * starCore.mass)/binary.stars[0].mass
+        binary.stars[0].velocity = (starEnvelope.center_of_mass_velocity() * starEnvelope.mass +
+                                    starCore.velocity * starCore.mass)/binary.stars[0].mass
     elif takeSavedState == "Evolve":
         starEnvelope, starCore, binary, semmimajor,metaData = \
-            StarModels.TakeBinarySavedState(savedVersionPath + "/evolution", configurationFile, step)
+            StarModels.TakeBinarySavedState(savedVersionPath, configurationFile, step)
+        binary.stars[0].mass = starEnvelope.total_mass() + starCore.mass
+        binary.stars[0].position = (starEnvelope.center_of_mass() * starEnvelope.mass +
+                                    starCore.position * starCore.mass)/binary.stars[0].mass
+        binary.stars[0].velocity = (starEnvelope.center_of_mass_velocity() * starEnvelope.mass +
+                                    starCore.velocity * starCore.mass)/binary.stars[0].mass
+
     else:
         if takeSavedState == "Mesa":
             binary, metaData = CreateBinarySystem(configurationFile, savedVersionPath, takeSavedMesa= True)

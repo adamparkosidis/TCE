@@ -638,7 +638,7 @@ class Binary:
         return self.stars.total_mass()
 
     def separation(self):
-        BinaryCalculations.CalculateVectorSize(self.stars[1].position-self.stars[0].position)
+        return BinaryCalculations.CalculateVectorSize(self.stars[1].position-self.stars[0].position)
 
     def CalculateRocheLobeRadius(self):
         #from Eggleton 1983

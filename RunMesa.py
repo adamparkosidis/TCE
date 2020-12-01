@@ -98,6 +98,8 @@ class SphStar:
          str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
          str(time.localtime().tm_sec)))
         evolutionType = code(redirection='file',redirect_file=output_file)
+        evolutionType.initialize_code()
+        evolutionType.parameters.stabilize_new_stellar_model_flag = False
         #evolutionType2=code()
         print "evolving with MESA"
         radiuses = []

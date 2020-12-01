@@ -133,9 +133,7 @@ class SphStar:
             if os.path.isfile(savedMesa):
                 with open(savedMesa, 'rb') as mesaFile:
                     unpickledFile = pickle.load(mesaFile)
-                    if not hasattr(unpickledFile, "dmass"):
-                        unpickledFile.dmass = unpickledFile.get_mass_profile()
-                    mainStar = evolutionType.particles.new_particle_from_model(unpickledFile)
+                    mainStar = evolutionType.new_particle_from_model(unpickledFile)
                     print "model loaded"
                     #mainStar.finalize_stellar_model(age)
             else:

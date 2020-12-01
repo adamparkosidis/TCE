@@ -64,6 +64,8 @@ class SphStar:
         radii_cubed = model['radius_profile'] ** 3
         radii_cubed.prepend(0 | units.m ** 3)
         mass_profile = (4.0/3.0 * constants.pi) * model['density_profile'] * (radii_cubed[1:] - radii_cubed[:-1])
+        for i in range(1,len(mass_profile)):
+            mass_profile[i] += mass_profile[i-1]
         temperature_profile = model['specific_internal_energy_profile'] * model['mu_profile'] / (1.5 * constants.kB)
         return dict(
             number_of_zones= number_of_zones,

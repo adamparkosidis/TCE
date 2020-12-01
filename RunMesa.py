@@ -112,6 +112,8 @@ class SphStar:
             if os.path.isfile(savedMesa):
                 with open(savedMesa, 'rb') as mesaFile:
                     unpickledFile = pickle.load(mesaFile)
+                    if not hasattr(unpickledFile, "dmass"):
+                        unpickledFile.dmass = unpickledFile.get_mass_profile()
                     mainStar = evolutionType.particles.new_particle_from_model(unpickledFile)
                     print "model loaded"
                     #mainStar.finalize_stellar_model(age)
@@ -184,6 +186,7 @@ class SphStar:
                 outputCurrentFile = savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type))
                 if not os.path.isfile(outputCurrentFile):
                     with open(outputCurrentFile,'wb') as openedFile:
+                        mainStar.dmass = mainStar.get_mass_profile()
                         pickle.dump(mainStar, openedFile, pickle.HIGHEST_PROTOCOL)
                 oldStellarType = mainStar.stellar_type.value_in(units.stellar_type)
             else:
@@ -201,6 +204,7 @@ class SphStar:
             mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type))
         if not os.path.isfile(outputCurrentFile):
             with open(outputCurrentFile, 'wb') as openedFile:
+                mainStar.dmass = mainStar.get_mass_profile()
                 pickle.dump(mainStar, openedFile, pickle.HIGHEST_PROTOCOL)
 
         textFile = open(savingPath + '/radiuses_' + str(mainStar.mass.value_in(units.MSun)) + '.txt', 'w')

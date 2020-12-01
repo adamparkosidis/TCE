@@ -206,7 +206,6 @@ class SphStar:
                 outputCurrentFile = savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type))
                 if not os.path.isfile(outputCurrentFile):
                     with open(outputCurrentFile,'wb') as openedFile:
-                        mainStar.dmass = mainStar.get_mass_profile()
                         pickle.dump(StellarModel(mainStar), openedFile, pickle.HIGHEST_PROTOCOL)
                 oldStellarType = mainStar.stellar_type.value_in(units.stellar_type)
             else:
@@ -224,7 +223,6 @@ class SphStar:
             mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type))
         if not os.path.isfile(outputCurrentFile):
             with open(outputCurrentFile, 'wb') as openedFile:
-                mainStar.dmass = mainStar.get_mass_profile()
                 pickle.dump(StellarModel(mainStar), openedFile, pickle.HIGHEST_PROTOCOL)
 
         textFile = open(savingPath + '/radiuses_' + str(mainStar.mass.value_in(units.MSun)) + '.txt', 'w')

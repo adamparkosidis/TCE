@@ -64,15 +64,13 @@ class SphStar:
         radii_cubed = model['radius_profile'] ** 3
         radii_cubed.prepend(0 | units.m ** 3)
         mass_profile = (4.0/3.0 * constants.pi) * model['density_profile'] * (radii_cubed[1:] - radii_cubed[:-1])
-        for i in range(1,len(mass_profile)):
-            mass_profile[i] += mass_profile[i-1]
         temperature_profile = model['specific_internal_energy_profile'] * model['mu_profile'] / (1.5 * constants.kB)
         luminosity_profile = 4*constants.pi*(model['radius_profile']**2)*constants.Stefan_hyphen_Boltzmann_constant*temperature_profile**4
         for i in range(len(luminosity_profile)):
             luminosity_profile[i] = luminosity_profile[i].as_quantity_in(units.erg / units.s)
         return dict(
             number_of_zones= number_of_zones,
-            mass=mass_profile,
+            dmass=mass_profile,
             radius=model['radius_profile'],
             rho=model['density_profile'],
             temperature=temperature_profile,
@@ -87,7 +85,7 @@ class SphStar:
             X_Si=composition[7] * 0.0,
             X_Fe=composition[7] * 0.0)
 
-    def EvolveStarWithStellarCode(self, code = MESA, savingPath = "", savedMesa="", stellar_type= 3 | units.stellar_type ):
+    def EvolveStarWithStellarCode(self, code = MESA, savingPath = "", savedMesa="", stellar_type= 3 | units.stellar_type,age=1.2*10**10|units.yr ):
         '''
         evolve with (default) MESA or other
         :return: the star after has been created with MESA
@@ -99,7 +97,7 @@ class SphStar:
          str(time.localtime().tm_sec)))
         evolutionType = code(redirection='file',redirect_file=output_file)
         evolutionType.initialize_code()
-        evolutionType.parameters.stabilize_new_stellar_model_flag = False
+        #evolutionType.parameters.stabilize_new_stellar_model_flag = False
         #evolutionType2=code()
         print "evolving with MESA"
         radiuses = []
@@ -114,10 +112,9 @@ class SphStar:
             if os.path.isfile(savedMesa):
                 with open(savedMesa, 'rb') as mesaFile:
                     unpickledFile = pickle.load(mesaFile)
-                    model = self.strctureFromPickleFile(unpickledFile)
-                    print model.keys()
-                    mainStar = evolutionType.new_particle_from_model(model)
+                    mainStar = evolutionType.particles.new_particle_from_model(unpickledFile)
                     print "model loaded"
+                    #mainStar.finalize_stellar_model(age)
             else:
                 print "there is no such file as ", savedMesa
         if mainStar is None:
@@ -185,7 +182,7 @@ class SphStar:
                 print mainStar.stellar_type, mainStar.radius , maxRadii
                 #save a pickle of all the mesa properties
                 if not os.path.isfile(savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type))):
-                    pickle_stellar_model(mainStar, savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type)))
+                    pickle.dump(mainStar, savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type)))
                 oldStellarType = mainStar.stellar_type.value_in(units.stellar_type)
             else:
                 if maxRadii < mainStar.radius:
@@ -199,7 +196,7 @@ class SphStar:
         print evolutionType
         print mainStar
         if not os.path.isfile(savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type))):
-            pickle_stellar_model(mainStar, savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type)))
+            pickle.dump(mainStar, savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type)))
 
         textFile = open(savingPath + '/radiuses_' + str(mainStar.mass.value_in(units.MSun)) + '.txt', 'w')
         textFile.write(', '.join([str(y) for y in radiuses]))

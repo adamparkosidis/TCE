@@ -176,12 +176,8 @@ def Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels"
           configurationFile = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels/1RGBConfiguration.ini", savedMesaPath=""):
     #print types["RGB"], types["AGB"]
     giant = StarModels.CreatePointStar(configurationFile,configurationSection="MainStar")
-    if takeSavedState:
-        sphStar = SphStar(giant, configurationFile, configurationSection="MainStar",
-                                savedMesaStarPath= savedMesaPath, takeSavedMesa=True)
-    else:
-        sphStar = SphStar(giant, configurationFile, configurationSection="MainStar",
-                                savedMesaStarPath = savedVersionPath, takeSavedMesa=False)
+    sphStar = SphStar(giant, configurationFile, configurationSection="MainStar",
+                                savedMesaStarPath = savedMesaPath, takeSavedMesa=takeSavedState)
     #saved state
     unitConverter = nbody_system.nbody_to_si(sphStar.gas_particles.total_mass() + sphStar.core_particle.mass, sphStar.core_particle.radius*1000*2)
     system=Gadget2(unitConverter)

@@ -16,7 +16,7 @@ types["AGB"] = (1 + 9) | units.stellar_type
 
 
 class SphStar:
-    def __init__(self, pointStar, configurationFile="", configurationSection="", savedMesaStarPath = "", takeSavedMesa = False,savedGas="", savedDm=""):
+    def __init__(self, pointStar, configurationFile="", configurationSection="", savedMesaStarPath = "", takeSavedMesa = False, savedGas="", savedDm=""):
         print 'parsing configurations'
         parser = ConfigParser.ConfigParser()
         parser.read(configurationFile)
@@ -29,12 +29,14 @@ class SphStar:
         except:
             self.radius = 0 | units.RSun
 
-        if takeSavedMesa:
+
+        if takeSavedMesa and savedMesaStarPath != "":
             self.sphStar = convert_stellar_model_to_SPH(pointStar,self.sphParticles, do_relax = False, with_core_particle=True,
                                                         target_core_mass= float(parser.get(configurationSection, "coreMass")) | units.MSun,
                                             base_grid_options=dict(type="fcc"), pickle_file=savedMesaStarPath)
         else:
-            mesaStar = self.EvolveStarWithStellarCode(MESA, savedMesaStarPath + "/" + self.saving_name, stellar_type= self.stellar_type)
+            mesaStar = self.EvolveStarWithStellarCode(MESA, savedMesaStarPath + "/" + self.saving_name,
+                                                      savedMesa=savedMesaStarPath, stellar_type=self.stellar_type)
             self.sphStar = convert_stellar_model_to_SPH(mesaStar, self.sphParticles, do_relax = False, with_core_particle=True, target_core_mass= mesaStar.core_mass,
                                             base_grid_options=dict(type="fcc"))
         self.gas_particles = self.sphStar.gas_particles
@@ -56,7 +58,7 @@ class SphStar:
     def CheckLimitType(self, starType):
             return starType >= 16 or starType == 7 or starType < self.stellar_type.value_in(units.stellar_type)
 
-    def EvolveStarWithStellarCode(self, code = MESA, savingPath = "", stellar_type= 3 | units.stellar_type ):
+    def EvolveStarWithStellarCode(self, code = MESA, savingPath = "", savedMesa="", stellar_type= 3 | units.stellar_type ):
         '''
         evolve with (default) MESA or other
         :return: the star after has been created with MESA
@@ -71,15 +73,17 @@ class SphStar:
         p.radius = self.pointStar.radius
         p.position = self.pointStar.position
         p.velocity = self.pointStar.velocity
-        #mainStar = evolutionType.pre_ms_stars.add_particle(self.pointStar)
-        #mainStar2 = evolutionType2.pre_ms_stars.add_particle(p)
-        mainStar = evolutionType.particles.add_particle(self.pointStar)
-        print "particle with mass=",mainStar.mass,"  added, current radius = ", mainStar.radius.as_quantity_in(units.RSun)," current type=",mainStar.stellar_type,"  target radius = ", self.radius, " target type = ",stellar_type
+        if savedMesa == "":
+            mainStar = evolutionType.particles.add_particle(self.pointStar)
+        else:
+            mainStar = evolutionType.new_particle_from_model(pickle.load(savedMesa))
+            print "model loaded"
+        print "particle with mass=",mainStar.mass,"  added, current radius = ", \
+            mainStar.radius.as_quantity_in(units.RSun)," current type=",mainStar.stellar_type,\
+            "  target radius = ", self.radius, " target type = ",stellar_type
         oldStellarType = mainStar.stellar_type.value_in(units.stellar_type)
         maxRadii = mainStar.radius
         oldTime = time.time()
-        #print evolutionType.pre_ms_stars
-        #print evolutionType2.pre_ms_stars
         try:
             os.makedirs(savingPath)
         except(OSError):
@@ -162,7 +166,8 @@ class SphStar:
         print "star saved to: ", savingPath + "/" + code.__name__ , "mass: ",mainStar.mass, "stellar type:", mainStar.stellar_type
         return mainStar
 
-def Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels", takeSavedState = False, step = -1, configurationFile = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels/1RGBConfiguration.ini", savedMesaPath=""):
+def Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels", takeSavedState = False, step = -1,
+          configurationFile = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels/1RGBConfiguration.ini", savedMesaPath=""):
     #print types["RGB"], types["AGB"]
     giant = StarModels.CreatePointStar(configurationFile,configurationSection="MainStar")
     if takeSavedState:
@@ -185,8 +190,9 @@ def Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels"
 def InitParser():
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('--saving_path', type=str, required=True,  help='path for saving models')
-    parser.add_argument('--configuration_file', type=str,  help='path to where to config file is located', default="")
-
+    parser.add_argument('--configuration_file', type=str,  help='path to where to where config file is located', default="")
+    parser.add_argument('--takeSavedMesa', type=bool,  help='if true will *not* evolve further with mesa and take the mesa file', default=False)
+    parser.add_argument('--savedMesaFile', type=str,  help='path to where to  where initial MESA file is located', default="")
     return parser
 
 if __name__ == "__main__":
@@ -201,7 +207,8 @@ if __name__ == "__main__":
     else:
         configuration_file = args.configuration_file
     print "taking config file: ", configuration_file
-    Start(savedVersionPath = args.saving_path, takeSavedState = False, step = -1, configurationFile = configuration_file)
+    Start(savedVersionPath = args.saving_path, takeSavedState = args.takeSavedMesa, step = -1, configurationFile = configuration_file
+          ,savedMesaPath= args.savedMesaFile)
     #Start(savedVersionPath="/vol/sci/astro/bigdata/glanz/amuse10/savings/MesaModels/HotJupiter", takeSavedState=False,step=-1,configurationFile="/vol/sci/astro/bigdata/glanz/amuse10/savings/MesaModels/HotJupiter/HJConfiguration.ini")
 
     #Start(savedVersionPath = "/home/hilaglanz/Dropbox/TCE/plots/MesaModels",savedMesaPath = "/home/hilaglanz/Dropbox/TCE/plots/MesaModels/1_0AGB/MESA_0.663429839586_5", takeSavedState = "True", step = -1, configurationFile = "/home/hilaglanz/Dropbox/TCE/plots/MesaModels/1AGBConfiguration.ini")

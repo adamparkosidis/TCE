@@ -58,6 +58,30 @@ class SphStar:
     def CheckLimitType(self, starType):
             return starType >= 16 or starType == 7 or starType < self.stellar_type.value_in(units.stellar_type)
 
+    def strctureFromPickleFile(self,model):
+        number_of_zones = model['number_of_zones']
+        composition = model['composition_profile']
+        radii_cubed = model['radius_profile'] ** 3
+        radii_cubed.prepend(0 | units.m ** 3)
+        mass_profile = (4.0/3.0 * constants.pi) * model['density_profile'] * (radii_cubed[1:] - radii_cubed[:-1])
+        temperature_profile = model['specific_internal_energy_profile'] * model['mu_profile'] / (1.5 * constants.kB)
+        return dict(
+            number_of_zones= number_of_zones,
+            mass=mass_profile,
+            radius=model['radius_profile'],
+            rho=model['density_profile'],
+            temperature=temperature_profile,
+            luminosity=4*constants.pi*(model['radius_profile']**2)*constants.Stefan_hyphen_Boltzmann_constant*temperature_profile**4,
+            X_H=composition[0],
+            X_He=composition[1] + composition[2],
+            X_C=composition[3],
+            X_N=composition[4],
+            X_O=composition[5],
+            X_Ne=composition[6],
+            X_Mg=composition[7],
+            X_Si=composition[7] * 0.0,
+            X_Fe=composition[7] * 0.0)
+
     def EvolveStarWithStellarCode(self, code = MESA, savingPath = "", savedMesa="", stellar_type= 3 | units.stellar_type ):
         '''
         evolve with (default) MESA or other
@@ -77,9 +101,9 @@ class SphStar:
         if savedMesa != "":
             if os.path.isfile(savedMesa):
                 with open(savedMesa, 'rb') as mesaFile:
-                    model = pickle.load(mesaFile)
-                    print model
-                    print model['mass']
+                    unpickledFile = pickle.load(mesaFile)
+                    model = self.strctureFromPickleFile(unpickledFile)
+                    print model.keys()
                     mainStar = evolutionType.new_particle_from_model(model)
                     print "model loaded"
             else:

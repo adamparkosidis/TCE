@@ -92,6 +92,7 @@ class SphStar:
         evolve with (default) MESA or other
         :return: the star after has been created with MESA
         '''
+        os.mkdir(savingPath)
         output_file = os.path.join(savingPath, "mesa_output_{0}.txt".format
         (str(time.localtime().tm_year) + "-" +
          str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +

@@ -67,13 +67,16 @@ class SphStar:
         for i in range(1,len(mass_profile)):
             mass_profile[i] += mass_profile[i-1]
         temperature_profile = model['specific_internal_energy_profile'] * model['mu_profile'] / (1.5 * constants.kB)
+        luminosity_profile = 4*constants.pi*(model['radius_profile']**2)*constants.Stefan_hyphen_Boltzmann_constant*temperature_profile**4
+        for i in range(len(luminosity_profile)):
+            luminosity_profile[i] = luminosity_profile[i].as_quantity_in(units.erg / units.s)
         return dict(
             number_of_zones= number_of_zones,
             mass=mass_profile,
             radius=model['radius_profile'],
             rho=model['density_profile'],
             temperature=temperature_profile,
-            luminosity=4*constants.pi*(model['radius_profile']**2)*constants.Stefan_hyphen_Boltzmann_constant*temperature_profile**4,
+            luminosity= luminosity_profile,
             X_H=composition[0],
             X_He=composition[1] + composition[2],
             X_C=composition[3],
@@ -89,7 +92,12 @@ class SphStar:
         evolve with (default) MESA or other
         :return: the star after has been created with MESA
         '''
-        evolutionType = code()
+        output_file = os.path.join(savingPath, "mesa_output_{0}.txt".format
+        (str(time.localtime().tm_year) + "-" +
+         str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
+         str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
+         str(time.localtime().tm_sec)))
+        evolutionType = code(redirection='file',redirect_file=output_file)
         #evolutionType2=code()
         print "evolving with MESA"
         radiuses = []

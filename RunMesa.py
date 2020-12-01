@@ -16,7 +16,7 @@ types["AGB"] = (1 + 9) | units.stellar_type
 
 
 class SphStar:
-    def __init__(self, pointStar, configurationFile="", configurationSection="", savedMesaStarPath = "", takeSavedMesa = False, savedGas="", savedDm=""):
+    def __init__(self, pointStar, configurationFile="", configurationSection="", savedVersionPath="",savedMesaStarPath = "", takeSavedMesa = False, savedGas="", savedDm=""):
         print 'parsing configurations'
         parser = ConfigParser.ConfigParser()
         parser.read(configurationFile)
@@ -35,7 +35,7 @@ class SphStar:
                                                         target_core_mass= float(parser.get(configurationSection, "coreMass")) | units.MSun,
                                             base_grid_options=dict(type="fcc"), pickle_file=savedMesaStarPath)
         else:
-            mesaStar = self.EvolveStarWithStellarCode(MESA, savedMesaStarPath + "/" + self.saving_name,
+            mesaStar = self.EvolveStarWithStellarCode(MESA, savedVersionPath + "/" + self.saving_name,
                                                       savedMesa=savedMesaStarPath, stellar_type=self.stellar_type)
             self.sphStar = convert_stellar_model_to_SPH(mesaStar, self.sphParticles, do_relax = False, with_core_particle=True, target_core_mass= mesaStar.core_mass,
                                             base_grid_options=dict(type="fcc"))
@@ -92,8 +92,7 @@ class SphStar:
         evolve with (default) MESA or other
         :return: the star after has been created with MESA
         '''
-        os.mkdir(savingPath)
-        output_file = os.path.join(savingPath, "mesa_output_{0}.txt".format
+        output_file = os.path.join(savingPath+"/../", "mesa_output_{0}.txt".format
         (str(time.localtime().tm_year) + "-" +
          str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
          str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
@@ -214,7 +213,7 @@ def Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels"
           configurationFile = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels/1RGBConfiguration.ini", savedMesaPath=""):
     #print types["RGB"], types["AGB"]
     giant = StarModels.CreatePointStar(configurationFile,configurationSection="MainStar")
-    sphStar = SphStar(giant, configurationFile, configurationSection="MainStar",
+    sphStar = SphStar(giant, configurationFile, configurationSection="MainStar",savedVersionPath=savedVersionPath,
                                 savedMesaStarPath = savedMesaPath, takeSavedMesa=takeSavedState)
     #saved state
     unitConverter = nbody_system.nbody_to_si(sphStar.gas_particles.total_mass() + sphStar.core_particle.mass, sphStar.core_particle.radius*1000*2)

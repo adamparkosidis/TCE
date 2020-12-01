@@ -73,11 +73,17 @@ class SphStar:
         p.radius = self.pointStar.radius
         p.position = self.pointStar.position
         p.velocity = self.pointStar.velocity
-        if savedMesa == "":
+        mainStar = None
+        if savedMesa != "":
+            if os.path.isfile(savedMesa):
+                with open(savedMesa, 'rb') as mesaFile:
+                    mainStar = evolutionType.new_particle_from_model(pickle.load(mesaFile))
+                    print "model loaded"
+            else:
+                print "there is no such file as ", savedMesa
+        if mainStar is None:
             mainStar = evolutionType.particles.add_particle(self.pointStar)
-        else:
-            mainStar = evolutionType.new_particle_from_model(pickle.load(savedMesa))
-            print "model loaded"
+
         print "particle with mass=",mainStar.mass,"  added, current radius = ", \
             mainStar.radius.as_quantity_in(units.RSun)," current type=",mainStar.stellar_type,\
             "  target radius = ", self.radius, " target type = ",stellar_type

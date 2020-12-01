@@ -21,7 +21,7 @@ class StellarModel:
         self.temperature = star.get_temperature_profile()
         self.luminosity = star.get_luminosity_profile()
         composition = star.get_chemical_abundance_profiles()
-        self.composition = conposition
+        self.composition = composition
         self.X_H = composition[0]
         self.X_He = composition[1] + composition[2]
         self.X_C = composition[3]

@@ -31,6 +31,7 @@ class StellarModel:
         self.X_Mg = composition[7]
         self.X_Si = composition[7]*0.0
         self.X_Fe = composition[7]*0.0
+        self.dmass = star.get_mass_profile()
         self.age = star.age
 
 

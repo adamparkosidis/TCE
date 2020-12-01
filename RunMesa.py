@@ -181,8 +181,10 @@ class SphStar:
             if mainStar.stellar_type.value_in(units.stellar_type) != oldStellarType:
                 print mainStar.stellar_type, mainStar.radius , maxRadii
                 #save a pickle of all the mesa properties
-                if not os.path.isfile(savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type))):
-                    pickle.dump(mainStar, savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type)))
+                outputCurrentFile = savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type))
+                if not os.path.isfile(outputCurrentFile):
+                    with open(outputCurrentFile,'wb') as openedFile:
+                        pickle.dump(mainStar, openedFile, pickle.HIGHEST_PROTOCOL)
                 oldStellarType = mainStar.stellar_type.value_in(units.stellar_type)
             else:
                 if maxRadii < mainStar.radius:
@@ -195,8 +197,11 @@ class SphStar:
 
         print evolutionType
         print mainStar
-        if not os.path.isfile(savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type))):
-            pickle.dump(mainStar, savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type)))
+        outputCurrentFile = savingPath + "/" + code.__name__ + "_" + str(
+            mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type))
+        if not os.path.isfile(outputCurrentFile):
+            with open(outputCurrentFile, 'wb') as openedFile:
+                pickle.dump(mainStar, openedFile, pickle.HIGHEST_PROTOCOL)
 
         textFile = open(savingPath + '/radiuses_' + str(mainStar.mass.value_in(units.MSun)) + '.txt', 'w')
         textFile.write(', '.join([str(y) for y in radiuses]))

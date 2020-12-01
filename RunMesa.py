@@ -14,6 +14,25 @@ types["RGB"] = (1 + 9) | units.stellar_type
 types["AGB"] = (1 + 9) | units.stellar_type
 
 
+class StellarModel:
+    def __init__(self, star):
+        self.radius = star.get_radius_profile()
+        self.rho = star.get_density_profile()
+        self.temperature = star.get_temperature_profile()
+        self.luminosity = star.get_luminosity_profile()
+        composition = star.get_chemical_abundance_profiles()
+        self.composition = conposition
+        self.X_H = composition[0]
+        self.X_He = composition[1] + composition[2]
+        self.X_C = composition[3]
+        self.X_N = composition[4]
+        self.X_O = composition[5]
+        self.X_Ne = composition[6]
+        self.X_Mg = composition[7]
+        self.X_Si = composition[7]*0.0
+        self.X_Fe = composition[7]*0.0
+        self.age = star.age
+
 
 class SphStar:
     def __init__(self, pointStar, configurationFile="", configurationSection="", savedVersionPath="",savedMesaStarPath = "", takeSavedMesa = False, savedGas="", savedDm=""):
@@ -84,6 +103,7 @@ class SphStar:
             X_Mg=composition[7],
             X_Si=composition[7] * 0.0,
             X_Fe=composition[7] * 0.0)
+
 
     def EvolveStarWithStellarCode(self, code = MESA, savingPath = "", savedMesa="", stellar_type= 3 | units.stellar_type,age=1.2*10**10|units.yr ):
         '''
@@ -187,7 +207,7 @@ class SphStar:
                 if not os.path.isfile(outputCurrentFile):
                     with open(outputCurrentFile,'wb') as openedFile:
                         mainStar.dmass = mainStar.get_mass_profile()
-                        pickle.dump(mainStar, openedFile, pickle.HIGHEST_PROTOCOL)
+                        pickle.dump(StellarModel(mainStar), openedFile, pickle.HIGHEST_PROTOCOL)
                 oldStellarType = mainStar.stellar_type.value_in(units.stellar_type)
             else:
                 if maxRadii < mainStar.radius:
@@ -205,7 +225,7 @@ class SphStar:
         if not os.path.isfile(outputCurrentFile):
             with open(outputCurrentFile, 'wb') as openedFile:
                 mainStar.dmass = mainStar.get_mass_profile()
-                pickle.dump(mainStar, openedFile, pickle.HIGHEST_PROTOCOL)
+                pickle.dump(StellarModel(mainStar), openedFile, pickle.HIGHEST_PROTOCOL)
 
         textFile = open(savingPath + '/radiuses_' + str(mainStar.mass.value_in(units.MSun)) + '.txt', 'w')
         textFile.write(', '.join([str(y) for y in radiuses]))

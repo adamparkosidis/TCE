@@ -77,7 +77,10 @@ class SphStar:
         if savedMesa != "":
             if os.path.isfile(savedMesa):
                 with open(savedMesa, 'rb') as mesaFile:
-                    mainStar = evolutionType.new_particle_from_model(pickle.load(mesaFile))
+                    model = pickle.load(mesaFile)
+                    print model
+                    print model['mass']
+                    mainStar = evolutionType.new_particle_from_model(model)
                     print "model loaded"
             else:
                 print "there is no such file as ", savedMesa

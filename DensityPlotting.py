@@ -931,13 +931,14 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             print companionAngularMomenta[i], specificAngularCOM[2], specificAngularCOM[2]*companion.mass
             currentGasAngularMomenta = sphGiant.GetAngularMomentumOfGas()
             gasAngularMomenta[i] = CalculateVectorSize(currentGasAngularMomenta).value_in(gasAngularMomentaUnits)
-            coreAngularMomenta = CalculateSpecificMomentum(sphGiant.core.velocity,sphGiant.core.position) * sphGiant.core.mass
-            currentGiantAngularMomenta = coreAngularMomenta + currentGasAngularMomenta
-            print currentGiantAngularMomenta
-            giantAngularMomenta[i] = CalculateVectorSize(currentGiantAngularMomenta).value_in(giantAngularMomentaUnits)
-            angularTotx = currentGiantAngularMomenta[0] + specificAngularCOM[0] * companion.mass
-            angularToty = currentGiantAngularMomenta[1] + specificAngularCOM[1] * companion.mass
-            angularTotz = currentGiantAngularMomenta[2] + specificAngularCOM[2] * companion.mass
+            coreSpecificAngularMomenta = CalculateSpecificMomentum(sphGiant.core.velocity,sphGiant.core.position)
+            giantAngularMomentax = coreSpecificAngularMomenta[0] * core.mass + currentGasAngularMomenta[0]
+            giantAngularMomentay = coreSpecificAngularMomenta[1] * core.mass + currentGasAngularMomenta[1]
+            giantAngularMomentaz = coreSpecificAngularMomenta[2] * core.mass + currentGasAngularMomenta[2]
+            giantAngularMomenta[i] = CalculateVectorSize([giantAngularMomentax,giantAngularMomentay,giantAngularMomentaz]).value_in(giantAngularMomentaUnits)
+            angularTotx = giantAngularMomentax + specificAngularCOM[0] * companion.mass
+            angularToty = giantAngularMomentay + specificAngularCOM[1] * companion.mass
+            angularTotz = giantAngularMomentaz + specificAngularCOM[2] * companion.mass
             totAngularMomenta[i] = ((angularTotx**2 + angularToty**2 + angularTotz**2)**0.5).value_in(totAngularMomentaUnits)
             semmimajors[i] = semmimajor.value_in(semmimajorsUnits)
             innerAngularMomenta[i] = CalculateVectorSize(sphGiant.innerGas.angularMomentum).value_in(innerAngularMomentaUnits)

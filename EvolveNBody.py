@@ -88,15 +88,14 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     #system.parameters.begin_time = beginTime
     system.parameters.time_limit_cpu = 7200000000 | units.s
     print "core radius:",core.radius.as_string_in(units.RSun), core.radius
+    print "current timestep_accuracy= ", system.parameters.timestep_accuracy_parameter
+    system.parameters.timestep_accuracy_parameter = 0.05
+    print "current time max= ", system.parameters.time_max
+    system.parameters.time_max = t_end * 1.5
     system.dm_particles.add_particle(core)
     print "core added to hydro"
     system.gas_particles.add_particles(envelope)
     print "envelope added to hydro"
-    system.timestep_accuracy_parameter = 0.05
-    system.parameters.time_max = t_end * 1.5
-
-
-
     print system.dm_particles
     #print core
     print system.parameters.epsilon_squared

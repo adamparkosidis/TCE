@@ -845,6 +845,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
                        giantAngularMomenta, giantAngularMomentaUnits,
                        gasAngularMomenta, gasAngularMomentaUnits,
                        totAngularMomenta, totAngularMomentaUnits,
+                       massLoss, massLossUnits,
                        Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
                        toPlot = False, plotDust=False, dustRadius= 340.0 | units.RSun, timeStep=0.2):
 
@@ -909,6 +910,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             sphGiant.CountLeavingParticlesInsideRadius()
             print "leaving particles: ", sphGiant.leavingParticles
             print "unbounded mass: ", sphGiant.totalUnboundedMass
+            massLoss[i] = sphGiant.totalUnboundedMass.value_in(massLossUnits)
 
             semmimajor = CalculateSemiMajor(CalculateVelocityDifference(companion, sphGiant.core), CalculateSeparation(companion, sphGiant.core),companion.mass + sphGiant.core.mass).as_quantity_in(units.AU)
             CalculateEccentricity(companion, sphGiant.core)
@@ -1208,6 +1210,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     giantAngularMomenta = MultiProcessArrayWithUnits(len(workingRange),angularMomentaUnits)
     gasAngularMomenta = MultiProcessArrayWithUnits(len(workingRange),angularMomentaUnits)
     totAngularMomenta = MultiProcessArrayWithUnits(len(workingRange),angularMomentaUnits)
+    massLoss = MultiProcessArrayWithUnits(len(workingRange), units.MSun)
     Qxx = multiprocessing.Array(c_float, [0.0 for i in workingRange])
     Qxy = multiprocessing.Array('f', [0.0 for i in workingRange])
     Qxz = multiprocessing.Array('f', [0.0 for i in workingRange])
@@ -1243,6 +1246,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                                                                                   giantAngularMomenta.array, giantAngularMomenta.units,
                                                                                   gasAngularMomenta.array, gasAngularMomenta.units,
                                                                                   totAngularMomenta.array, totAngularMomenta.units,
+                                                                                  massLoss.array,massLoss.units,
                                                                                   Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
                                                                                   toPlot,
                                                                                   plotDust,dustRadius,timeStep,)))
@@ -1260,6 +1264,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     innerAngularMomenta.plot("innerAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     companionAngularMomenta.plot("companionAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     giantAngularMomenta.plot("giantAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
+    massLoss.plot("mass loss", outputDir + "/graphs", timeStep*skip, beginStep/skip,False)
 
     PlotQuadropole(Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,outputDir+"/graphs",timeStep*skip,beginStep/skip)
 

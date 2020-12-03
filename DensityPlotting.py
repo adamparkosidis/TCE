@@ -932,9 +932,9 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             currentGasAngularMomenta = sphGiant.GetAngularMomentumOfGas()
             gasAngularMomenta[i] = CalculateVectorSize(currentGasAngularMomenta).value_in(gasAngularMomentaUnits)
             coreSpecificAngularMomenta = CalculateSpecificMomentum(sphGiant.core.velocity,sphGiant.core.position)
-            giantAngularMomentax = coreSpecificAngularMomenta[0] * core.mass + currentGasAngularMomenta[0]
-            giantAngularMomentay = coreSpecificAngularMomenta[1] * core.mass + currentGasAngularMomenta[1]
-            giantAngularMomentaz = coreSpecificAngularMomenta[2] * core.mass + currentGasAngularMomenta[2]
+            giantAngularMomentax = coreSpecificAngularMomenta[0] * sphGiant.core.mass + currentGasAngularMomenta[0]
+            giantAngularMomentay = coreSpecificAngularMomenta[1] * sphGiant.core.mass + currentGasAngularMomenta[1]
+            giantAngularMomentaz = coreSpecificAngularMomenta[2] * sphGiant.core.mass + currentGasAngularMomenta[2]
             giantAngularMomenta[i] = CalculateVectorSize([giantAngularMomentax,giantAngularMomentay,giantAngularMomentaz]).value_in(giantAngularMomentaUnits)
             angularTotx = giantAngularMomentax + specificAngularCOM[0] * companion.mass
             angularToty = giantAngularMomentay + specificAngularCOM[1] * companion.mass

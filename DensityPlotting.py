@@ -1264,6 +1264,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     innerAngularMomenta.plot("innerAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     companionAngularMomenta.plot("companionAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     giantAngularMomenta.plot("giantAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
+    gasAngularMomenta.plot("gasAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     massLoss.plot("mass loss", outputDir + "/graphs", timeStep*skip, beginStep/skip,False)
 
     PlotQuadropole(Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,outputDir+"/graphs",timeStep*skip,beginStep/skip)

@@ -1314,7 +1314,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     pTot.plot("pTot", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     kGas.plot("kGas", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     uGiant.plot("uGiant", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
-    kCore.plot("kCore", outputDir + "/graphs",timeStep*skip,beginStep/skip,False
+    kCore.plot("kCore", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     kComp.plot("kComp", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     eTot.plot("eTot", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     massLoss.plot("mass loss", outputDir + "/graphs", timeStep*skip, beginStep/skip,False)

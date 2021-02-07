@@ -931,9 +931,23 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             eccentricities[i] = eccentricity
             binaryDistances[i] = CalculateVectorSize(newBinarySeparation).value_in(binaryDistancesUnits)
             sphGiant.CalculateEnergies()
+
+            uGiant[i] = sphGiant.thermalEnergy.value_in(uGiantUnits)
+            kGas[i] = sphGiant.gasKinetic.value_in(kGasUnits)
+            kCore[i] = sphGiant.coreKinetic.value_in(kCoreUnits)
+            kComp[i] = (sphGiant.potentialEnergyWithParticle(companion)).value_in(kCompUnits)
+
+            # total energies
+            kTot = (sphGiant.kineticEnergy).value_in(kGasUnits) + kComp[i]
+
+
             pGas[i] = sphGiant.gasPotential.value_in(pGasUnits)
             pGiant[i] = sphGiant.potentialEnergy.value_in(pGiantUnits)
-            pTot[i] = (pGiant[i] | pGiantUnits + sphGiant.potentialEnergyWithParticle(companion)).value_in(pTotUnits)
+            pCompCore = CalculatePotentialEnergy(sphGiant.core, companion)
+            pCompGas = (sphGiant.potentialEnergyWithParticle(companion)).value_in(pGasUnits)
+
+            pTot[i] = pGiant[i] + pCompGas + pCompCore.value_in(pGasUnits)
+            eTot[i] = kTot + pTot[i] + uGiant[i]
 
             try:
                 separation = CalculateSeparation(companion, comParticle)

@@ -848,6 +848,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
                        innerAngularMomentaUnits, companionAngularMomenta, companionAngularMomentaUnits,
                        giantAngularMomenta, giantAngularMomentaUnits,
                        gasAngularMomenta, gasAngularMomentaUnits,
+                        angularCores, angularCoresUnits,
                        totAngularMomenta, totAngularMomentaUnits,
                        massLoss, massLossUnits,
                        Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
@@ -957,19 +958,32 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
                 angularOuterCOMx = companion.mass * specificAngularCOM[0]
                 angularOuterCOMy = companion.mass * specificAngularCOM[1]
                 angularOuterCOMz = companion.mass * specificAngularCOM[2]
-                companionAngularMomenta[i] = (
-                            (angularOuterCOMx ** 2 + angularOuterCOMy ** 2 + angularOuterCOMz ** 2) ** 0.5).value_in(
+                companionAngularMomenta[i] = angularOuterCOMz.value_in(companionAngularMomentaUnits)
+                companionAngularMomentaTot = ((angularOuterCOMx ** 2 + angularOuterCOMy ** 2 +
+                                               angularOuterCOMz ** 2) ** 0.5).value_in(
                     companionAngularMomentaUnits)
 
-                gasAngularMomenta[i] = CalculateVectorSize(
-                    sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity)).value_in(
-                    gasAngularMomentaUnits)
+
+                gasAngularMomentaTot = sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity)
+                gasAngularMomenta[i] = gasAngularMomentaTot[2].value_in(gasAngularMomentaUnits)
+
                 angularGiant = sphGiant.GetAngularMomentum(centerOfMassPosition, centerOfMassVelocity)
+                giantAngularMomenta[i] = angularGiant[2].value_in(giantAngularMomentaUnits)
+
+                angularCore = CalculateSpecificMomentum(CalculateVelocityDifference(sphGiant.core, comParticle),
+                                                                CalculateSeparation(sphGiant.core, comParticle))
+                angularCoresx = sphGiant.core.mass * angularCore[0] + angularOuterCOMx
+                angularCoresy = sphGiant.core.mass * angularCore[1] + angularOuterCOMy
+                angularCoresz = sphGiant.core.mass * angularCore[2] + angularOuterCOMz
+
+                angularCores[i] = angularCoresz.value_in(angularCoresUnits)
+                    #((angularCoresx ** 2 + angularCoresy ** 2 + angularCoresz ** 2) ** 0.5).value_in(angularCoresUnits)
+
                 angularTotx = angularGiant[0] + angularOuterCOMx
                 angularToty = angularGiant[1] + angularOuterCOMy
                 angularTotz = angularGiant[2] + angularOuterCOMz
-                totAngularMomenta[i] = ((angularTotx ** 2 + angularToty ** 2 + angularTotz ** 2) ** 0.5).value_in(
-                    totAngularMomentaUnits)
+                totAngularMomenta[i] = angularTotz.value_in(totAngularMomentaUnits)
+                #((angularTotx ** 2 + angularToty ** 2 + angularTotz ** 2) ** 0.5).value_in(totAngularMomentaUnits)
 
             except:
                 print "could not calculate angular momenta, ", sys.exc_info()[0]
@@ -1258,6 +1272,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     companionAngularMomenta = MultiProcessArrayWithUnits(len(workingRange),angularMomentaUnits)
     giantAngularMomenta = MultiProcessArrayWithUnits(len(workingRange),angularMomentaUnits)
     gasAngularMomenta = MultiProcessArrayWithUnits(len(workingRange),angularMomentaUnits)
+    coresAngularMomenta = MultiProcessArrayWithUnits(len(workingRange),angularMomentaUnits)
     totAngularMomenta = MultiProcessArrayWithUnits(len(workingRange),angularMomentaUnits)
     massLoss = MultiProcessArrayWithUnits(len(workingRange), units.MSun)
     Qxx = multiprocessing.Array(c_float, [0.0 for i in workingRange])
@@ -1302,6 +1317,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                                                                                   companionAngularMomenta.array, companionAngularMomenta.units,
                                                                                   giantAngularMomenta.array, giantAngularMomenta.units,
                                                                                   gasAngularMomenta.array, gasAngularMomenta.units,
+                                                                                  coresAngularMomenta.array, coresAngularMomenta.units,
                                                                                   totAngularMomenta.array, totAngularMomenta.units,
                                                                                   massLoss.array,massLoss.units,
                                                                                   Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
@@ -1322,7 +1338,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     companionAngularMomenta.plot("companionAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     giantAngularMomenta.plot("giantAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     gasAngularMomenta.plot("gasAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
-    totAngularMomenta.plot("totAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
+    coresAngularMomenta.plot("coresAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     pGas.plot("pGas", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     pGiant.plot("pGiant", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     pTot.plot("pTot", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)

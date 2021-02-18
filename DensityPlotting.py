@@ -936,7 +936,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             uGiant[i] = sphGiant.thermalEnergy.value_in(uGiantUnits)
             kGas[i] = sphGiant.gasKinetic.value_in(kGasUnits)
             kCore[i] = sphGiant.coreKinetic.value_in(kCoreUnits)
-            kComp[i] = (sphGiant.potentialEnergyWithParticle(companion)).value_in(kCompUnits)
+            kComp[i] = (0.5 * companion.mass * (CalculateVectorSize(companion.velocity))**2).value_in(kCompUnits)
 
             # total energies
             kTot = (sphGiant.kineticEnergy).value_in(kGasUnits) + kComp[i]
@@ -1010,18 +1010,22 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 
         temperature_density_plot(sphGiant, step, outputDir, toPlot)
 
-        sphGiant.gasParticles.position -= centerOfMassPosition
-        sphGiant.gasParticles.velocity -= centerOfMassVelocity
-        sphGiant.core.position -= centerOfMassPosition
-        sphGiant.core.velocity -= centerOfMassVelocity
+        central_position = sphGiant.gas.position
+        central_velocity = sphGiant.gas.velocity
+        sphGiant.gasParticles.position -= central_position
+        sphGiant.gasParticles.velocity -= central_velocity
+        sphGiant.core.position -= central_position
+        sphGiant.core.velocity -= central_velocity
 
-        companion.position -= centerOfMassPosition
-        companion.velocity -= centerOfMassVelocity
+        companion.position -= central_position
+        companion.velocity -= central_velocity
 
         innerAngularMomenta[i] = sphGiant.innerGas.angularMomentum[2].value_in(innerAngularMomentaUnits)
         if toPlot:
-            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, step , outputDir, vmin, vmax, plotDust= plotDust, dustRadius=dustRadius, timeStep=timeStep)
-            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, step, outputDir, vmin, vmax, plotDust= plotDust, dustRadius=dustRadius, side_on=True, timeStep=timeStep)
+            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, step , outputDir, vmin, vmax, plotDust= plotDust,
+                        dustRadius=dustRadius, timeStep=timeStep)
+            PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, step, outputDir, vmin, vmax, plotDust= plotDust,
+                        dustRadius=dustRadius, side_on=True, timeStep=timeStep)
             PlotVelocity(sphGiant.gasParticles,sphGiant.core,companion, step, outputDir, vmin, vmax, timeStep=timeStep)
 
     for f in [obj for obj in gc.get_objects() if isinstance(obj,h5py.File)]:
@@ -1217,17 +1221,21 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
         print time.ctime(), "finished temperature plotting of step: ", i
         if toPlot:
+            central_position = sphGiant.gas.position
+            central_velocity = sphGiant.gas.velocity
+            '''
             if axesOriginInInnerBinaryCenterOfMass:
-                centerOfMassPosition = innerBinary.position
-                centerOfMassVelocity = innerBinary.velocity
-            sphGiant.gasParticles.position -= centerOfMassPosition
-            sphGiant.gasParticles.velocity -= centerOfMassVelocity
-            sphGiant.core.position -= centerOfMassPosition
-            sphGiant.core.velocity -= centerOfMassVelocity
-            binary[0].position -= centerOfMassPosition
-            binary[0].velocity  -= centerOfMassVelocity
-            binary[1].position -= centerOfMassPosition
-            binary[1].velocity  -= centerOfMassVelocity
+                central_position = innerBinary.position
+                central_velocity = innerBinary.velocity
+            '''
+            sphGiant.gasParticles.position -= central_position
+            sphGiant.gasParticles.velocity -= central_velocity
+            sphGiant.core.position -= central_position
+            sphGiant.core.velocity -= central_velocity
+            binary[0].position -= central_position
+            binary[0].velocity  -= central_velocity
+            binary[1].position -= central_position
+            binary[1].velocity  -= central_velocity
             if axesOriginInInnerBinaryCenterOfMass:
                 PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin=5e29, vmax= 1e35, width= 30.0 * 3.0 | units.RSun, timeStep=timeStep)
                 PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin=5e29, vmax= 1e35, width= 30.0 * 3.0 | units.RSun, side_on=True, timeStep=timeStep)

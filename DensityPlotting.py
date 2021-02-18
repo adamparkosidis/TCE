@@ -1018,8 +1018,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
         companion.position -= centerOfMassPosition
         companion.velocity -= centerOfMassVelocity
 
-        innerAngularMomenta[i] = CalculateVectorSize(sphGiant.innerGas.angularMomentum).value_in(
-            innerAngularMomentaUnits)
+        innerAngularMomenta[i] = sphGiant.innerGas.angularMomentum[2].value_in(innerAngularMomentaUnits)
         if toPlot:
             PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, step , outputDir, vmin, vmax, plotDust= plotDust, dustRadius=dustRadius, timeStep=timeStep)
             PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, step, outputDir, vmin, vmax, plotDust= plotDust, dustRadius=dustRadius, side_on=True, timeStep=timeStep)

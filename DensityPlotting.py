@@ -206,11 +206,14 @@ class SphGiant:
         return gas.total_angular_momentum()
 
 
-    def CalculateInnerSPH(self, relativeParticle, localRadius=50.0 | units.RSun):
+    def CalculateInnerSPH(self, relativeParticle, localRadius=50.0 | units.RSun, com_position=[0.0,0.0,0.0] | units.m,
+                          com_velocity = [0.0,0.0,0.0] | units.m / units.s):
         self.innerGas = Star(None, None)
         radius = CalculateVectorSize(CalculateSeparation(relativeParticle, self.core))
         print time.ctime(), "beginning inner gas calculation"
-        self.CalculateSphMassVelocityAndPositionInsideRadius(radius, includeCore=True, centeralParticle=relativeParticle, localRadius=localRadius)
+        self.CalculateSphMassVelocityAndPositionInsideRadius(radius, includeCore=True, centeralParticle=relativeParticle,
+                                                             localRadius=localRadius, com_position_for_angular_momenta=com_position,
+                                                             com_velocity_for_angular_momenta=com_velocity)
         self.innerGas.x , self.innerGas.y, self.innerGas.z = self.innerGas.position
         self.innerGas.kineticEnergy = 0.5*self.innerGas.mass*CalculateVectorSize(self.innerGas.v)**2
 
@@ -223,7 +226,10 @@ class SphGiant:
                 innerMass += particle.mass
         return innerMass
 
-    def CalculateSphMassVelocityAndPositionInsideRadius(self,radius,includeCore=True,centeralParticle=None, localRadius=0.0 | units.RSun):
+    def CalculateSphMassVelocityAndPositionInsideRadius(self,radius,includeCore=True,centeralParticle=None,
+                                                        localRadius=0.0 | units.RSun,
+                                                        com_position_for_angular_momenta=[0.0,0.0,0.0] | units.m,
+                          com_velocity_for_angular_momenta = [0.0,0.0,0.0] | units.m / units.s):
 
         self.innerGas.vxTot , self.innerGas.vyTot , self.innerGas.vzTot = ( 0.0 , 0.0, 0.0 )| units.m * units.s**-1
         self.innerGas.xTot , self.innerGas.yTot , self.innerGas.zTot = ( 0.0 , 0.0, 0.0 )| units.m
@@ -270,7 +276,8 @@ class SphGiant:
                 positionAndMass[0] += particle.x * pmass
                 positionAndMass[1] += particle.y * pmass
                 positionAndMass[2] += particle.z * pmass
-                angularmomentumOfParticle = CalculateSpecificMomentum(particle.position, particle.velocity)
+                angularmomentumOfParticle = CalculateSpecificMomentum(particle.position-com_position_for_angular_momenta,
+                                                                      particle.velocity-com_velocity_for_angular_momenta)
                 angularmomentum[0] += angularmomentumOfParticle[0] * particle.mass
                 angularmomentum[1] += angularmomentumOfParticle[1] * particle.mass
                 angularmomentum[2] += angularmomentumOfParticle[2] * particle.mass
@@ -919,7 +926,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             semmimajor = CalculateSemiMajor(CalculateVelocityDifference(companion, sphGiant.core), CalculateSeparation(companion, sphGiant.core),companion.mass + sphGiant.core.mass).as_quantity_in(units.AU)
             CalculateEccentricity(companion, sphGiant.core)
             #check if the companion is inside, take into account only the inner mass of the companion's orbit
-            sphGiant.CalculateInnerSPH(companion)
+            sphGiant.CalculateInnerSPH(companion, com_position=centerOfMassPosition, com_velocity=centerOfMassVelocity)
             #print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
             innerMass[i] = sphGiant.innerGas.mass.value_in(innerMassUnits)
 
@@ -1233,9 +1240,9 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             sphGiant.core.position -= central_position
             sphGiant.core.velocity -= central_velocity
             binary[0].position -= central_position
-            binary[0].velocity  -= central_velocity
+            binary[0].velocity -= central_velocity
             binary[1].position -= central_position
-            binary[1].velocity  -= central_velocity
+            binary[1].velocity -= central_velocity
             if axesOriginInInnerBinaryCenterOfMass:
                 PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin=5e29, vmax= 1e35, width= 30.0 * 3.0 | units.RSun, timeStep=timeStep)
                 PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin=5e29, vmax= 1e35, width= 30.0 * 3.0 | units.RSun, side_on=True, timeStep=timeStep)

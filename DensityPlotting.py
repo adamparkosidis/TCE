@@ -313,14 +313,18 @@ class SphGiant:
         else:
             self.localDensity = 0.0 | units.g / units.m**3
 
-    def CountLeavingParticlesInsideRadius(self):
+    def CountLeavingParticlesInsideRadius(self, com_position= [0.0,0.0,0.0] | units.m,
+                                          com_velocity=[0.0,0.0,0.0] | units.m / units.s):
         self.leavingParticles = 0
         self.totalUnboundedMass = 0 | units.MSun
         dynamicalVelocity= self.radius/self.dynamicalTime
         particlesExceedingMaxVelocity = 0
         velocityLimitMax = 0.0 | units.cm/units.s
         self.CalculateGasSpecificPotentials()
-        specificKinetics = self.gasParticles.specific_kinetic_energy()
+        gas = self.gasParticles.copy()
+        gas.position -= com_position
+        gas.velocity -= com_velocity
+        specificKinetics = gas.specific_kinetic_energy()
         for i, particle in enumerate(self.gasParticles):
             volume = (4.0 / 3.0) * constants.pi * particle.radius ** 3
             particleSoundSpeed = ((5.0 / 3.0) * particle.pressure / (particle.mass / volume)) ** 0.5
@@ -918,7 +922,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             comParticle.position = centerOfMassPosition
             comParticle.velocity = centerOfMassVelocity
 
-            sphGiant.CountLeavingParticlesInsideRadius()
+            sphGiant.CountLeavingParticlesInsideRadius(com_position=centerOfMassPosition, com_velocity=centerOfMassVelocity)
             print "leaving particles: ", sphGiant.leavingParticles
             print "unbounded mass: ", sphGiant.totalUnboundedMass
             massLoss[i] = sphGiant.totalUnboundedMass.value_in(massLossUnits)
@@ -938,7 +942,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             eccentricity = CalculateEccentricity(companion, sphGiant.innerGas)
             eccentricities[i] = eccentricity
             binaryDistances[i] = CalculateVectorSize(newBinarySeparation).value_in(binaryDistancesUnits)
-            sphGiant.CalculateEnergies()
+            sphGiant.CalculateEnergies(comV=centerOfMassVelocity)
 
             uGiant[i] = sphGiant.thermalEnergy.value_in(uGiantUnits)
             kGas[i] = sphGiant.gasKinetic.value_in(kGasUnits)

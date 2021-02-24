@@ -852,7 +852,7 @@ def PlotQuadropole(Qxx,Qxy,Qxz,Qyx, Qyy,Qyz,Qzx,Qzy,Qzz, outputDir = 0, timeStep
 
 def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, beginStep, binaryDistances,binaryDistancesUnits,
                        semmimajors,semmimajorsUnits, eccentricities, innerMass, innerMassUnits,
-                       pGas, pGasUnits, pGiant, pGiantUnits, pTot, pTotUnits,
+                       pGas, pGasUnits, pGiant, pGiantUnits, pCompCore, pCompCoreUnits, pTot, pTotUnits,
                     kGas, kGasUnits, uGiant, uGiantUnits, kCore, kCoreUnits,
                        kComp, kCompUnits, eTot, eTotUnits,
                        innerAngularMomenta,
@@ -955,10 +955,10 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 
             pGas[i] = sphGiant.gasPotential.value_in(pGasUnits)
             pGiant[i] = sphGiant.potentialEnergy.value_in(pGiantUnits)
-            pCompCore = CalculatePotentialEnergy(sphGiant.core, companion)
+            pCompCore[i] = CalculatePotentialEnergy(sphGiant.core, companion).value_in(pCompCoreUnits)
             pCompGas = (sphGiant.potentialEnergyWithParticle(companion)).value_in(pGasUnits)
 
-            pTot[i] = pGiant[i] + pCompGas + pCompCore.value_in(pGasUnits)
+            pTot[i] = pGiant[i] + pCompGas + pCompCore[i]
             eTot[i] = kTot + pTot[i] + uGiant[i]
 
             try:
@@ -1278,6 +1278,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     innerMass = MultiProcessArrayWithUnits(len(workingRange),units.MSun)
     pGas = MultiProcessArrayWithUnits(len(workingRange),energyUnits)
     pGiant = MultiProcessArrayWithUnits(len(workingRange),energyUnits)
+    pCompCore = MultiProcessArrayWithUnits(len(workingRange),energyUnits)
     pTot = MultiProcessArrayWithUnits(len(workingRange),energyUnits)
 
     kGas = MultiProcessArrayWithUnits(len(workingRange),energyUnits)
@@ -1325,6 +1326,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                                                                                   innerMass.array, innerMass.units,
                                                                                   pGas.array, pGas.units,
                                                                                   pGiant.array, pGiant.units,
+                                                                                  pCompCore.array, pCompCore.units,
                                                                                   pTot.array, pTot.units,
                                                                                   kGas.array, kGas.units,
                                                                                   uGiant.array, uGiant.units,
@@ -1359,6 +1361,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     coresAngularMomenta.plot("coresAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     pGas.plot("pGas", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     pGiant.plot("pGiant", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
+    pCompCore.plot("pCompCore", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     pTot.plot("pTot", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     kGas.plot("kGas", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     uGiant.plot("uGiant", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)

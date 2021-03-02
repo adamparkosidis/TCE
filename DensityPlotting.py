@@ -1359,6 +1359,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     giantAngularMomenta.plot("giantAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     gasAngularMomenta.plot("gasAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     coresAngularMomenta.plot("coresAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
+    totAngularMomenta.plot("totAngularMomenta", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     pGas.plot("pGas", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     pGiant.plot("pGiant", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)
     pCompCore.plot("pCompCore", outputDir + "/graphs",timeStep*skip,beginStep/skip,False)

@@ -1305,7 +1305,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     Qzz = multiprocessing.Array('f', [0.0 for i in workingRange])
 
     #chunkSize = (lastStep - beginStep) / 8
-    chunkSize= len(workingRange)/cpus
+    chunkSize= math.ceil(len(workingRange)/cpus)
     if chunkSize == 0:
         if lastStep - beginStep == 0:
             return

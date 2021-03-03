@@ -334,7 +334,7 @@ class SphGiant:
                 particlesExceedingMaxVelocity += 1
 
             #specificEnergy = CalculateSpecificEnergy(CalculateVelocityDifference(particle,self.gas),CalculateSeparation(particle, self.gas), particle, self.gas)
-            specificEnergy = self.gasSpesificPotentials[i] + specificKinetics[i]
+            specificEnergy = self.gasSpesificPotentials[i] + CalculatePotentialEnergy(particle, self.core) + specificKinetics[i]
             if specificEnergy > 0 |specificEnergy.unit:
                 self.leavingParticles += 1
                 self.totalUnboundedMass += particle.mass

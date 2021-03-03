@@ -1305,14 +1305,19 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     Qzz = multiprocessing.Array('f', [0.0 for i in workingRange])
 
     #chunkSize = (lastStep - beginStep) / 8
-    chunkSize= math.ceil(len(workingRange)/cpus)
+    chunkSize = math.floor(len(workingRange) / cpus)
+
     if chunkSize == 0:
         if lastStep - beginStep == 0:
             return
         else:
             chunkSize = 1
-
-    chunks = [workingRange[i:i+min(chunkSize,len(workingRange)-i)] for i in xrange(0,len(workingRange),chunkSize)]
+    leftovers = len(workingRange) - cpus * chunkSize
+    chunks = []
+    chunks += [workingRange[i:i+min(chunkSize+1,len(workingRange)-i)] for i in
+               xrange(0,leftovers*(chunkSize+1),chunkSize+1)]
+    chunks += [workingRange[i:i+min(chunkSize,len(workingRange)-i)] for i in
+               xrange(leftovers*(chunkSize+1),len(workingRange),chunkSize)]
 
     processes = []
     print chunks

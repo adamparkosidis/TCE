@@ -314,13 +314,12 @@ class SphGiant:
             self.localDensity = 0.0 | units.g / units.m**3
 
     def CountLeavingParticlesInsideRadius(self, com_position= [0.0,0.0,0.0] | units.m,
-                                          com_velocity=[0.0,0.0,0.0] | units.m / units.s):
+                                          com_velocity=[0.0,0.0,0.0] | units.m / units.s, companion = None, method="estimated"):
         self.leavingParticles = 0
         self.totalUnboundedMass = 0 | units.MSun
         dynamicalVelocity= self.radius/self.dynamicalTime
         particlesExceedingMaxVelocity = 0
         velocityLimitMax = 0.0 | units.cm/units.s
-        self.CalculateGasSpecificPotentials()
         gas = self.gasParticles.copy()
         gas.position -= com_position
         gas.velocity -= com_velocity
@@ -333,9 +332,23 @@ class SphGiant:
             if CalculateVectorSize(particle.velocity) > velocityLimit:
                 particlesExceedingMaxVelocity += 1
 
-            #specificEnergy = CalculateSpecificEnergy(CalculateVelocityDifference(particle,self.gas),CalculateSeparation(particle, self.gas), particle, self.gas)
-            specificEnergy = self.gasSpesificPotentials[i] + \
-                             CalculatePotentialEnergy(particle, self.core)/particle.mass + specificKinetics[i]
+            extra_potential = 0.0 | units.erg / units.g
+            com_particle = Particle(mass=self.mass)
+            com_particle.position = com_position
+            com_particle.velocity = com_velocity
+
+            if companion is not None:
+                extra_potential = CalculatePotentialEnergy(particle, companion) / particle.mass
+                com_particle.mass += companion.mass
+            if method == "estimated":
+                specificEnergy = CalculateSpecificEnergy(particle.velocity - com_velocity, particle.position - com_position,
+                                                     particle, com_particle)
+            else:
+                self.CalculateGasSpecificPotentials()
+                specificEnergy = self.gasSpesificPotentials[i] + CalculatePotentialEnergy(particle,
+                                                                                          self.core) / particle.mass \
+                                 + extra_potential + specificKinetics[i]
+
             if specificEnergy > 0 |specificEnergy.unit:
                 self.leavingParticles += 1
                 self.totalUnboundedMass += particle.mass
@@ -864,7 +877,8 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
                        totAngularMomenta, totAngularMomentaUnits,
                        massLoss, massLossUnits,
                        Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
-                       toPlot = False, plotDust=False, dustRadius= 340.0 | units.RSun, timeStep=0.2):
+                       toPlot = False, plotDust=False, dustRadius= 340.0 | units.RSun, massLossMethod="estimated",
+                       timeStep=0.2):
 
     for index,step in enumerate(chunk):
         i = beginStep + index
@@ -923,7 +937,9 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             comParticle.position = centerOfMassPosition
             comParticle.velocity = centerOfMassVelocity
 
-            sphGiant.CountLeavingParticlesInsideRadius(com_position=centerOfMassPosition, com_velocity=centerOfMassVelocity)
+            sphGiant.CountLeavingParticlesInsideRadius(com_position=centerOfMassPosition,
+                                                       com_velocity=centerOfMassVelocity, companion=companion,
+                                                       method=massLossMethod)
             print "leaving particles: ", sphGiant.leavingParticles
             print "unbounded mass: ", sphGiant.totalUnboundedMass
             massLoss[i] = sphGiant.totalUnboundedMass.value_in(massLossUnits)
@@ -1263,7 +1279,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             except:
                 pass
 
-def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False,cpus=10, skip=1,plotDust=False, dustRadius=700.0|units.RSun, timeStep=0.2):
+def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, vmin, vmax, toPlot = False,cpus=10,
+                  skip=1,plotDust=False, dustRadius=700.0|units.RSun, massLossMethod="estimated", timeStep=0.2):
     if lastStep == 0 : # no boundary on last step
         lastStep = len(gasFiles)
     else:
@@ -1348,7 +1365,8 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                                                                                   massLoss.array,massLoss.units,
                                                                                   Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz,
                                                                                   toPlot,
-                                                                                  plotDust,dustRadius,timeStep,)))
+                                                                                  plotDust,dustRadius, massLossMethod,
+                                                                                  timeStep,)))
         i += chunkSize
         #pool.map()
     for p in processes:
@@ -1547,6 +1565,7 @@ def InitParser():
     parser.add_argument('--opposite', type=lambda x: (str(x).lower() in ['true', '1', 'yes']),  help='do you want the main star to be a part of the inner binary?', default=False)
     parser.add_argument('--localRadius', type=float,  help='maximum  density plotting', default=50.0)
     parser.add_argument('--cpus', type=int,  help='number of cpus', default=10)
+    parser.add_argument('--massLossMethod', type=str,  help='estimated or direct', default= "estimated")
     return parser
 
 def GetArgs(args):
@@ -1681,7 +1700,8 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
         print "analyzing binary"
         AnalyzeBinary(beginStep=args.beginStep,lastStep=args.lastStep, dmFiles=dmFiles, gasFiles=gasFiles,
                       savingDir=savingDir, outputDir=outputDir, vmin=args.vmin, vmax=args.vmax, toPlot=args.plot,
-                      plotDust=False, timeStep=args.timeStep, skip=args.skip, cpus= args.cpus)
+                      plotDust=False, timeStep=args.timeStep, skip=args.skip, cpus= args.cpus,
+                      massLossMethod=args.massLossMethod)
     elif numberOfCompanion ==3: #triple
         AnalyzeTriple(beginStep=args.beginStep, lastStep=args.lastStep, dmFiles=dmFiles, gasFiles=gasFiles,
                       savingDir=savingDir, outputDir=outputDir, vmin=args.vmin, vmax=args.vmax, localRadius=args.localRadius,

@@ -324,6 +324,24 @@ class SphGiant:
         gas.position -= com_position
         gas.velocity -= com_velocity
         specificKinetics = gas.specific_kinetic_energy()
+        com_particle = Particle(mass=self.mass)
+        com_particle.position = com_position
+        com_particle.velocity = com_velocity
+        extra_potential = [0.0 | units.erg / units.g for particle in  self.gasParticles]
+        if companion is not None:
+            com_particle.mass += companion.mass
+            extra_potential = [CalculatePotentialEnergy(particle, companion) / particle.mass for particle in
+                               self.gasParticles]
+        print("using method ", method)
+        if method == "estimated":
+            specificEnergy = [CalculateSpecificEnergy(particle.velocity - com_velocity, particle.position - com_position,
+                                                     particle, com_particle) for particle in self.gasParticles]
+        else:
+            self.CalculateGasSpecificPotentials()
+            specificEnergy = [self.gasSpesificPotentials[i] + CalculatePotentialEnergy(self.gasParticles[i],
+                                                                                          self.core) / self.gasParticles[i].mass \
+                                 + extra_potential + specificKinetics[i] for i in range(len(self.gasParticles))]
+
         for i, particle in enumerate(self.gasParticles):
             volume = (4.0 / 3.0) * constants.pi * particle.radius ** 3
             particleSoundSpeed = ((5.0 / 3.0) * particle.pressure / (particle.mass / volume)) ** 0.5
@@ -332,23 +350,6 @@ class SphGiant:
             if CalculateVectorSize(particle.velocity) > velocityLimit:
                 particlesExceedingMaxVelocity += 1
 
-            extra_potential = 0.0 | units.erg / units.g
-            com_particle = Particle(mass=self.mass)
-            com_particle.position = com_position
-            com_particle.velocity = com_velocity
-
-            if companion is not None:
-                extra_potential = CalculatePotentialEnergy(particle, companion) / particle.mass
-                com_particle.mass += companion.mass
-            if method == "estimated":
-                specificEnergy = CalculateSpecificEnergy(particle.velocity - com_velocity, particle.position - com_position,
-                                                     particle, com_particle)
-            else:
-                self.CalculateGasSpecificPotentials()
-                specificEnergy = self.gasSpesificPotentials[i] + CalculatePotentialEnergy(particle,
-                                                                                          self.core) / particle.mass \
-                                 + extra_potential + specificKinetics[i]
-
             if specificEnergy > 0 |specificEnergy.unit:
                 self.leavingParticles += 1
                 self.totalUnboundedMass += particle.mass
@@ -356,7 +357,6 @@ class SphGiant:
         print "over speed ", particlesExceedingMaxVelocity*100.0 / len(self.gasParticles), "limit: ", velocityLimitMax
 
         return self.leavingParticles
-
     def CalculateGasSpecificPotentials(self):
         n = len(self.gasParticles)
 

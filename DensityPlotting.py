@@ -350,7 +350,7 @@ class SphGiant:
             if CalculateVectorSize(particle.velocity) > velocityLimit:
                 particlesExceedingMaxVelocity += 1
 
-            if specificEnergy > 0 |specificEnergy.unit:
+            if specificEnergy[i] > 0 | specificEnergy[i].unit:
                 self.leavingParticles += 1
                 self.totalUnboundedMass += particle.mass
 

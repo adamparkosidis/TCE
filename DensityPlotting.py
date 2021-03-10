@@ -1367,7 +1367,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
                                                                                   toPlot,
                                                                                   plotDust,dustRadius, massLossMethod,
                                                                                   timeStep,)))
-        i += chunkSize
+        i += len(chunk)
         #pool.map()
     for p in processes:
         p.start()

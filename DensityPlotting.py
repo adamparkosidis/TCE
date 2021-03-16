@@ -340,7 +340,7 @@ class SphGiant:
             self.CalculateGasSpecificPotentials()
             specificEnergy = [self.gasSpesificPotentials[i] + CalculatePotentialEnergy(self.gasParticles[i],
                                                                                           self.core) / self.gasParticles[i].mass \
-                                 + extra_potential + specificKinetics[i] for i in range(len(self.gasParticles))]
+                                 + extra_potential[i] + specificKinetics[i] for i in range(len(self.gasParticles))]
 
         for i, particle in enumerate(self.gasParticles):
             volume = (4.0 / 3.0) * constants.pi * particle.radius ** 3

@@ -765,6 +765,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
         native_plot.ylim(ymax=6, ymin=-6)
         native_plot.xticks([-10,-8,-6,-4,-2,0,2],[-6,-4,-2,0,2,4,6])'''
         native_plot.ylabel('y[AU]')
+        yLabel = 'y[AU]'
         #pyplot.xlim(-5,-2)
         if core.mass != 0 | units.MSun:
             if core.x >= -1* width / 2.0 and core.x <= width/ 2.0 and core.y >= -1 * width/ 2.0 and core.y <= width / 2.0:
@@ -777,9 +778,18 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
             circle_with_radius(core.x, core.y,dustRadius, fill=False, color='white', linestyle= 'dashed', linewidth=3.0)
     else:
         outputDir += "/side_on"
-        cbar = pynbody_sph.sideon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='g cm^-3',vmin= vmin, vmax= vmax, cmap="hot", title = str(i * timeStep) + " days")
+        y_data=pyndata['y']
+        vy_data=pyndata['vy']
+        pyndata['y'] = pyndata['z']
+        pyndata['vy'] = pyndata['vz']
+        pyndata['y'] = pyndata['z']
+        pyndata['z'] = y_data
+        pyndata['vz'] = vy_data
+        cbar = pynbody_sph.image(pyndata, resolution=2000,width=width.value_in(length_unit), units='g cm^-3',
+                                        vmin= vmin, vmax= vmax, cmap="hot", title = str(i * timeStep) + " days")
         UnitlessArgs.current_plot = native_plot.gca()
         native_plot.ylabel('z[AU]')
+        yLabel = 'z[AU]'
         if core.mass != 0 | units.MSun:
             if core.x >= -1* width / 2.0 and core.x <= width/ 2.0 and core.z >= -1 * width/ 2.0 and core.z <= width / 2.0:
                 #both coordinates are inside the boundaries- otherwise dont plot it
@@ -789,6 +799,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
             circle_with_radius(core.x, core.z,dustRadius, fill=False, color='white', linestyle= 'dashed', linewidth=3.0)
     #native_plot.colorbar(fontsize=20.0)
     native_plot.xlabel('x[AU]')
+    native_plot.ylabel(yLabel)
     matplotlib.rcParams.update({'font.size': 25, 'font.family': 'Serif'})
     #pyplot.rc('text', usetex=True)
     #cbar.ax.set_yticklabels(cbar
@@ -1038,8 +1049,9 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 
         temperature_density_plot(sphGiant, step, outputDir, toPlot)
 
-        central_position = sphGiant.gas.position
-        central_velocity = sphGiant.gas.velocity
+        central_position = centerOfMassPosition
+        central_velocity = centerOfMassVelocity
+
         sphGiant.gasParticles.position -= central_position
         sphGiant.gasParticles.velocity -= central_velocity
         sphGiant.core.position -= central_position

@@ -758,7 +758,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
     pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
     if not side_on:
-        cbar = pynbody_sph.image(pyndata, resolution=2000,width=width.value_in(length_unit), units='g cm^-3',
+        cbar = pynbody_sph.faceon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='g cm^-3',
                                  vmin= vmin, vmax= vmax, cmap="hot", title = str(i * timeStep) + " days")
         UnitlessArgs.current_plot = native_plot.gca()
         '''native_plot.xlim(xmax=2, xmin=-10)
@@ -778,14 +778,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
             circle_with_radius(core.x, core.y,dustRadius, fill=False, color='white', linestyle= 'dashed', linewidth=3.0)
     else:
         outputDir += "/side_on"
-        y_data=pyndata['y']
-        vy_data=pyndata['vy']
-        pyndata['y'] = pyndata['z']
-        pyndata['vy'] = pyndata['vz']
-        pyndata['y'] = pyndata['z']
-        pyndata['z'] = y_data
-        pyndata['vz'] = vy_data
-        cbar = pynbody_sph.image(pyndata, resolution=2000,width=width.value_in(length_unit), units='g cm^-3',
+        cbar = pynbody_sph.sideon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='g cm^-3',
                                         vmin= vmin, vmax= vmax, cmap="hot", title = str(i * timeStep) + " days")
         UnitlessArgs.current_plot = native_plot.gca()
         native_plot.ylabel('z[AU]')

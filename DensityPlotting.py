@@ -754,8 +754,20 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
     #width = 0.08 * sphGiant.position.lengths_squared().amax().sqrt()
     #width = 5.0 * sphGiant.position.lengths_squared().amax().sqrt()
     #width = 4.0 | units.AU
+    core.h_smooth=core.radius
+    binary.h_smooth=binary.radius
+    core.rho = 3.0 * core.mass/(4*math.pi*core.radius**3)
+    binary.rho = 3.0 * binary.mass/(4*math.pi*core.radius**3)
+    parts = Particles()
+    parts.add_particles(sphGiant)
+    parts.add_particle(core)
+    try:
+        parts.add_particle(binary)
+    except:
+        parts.add_particles(binary)
+
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
-    pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
+    pyndata = convert_particles_to_pynbody_data(parts, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
     if not side_on:
         cbar = pynbody_sph.faceon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='g cm^-3',

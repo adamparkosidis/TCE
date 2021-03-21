@@ -28,6 +28,7 @@ from amuse.plot import scatter, xlabel, ylabel, plot, pynbody_column_density_plo
 from matplotlib import pyplot
 import pynbody
 import pynbody.plot.sph as pynbody_sph
+from pynbody.analysis import angmom
 from amuse.plot import scatter, xlabel, ylabel, plot, native_plot, sph_particles_plot, circle_with_radius, axvline
 from BinaryCalculations import *
 
@@ -750,62 +751,66 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
     if not HAS_PYNBODY:
         print "problem plotting"
         return
-    #figure = pyplot.figure(figsize=(18,18))
+
     #width = 0.08 * sphGiant.position.lengths_squared().amax().sqrt()
     #width = 5.0 * sphGiant.position.lengths_squared().amax().sqrt()
     #width = 4.0 | units.AU
-    core.h_smooth=core.radius
-    binary.h_smooth=binary.radius
-    core.rho = 3.0 * core.mass/(4*math.pi*core.radius**3)
-    binary.rho = 3.0 * binary.mass/(4*math.pi*core.radius**3)
-    parts = Particles()
-    parts.add_particles(sphGiant)
-    parts.add_particle(core)
-    try:
-        parts.add_particle(binary)
-    except:
-        parts.add_particles(binary)
-
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
-    pyndata = convert_particles_to_pynbody_data(parts, length_unit, pynbody_unit)
+    pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
     if not side_on:
-        cbar = pynbody_sph.faceon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='g cm^-3',
+        with angmom.faceon(pyndata, cen=[0.0,0.0,0.0], vcen=[0.0,0.0,0.0]):
+            pynbody_sph.image(pyndata, resolution=2000,width=width.value_in(length_unit), units='g cm^-3',
                                  vmin= vmin, vmax= vmax, cmap="hot", title = str(i * timeStep) + " days")
-        UnitlessArgs.current_plot = native_plot.gca()
-        '''native_plot.xlim(xmax=2, xmin=-10)
-        native_plot.ylim(ymax=6, ymin=-6)
-        native_plot.xticks([-10,-8,-6,-4,-2,0,2],[-6,-4,-2,0,2,4,6])'''
-        native_plot.ylabel('y[AU]')
-        yLabel = 'y[AU]'
-        #pyplot.xlim(-5,-2)
-        if core.mass != 0 | units.MSun:
-            if core.x >= -1* width / 2.0 and core.x <= width/ 2.0 and core.y >= -1 * width/ 2.0 and core.y <= width / 2.0:
-                #both coordinates are inside the boundaries- otherwise dont plot it
-                scatter(core.x, core.y, c="r")
-        scatter(binary.x, binary.y, c="w")
-        #pyplot.xlim(-930, -350)
-        #pyplot.ylim(-190,390)
-        if plotDust:
-            circle_with_radius(core.x, core.y,dustRadius, fill=False, color='white', linestyle= 'dashed', linewidth=3.0)
+            UnitlessArgs.current_plot = native_plot.gca()
+            '''native_plot.xlim(xmax=2, xmin=-10)
+            native_plot.ylim(ymax=6, ymin=-6)
+            native_plot.xticks([-10,-8,-6,-4,-2,0,2],[-6,-4,-2,0,2,4,6])'''
+            native_plot.ylabel('y[AU]')
+            yLabel = 'y[AU]'
+            #pyplot.xlim(-5,-2)
+            if core.mass != 0 | units.MSun:
+                if core.x >= -1* width / 2.0 and core.x <= width/ 2.0 and core.y >= -1 * width/ 2.0 and core.y <= width / 2.0:
+                    #both coordinates are inside the boundaries- otherwise dont plot it
+                    scatter(core.x, core.y, c="r")
+            scatter(binary.x, binary.y, c="w")
+            #pyplot.xlim(-930, -350)
+            #pyplot.ylim(-190,390)
+            if plotDust:
+                circle_with_radius(core.x, core.y,dustRadius, fill=False, color='white', linestyle= 'dashed', linewidth=3.0)
     else:
         outputDir += "/side_on"
-        cbar = pynbody_sph.sideon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='g cm^-3',
-                                        vmin= vmin, vmax= vmax, cmap="hot", title = str(i * timeStep) + " days")
-        UnitlessArgs.current_plot = native_plot.gca()
-        native_plot.ylabel('z[AU]')
-        yLabel = 'z[AU]'
-        if core.mass != 0 | units.MSun:
-            if core.x >= -1* width / 2.0 and core.x <= width/ 2.0 and core.z >= -1 * width/ 2.0 and core.z <= width / 2.0:
-                #both coordinates are inside the boundaries- otherwise dont plot it
-                scatter(core.x, core.z, c="r")
-        scatter(binary.x, binary.z, c="w")
-        if plotDust:
-            circle_with_radius(core.x, core.z,dustRadius, fill=False, color='white', linestyle= 'dashed', linewidth=3.0)
+        figure, (face, side, cbar) = pyplot.subplots(ncols=2)
+        figure.subplots_adjust(wspace=0.1)
+        with angmom.faceon(pyndata, cen=[0.0, 0.0, 0.0], vcen=[0.0, 0.0, 0.0]):
+            pynbody_sph.image(pyndata, subplot=face, resolution=2000, width=width.value_in(length_unit),
+                              units='g cm^-3',
+                              vmin=vmin, vmax=vmax, cmap="hot", show_cbar=False, title=str(i * timeStep) + " days")
+            face.set_ylabel('y[AU')
+        with angmom.sideon(pyndata, cen=[0.0, 0.0, 0.0], vcen=[0.0, 0.0, 0.0]):
+            pynbody_sph.image(pyndata, subplot=side, resolution=2000, width=width.value_in(length_unit),
+                              units='g cm^-3',
+                              vmin=vmin, vmax=vmax, cmap="hot", title=str(i * timeStep) + " days")
+            side.set_ylabel('z[AU')
+        '''    
+        with angmom.sideon(pyndata, cen=[0.0,0.0,0.0], vcen=[0.0,0.0,0.0]):
+            pynbody_sph.sideon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='g cm^-3',
+                                            vmin= vmin, vmax= vmax, cmap="hot", title = str(i * timeStep) + " days")
+            UnitlessArgs.current_plot = native_plot.gca()
+            native_plot.ylabel('z[AU]')
+            yLabel = 'z[AU]'
+            if core.mass != 0 | units.MSun:
+                if core.x >= -1* width / 2.0 and core.x <= width/ 2.0 and core.z >= -1 * width/ 2.0 and core.z <= width / 2.0:
+                    #both coordinates are inside the boundaries- otherwise dont plot it
+                    scatter(core.x, core.z, c="r")
+            scatter(binary.x, binary.z, c="w")
+            if plotDust:
+                circle_with_radius(core.x, core.z,dustRadius, fill=False, color='white', linestyle= 'dashed', linewidth=3.0)
+        '''
     #native_plot.colorbar(fontsize=20.0)
     native_plot.xlabel('x[AU]')
     native_plot.ylabel(yLabel)
-    matplotlib.rcParams.update({'font.size': 25, 'font.family': 'Serif'})
+    matplotlib.rcParams.update({'font.size': 22, 'font.family': 'Serif'})
     #pyplot.rc('text', usetex=True)
     #cbar.ax.set_yticklabels(cbar
     # .ax.get_yticklabels(), fontsize=24)

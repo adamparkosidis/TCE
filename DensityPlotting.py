@@ -782,33 +782,33 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
     else:
         outputDir += "/side_on"
         pyplot.rc('font',family='Serif',size=30)
-        fig, (face, side) = pyplot.subplots(nrows=1,ncols=2, figsize=(30,15))
+        fig, (face, side) = pyplot.subplots(nrows=1,ncols=2, figsize=(40,14))
         fig.subplots_adjust(wspace=0.01)
         with angmom.faceon(pyndata, cen=[0.0, 0.0, 0.0], vcen=[0.0, 0.0, 0.0]):
             pynbody_sph.image(pyndata, subplot=face, resolution=2000, width=width.value_in(length_unit),
                               units='g cm^-3',show_cbar=False, clear=False,
-                              vmin=vmin, vmax=vmax, cmap="hot", show_cbar=False)
+                              vmin=vmin, vmax=vmax, cmap="hot")
+            face.set_adjustable('box-forced')
             if core.mass != 0 | units.MSun:
                 if core.x >= -1* width / 2.0 and core.x <= width/ 2.0 and core.y >= -1 * width/ 2.0 and core.y <= width / 2.0:
                     #both coordinates are inside the boundaries- otherwise dont plot it
-                    face.scatter(core.x, core.y, c="r")
-            face.scatter(binary.x, binary.y, c="w")
-            face.set_ylabel('y[AU')
-            face.set_xlabel('x[AU')
-            face.set_adjustable('boxed-forced')
+                    face.scatter(core.x.value_in(units.AU), core.y.value_in(units.AU), c="r")
+            face.scatter(binary.x.value_in(units.AU), binary.y.value_in(units.AU), c="w")
+            face.set_ylabel('y[AU]')
+            face.set_xlabel('x[AU]')
         with angmom.sideon(pyndata, cen=[0.0, 0.0, 0.0], vcen=[0.0, 0.0, 0.0]):
             im2 = pynbody_sph.image(pyndata, subplot=side, resolution=2000, width=width.value_in(length_unit),
                               units='g cm^-3', show_cbar=False, ret_im=True, clear=False,
                               vmin=vmin, vmax=vmax, cmap="hot")
+            side.set_adjustable('box-forced')
             if core.mass != 0 | units.MSun:
                 if core.x >= -1 * width / 2.0 and core.x <= width / 2.0 and core.z >= -1 * width / 2.0 and core.z <= width / 2.0:
                     # both coordinates are inside the boundaries- otherwise dont plot it
-                    side.scatter(core.x, core.z, c="r")
-            side.scatter(binary.x, binary.z, c="w")
-            side.set_ylabel('z[AU')
-            side.set_xlabel('x[AU')
-            side.set_adjustable('boxed-forced')
-        fig.set_title(str(i * timeStep) + " days")
+                    side.scatter(core.x.value_in(units.AU), core.z.value_in(units.AU), c="r")
+            side.scatter(binary.x.value_in(units.AU), binary.z.value_in(units.AU), c="w")
+            side.set_ylabel('z[AU]')
+            side.set_xlabel('x[AU]')
+        fig.suptitle(str(i * timeStep) + " days")
         cbar = pyplot.colorbar(im2, aspect=10,fraction=0.08,pad=0.01,panchor=(0,0),anchor=(0,0))
         cbar.set_label('Density $[g/cm^3]$')
         '''    
@@ -827,9 +827,8 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
                 circle_with_radius(core.x, core.z,dustRadius, fill=False, color='white', linestyle= 'dashed', linewidth=3.0)
         '''
     #native_plot.colorbar(fontsize=20.0)
-    native_plot.ylabel(yLabel)
-    matplotlib.rcParams.update({'font.size': 22, 'font.family': 'Serif'})
-    pyplot.rcParams.update({'font.size': 22, 'font.family': 'Serif'})
+    matplotlib.rcParams.update({'font.size': 30, 'font.family': 'Serif'})
+    pyplot.rcParams.update({'font.size': 30, 'font.family': 'Serif'})
     #pyplot.rc('text', usetex=True)
     #cbar.ax.set_yticklabels(cbar
     # .ax.get_yticklabels(), fontsize=24)

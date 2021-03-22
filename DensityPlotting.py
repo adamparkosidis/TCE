@@ -822,7 +822,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
 
 def PlotVelocity(sphGiant,core,binary,step, outputDir, vmin, vmax, timeStep = 0.2):
     if not HAS_PYNBODY:
-        print HAS_PYNBODY
+        print(HAS_PYNBODY)
         print("problem plotting")
         return
     width = 1.7 * sphGiant.position.lengths_squared().amax().sqrt()
@@ -1272,7 +1272,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
 
         print(time.ctime(), "temperature_density_plotting of step ", i)
         temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
-        print time.ctime(), "finished temperature plotting of step: ", i
+        print(time.ctime(), "finished temperature plotting of step: ", i)
         if toPlot:
             central_position = sphGiant.gas.position
             central_velocity = sphGiant.gas.velocity
@@ -1736,6 +1736,6 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
 
 if __name__ == "__main__":
     for arg in sys.argv:
-        print arg
+        print(arg)
     print(len(sys.argv))
     main(sys.argv)

@@ -780,7 +780,7 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
                 circle_with_radius(core.x, core.y,dustRadius, fill=False, color='white', linestyle= 'dashed', linewidth=3.0)
     else:
         outputDir += "/side_on"
-        figure, (face, side, cbar) = pyplot.subplots(ncols=2)
+        figure, (face, side, cbar) = pyplot.subplots(ncols=3,gridspec_kw={'height_ratios':[1,1,1]})
         figure.subplots_adjust(wspace=0.1)
         with angmom.faceon(pyndata, cen=[0.0, 0.0, 0.0], vcen=[0.0, 0.0, 0.0]):
             pynbody_sph.image(pyndata, subplot=face, resolution=2000, width=width.value_in(length_unit),
@@ -788,10 +788,11 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
                               vmin=vmin, vmax=vmax, cmap="hot", show_cbar=False, title=str(i * timeStep) + " days")
             face.set_ylabel('y[AU')
         with angmom.sideon(pyndata, cen=[0.0, 0.0, 0.0], vcen=[0.0, 0.0, 0.0]):
-            pynbody_sph.image(pyndata, subplot=side, resolution=2000, width=width.value_in(length_unit),
-                              units='g cm^-3',
+            im = pynbody_sph.image(pyndata, subplot=side, resolution=2000, width=width.value_in(length_unit),
+                              units='g cm^-3', show_cbar=False, ret_im=True,
                               vmin=vmin, vmax=vmax, cmap="hot", title=str(i * timeStep) + " days")
             side.set_ylabel('z[AU')
+        figure.colorbar(im, cax=cbar)
         '''    
         with angmom.sideon(pyndata, cen=[0.0,0.0,0.0], vcen=[0.0,0.0,0.0]):
             pynbody_sph.sideon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='g cm^-3',

@@ -165,6 +165,12 @@ class SphStar:
         evolve with (default) MESA or other
         :return: the star after has been created with MESA
         '''
+
+        try:
+            os.makedirs(savingPath)
+        except(OSError):
+            pass
+        
         evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
@@ -228,10 +234,6 @@ class SphStar:
                 mainStar.mass_change = self.massChangeAGB
 
         evolutionType.stop()
-        try:
-            os.makedirs(savingPath)
-        except(OSError):
-            pass
         print evolutionType
         print mainStar
 

@@ -202,57 +202,55 @@ class SphStar:
                 print mainStar
                 old_type = mainStar.stellar_type
             currentStar = StellarModel(mainStar)
-            if not windBegan and self.initial_mass_for_winds is not None and mainStar.mass > self.initial_mass_for_winds:
-                continue
-
-            if self.massChangeHG is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 2 \
-                    and evolutionType.get_RGB_wind_scheme != 0 and mainStar.mass_change != self.massChangeHG:
-                evolutionType.stop()
-                evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
-                     .format(str(time.localtime().tm_year) + "-" +
-                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
-                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
-                            str(time.localtime().tm_sec)))
-                evolutionType.initialize_code()
-                evolutionType.parameters.stabilize_new_stellar_model_flag = False
-                print "new evolution with different mass change"
-                evolutionType.set_RGB_wind_scheme(0)
-                mainStar = evolutionType.new_particle_from_model(currentStar, currentStar.age)
-                mainStar.mass_change = self.massChangeHG
-                windBegan = True
-                print mainStar
-            elif self.massChangeRG is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 3 and \
-                    evolutionType.get_RGB_wind_scheme != 0 and mainStar.mass_change != self.massChangeRG:
-                evolutionType.stop()
-                evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
-                     .format(str(time.localtime().tm_year) + "-" +
-                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
-                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
-                            str(time.localtime().tm_sec)))
-                evolutionType.initialize_code()
-                evolutionType.parameters.stabilize_new_stellar_model_flag = False
-                print "new evolution with different mass change"
-                evolutionType.set_RGB_wind_scheme(0)
-                mainStar = evolutionType.new_particle_from_model(currentStar, currentStar.age)
-                mainStar.mass_change = self.massChangeRG
-                windBegan = True
-                print mainStar
-            elif self.massChangeAGB is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 5 \
-                    and evolutionType.get_AGB_wind_scheme != 0 and  mainStar.mass_change != self.massChangeAGB:
-                evolutionType.stop()
-                evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
-                     .format(str(time.localtime().tm_year) + "-" +
-                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
-                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
-                            str(time.localtime().tm_sec)))
-                evolutionType.initialize_code()
-                evolutionType.parameters.stabilize_new_stellar_model_flag = False
-                print "new evolution with different mass change"
-                evolutionType.set_AGB_wind_scheme(0)
-                mainStar = evolutionType.new_particle_from_model(currentStar, currentStar.age)
-                mainStar.mass_change = self.massChangeAGB
-                windBegan = True
-                print mainStar
+            if windBegan or (self.initial_mass_for_winds is not None and mainStar.mass <= self.initial_mass_for_winds):
+                if self.massChangeHG is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 2 \
+                        and evolutionType.get_RGB_wind_scheme != 0 and mainStar.mass_change != self.massChangeHG:
+                    evolutionType.stop()
+                    evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
+                         .format(str(time.localtime().tm_year) + "-" +
+                                str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
+                                str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
+                                str(time.localtime().tm_sec)))
+                    evolutionType.initialize_code()
+                    evolutionType.parameters.stabilize_new_stellar_model_flag = False
+                    print "new evolution with different mass change"
+                    evolutionType.set_RGB_wind_scheme(0)
+                    mainStar = evolutionType.new_particle_from_model(currentStar, currentStar.age)
+                    mainStar.mass_change = self.massChangeHG
+                    windBegan = True
+                    print mainStar
+                elif self.massChangeRG is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 3 and \
+                        evolutionType.get_RGB_wind_scheme != 0 and mainStar.mass_change != self.massChangeRG:
+                    evolutionType.stop()
+                    evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
+                         .format(str(time.localtime().tm_year) + "-" +
+                                str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
+                                str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
+                                str(time.localtime().tm_sec)))
+                    evolutionType.initialize_code()
+                    evolutionType.parameters.stabilize_new_stellar_model_flag = False
+                    print "new evolution with different mass change"
+                    evolutionType.set_RGB_wind_scheme(0)
+                    mainStar = evolutionType.new_particle_from_model(currentStar, currentStar.age)
+                    mainStar.mass_change = self.massChangeRG
+                    windBegan = True
+                    print mainStar
+                elif self.massChangeAGB is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 5 \
+                        and evolutionType.get_AGB_wind_scheme != 0 and  mainStar.mass_change != self.massChangeAGB:
+                    evolutionType.stop()
+                    evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
+                         .format(str(time.localtime().tm_year) + "-" +
+                                str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
+                                str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
+                                str(time.localtime().tm_sec)))
+                    evolutionType.initialize_code()
+                    evolutionType.parameters.stabilize_new_stellar_model_flag = False
+                    print "new evolution with different mass change"
+                    evolutionType.set_AGB_wind_scheme(0)
+                    mainStar = evolutionType.new_particle_from_model(currentStar, currentStar.age)
+                    mainStar.mass_change = self.massChangeAGB
+                    windBegan = True
+                    print mainStar
 
         evolutionType.stop()
         print evolutionType

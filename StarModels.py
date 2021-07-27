@@ -84,7 +84,7 @@ class SphStar:
         self.massChangeMS = None
         self.massChangeRG = None
         self.massChangeAGB = None
-        self.sphParticles = float(parser.get(configurationSection, "sphParticles"))
+        self.sphParticles = int(parser.get(configurationSection, "sphParticles"))
         self.coreMass = float(parser.get(configurationSection, "coreMass")) | units.MSun
         if parser.has_option(configurationSection, "massChangeMS"):
             self.massChangeMS = float(parser.get(configurationSection, "massChangeMS")) | units.MSun / units.yr
@@ -299,8 +299,9 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
                     giantInSet = triple.add_particle(giant)
                     innerBinary.stars = triple - giantInSet
 
-                    triple.position -= giantInSet.position
-                    triple.velocity -= giantInSet.velocity
+                    triple.move_to_center()
+                    #triple.position -= giantInSet.position
+                    #triple.velocity -= giantInSet.velocity
                     print "could not parse inner binary, created new"
 
             companions = innerBinary

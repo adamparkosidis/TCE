@@ -185,6 +185,7 @@ class SphStar:
             evolutionType.parameters.AGB_wind_scheme = 0
 
         mainStar = evolutionType.particles.add_particle(self.pointStar)
+        old_type = mainStar.stellar_type
         if self.massChangeMS is not None:
             evolutionType.mass_change = self.massChangeMS
         print "particle added, current radius = ", mainStar.radius.as_quantity_in(units.AU), "target radius = ", self.pointStar.radius
@@ -194,6 +195,9 @@ class SphStar:
                     if mainStar.core_mass > 0.98* self.coreMass:
                         break
             mainStar.evolve_one_step()
+            if mainStar.stellar_type != old_type:
+                print mainStar
+                old_type = mainStar.stellar_type
             currentStar = StellarModel(mainStar)
             if self.massChangeHG is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 2 \
                     and evolutionType.get_RGB_wind_scheme != 0 and mainStar.mass_change != self.massChangeHG:

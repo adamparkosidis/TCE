@@ -66,7 +66,7 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
         binary.stars[0].velocity = StarModels.GiantSPHCenterOfMassVelocity(starEnvelope, starCore)
         separation = binary.separation()
         radius = starEnvelope.total_radius()
-        print "initial separation= ", separation, "current giant radius= ", radius
+        print "initial separation= ", separation.as_quantity_in(units.RSun), "current giant radius= ", radius.as_quantity_in(units.RSun)
         print "Roche-Lobe factor= ", separation*binary.CalculateRocheLobeRadius() / radius
 
     else:

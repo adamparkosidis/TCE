@@ -194,7 +194,7 @@ class SphStar:
                     if mainStar.core_mass > 0.98* self.coreMass:
                         break
             mainStar.evolve_one_step()
-            if self.massChangeHG is not None and mainStar.stellar_type >= 2:
+            if self.massChangeHG is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 2:
                 evolutionType.stop()
                 evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +
@@ -207,7 +207,7 @@ class SphStar:
                 evolutionType.set_RGB_wind_scheme(0)
                 mainStar = evolutionType.new_particle_from_model(mainStar, mainStar.age)
                 mainStar.mass_change = self.massChangeHG
-            elif self.massChangeRG is not None and mainStar.stellar_type >= 3:
+            elif self.massChangeRG is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 3:
                 evolutionType.stop()
                 evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +
@@ -220,7 +220,7 @@ class SphStar:
                 evolutionType.set_RGB_wind_scheme(0)
                 mainStar = evolutionType.new_particle_from_model(mainStar, mainStar.age)
                 mainStar.mass_change = self.massChangeRG
-            elif self.massChangeAGB is not None and mainStar.stellar_type >= 5:
+            elif self.massChangeAGB is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 5 and evolutionType.get_AGB_wind_scheme != 0:
                 evolutionType.stop()
                 evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +

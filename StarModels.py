@@ -202,7 +202,7 @@ class SphStar:
                 print mainStar
                 old_type = mainStar.stellar_type
             currentStar = StellarModel(mainStar)
-            if not windBegan and self.initial_mass_for_winds is not None and mainStar.mass < self.initial_mass_for_winds:
+            if not windBegan and self.initial_mass_for_winds is not None and mainStar.mass > self.initial_mass_for_winds:
                 continue
 
             if self.massChangeHG is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 2 \

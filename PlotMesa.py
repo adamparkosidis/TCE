@@ -39,22 +39,40 @@ class Star:
         else:
             raise BaseException("Input pickle file '{0}' does not exist".format(self.pickle_file))
         structure = pickle.load(infile)
-        self.mass   = structure['mass']
-        self.radius = structure['radius']
-        self.number_of_zones     = structure['number_of_zones']
-        self.number_of_species   = structure['number_of_species']
-        self.species_names       = structure['species_names']
-        self.density_profile     = structure['density_profile']
-        self.radius_profile      = structure['radius_profile']
-        self.mu_profile          = structure['mu_profile']
-        self.composition_profile = structure['composition_profile']
-        self.specific_internal_energy_profile = structure['specific_internal_energy_profile']
-        self.midpoints_profile   = structure['midpoints_profile']
-        self.temperature =  self.specific_internal_energy_profile * self.mu_profile / (1.5 * constants.kB)
-        self.pressure = (2.0/3)*self.specific_internal_energy_profile * self.density_profile
-        self.sound_speed = (((5.0/3.0) * constants.kB * self.temperature /
-                              self.mu_profile)**0.5).as_quantity_in(units.m / units.s)
+        if isinstance(structure,dict):
+            self.mass   = structure['mass']
+            self.radius = structure['radius']
+            self.number_of_zones     = structure['number_of_zones']
+            self.number_of_species   = structure['number_of_species']
+            self.species_names       = structure['species_names']
+            self.density_profile     = structure['density_profile']
+            self.radius_profile      = structure['radius_profile']
+            self.mu_profile          = structure['mu_profile']
+            self.composition_profile = structure['composition_profile']
+            self.specific_internal_energy_profile = structure['specific_internal_energy_profile']
+            self.midpoints_profile   = structure['midpoints_profile']
+            self.temperature =  self.specific_internal_energy_profile * self.mu_profile / (1.5 * constants.kB)
+        else: #assuming a pickle of the messa model
+            self.mass = structure.mass
+            self.radius = structure.radius.sum()
+            self.number_of_zones = structure.number_of_zones
+            self.density_profile = structure.rho
+            self.radius_profile = structure.radius
+            self.composition_profile = structure.composition
+            self.temperature = structure.temperature
+            x = self.composition_profile[0]
+            y = self.composition_profile[1] + self.composition_profile[2]
+            z = 1 - (x + y)
+            self.mu_profile = x
+            for i in range(len(x)):
+                self.mu_profile[i] = mu(x[i],y[i],z[i])
+            self.specific_internal_energy_profile = 1.5 * constants.kB * self.temperature / self.mu_profile
+
+        self.pressure = (2.0 / 3) * self.specific_internal_energy_profile * self.density_profile
+        self.sound_speed = (((5.0 / 3.0) * constants.kB * self.temperature /
+                             self.mu_profile) ** 0.5).as_quantity_in(units.m / units.s)
         print len(self.specific_internal_energy_profile), len(self.temperature), len(self.sound_speed)
+
 
 def mu(X = None, Y = 0.25, Z = 0.02, x_ion = 0.1):
     """

@@ -251,25 +251,21 @@ class SphStar:
                     mainStar.mass_change = self.massChangeAGB
                     windBegan = True
                     print mainStar
-
-        evolutionType.stop()
-        print evolutionType
-        print mainStar
-
         mesaFile = savingPath + "/" + code.__name__
         outputCurrentFile = mesaFile
-        #+ "_" + str(mainStar.stellar_type) + "_" + \
-        #                    str(mainStar.radius.value_in(units.RSun)) + "_" + str(mainStar.mass.value_in(units.MSun)) + \
-        #                    "_" + str(mainStar.core_mass.value_in(units.MSun))
         if os.path.isfile(mesaFile):
-           os.remove(mesaFile)
+            os.remove(mesaFile)
         with open(outputCurrentFile, 'wb') as openedFile:
             pickle.dump(StellarModel(mainStar), openedFile, pickle.HIGHEST_PROTOCOL)
-        #pickle_stellar_model(mainStar, savingPath + "/" + code.__name__)
-        print "star saved to: ", savingPath + "/" + code.__name__ , "mass: ",mainStar.mass, "stellar type:", mainStar.stellar_type
+        # pickle_stellar_model(mainStar, savingPath + "/" + code.__name__)
+        print "star saved to: ", savingPath + "/" + code.__name__, "mass: ", mainStar.mass, "stellar type:", mainStar.stellar_type
         print "core mass from " + code.__name__ + " is ", mainStar.core_mass
         Ebin = self.CalculateBindingEnergy(mainStar)
-        print "binding energy= ", Ebin, " lambda= ", -(constants.G*mainStar.mass*(mainStar.mass-mainStar.core_mass)/mainStar.radius)/Ebin
+        print "binding energy= ", Ebin, " lambda= ", -(constants.G * mainStar.mass *
+                                                       (mainStar.mass - mainStar.core_mass) / mainStar.radius) / Ebin
+
+        print mainStar
+
         return mainStar
 
 class SphMetaData:

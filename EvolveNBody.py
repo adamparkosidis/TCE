@@ -36,7 +36,7 @@ def DynamicsForBinarySystem(dynamicsCode, semmiMajor, binary, outputDirectory="/
                             str(time.localtime().tm_sec)))
     system.parameters.epsilon_squared = 0 | units.m**2
     system.parameters.inttype_parameter = system.inttypes.SHARED10
-    system.parameters.timestep_parameter = 0.2
+    system.parameters.timestep_parameter = 0.02
     system.particles.add_particles(binary)
     return system
 

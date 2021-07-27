@@ -194,7 +194,7 @@ class SphStar:
                     if mainStar.core_mass > 0.98* self.coreMass:
                         break
             mainStar.evolve_one_step()
-            currentStar = mainStar.copy()
+            currentStar = StellarModel(mainStar)
             if self.massChangeHG is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 2:
                 evolutionType.stop()
                 evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
@@ -206,7 +206,7 @@ class SphStar:
                 evolutionType.parameters.stabilize_new_stellar_model_flag = False
                 print "new evolution with different mass change"
                 evolutionType.set_RGB_wind_scheme(0)
-                mainStar = evolutionType.new_particle_from_model(StellarModel(currentStar), currentStar.age)
+                mainStar = evolutionType.new_particle_from_model(currentStar, currentStar.age)
                 mainStar.mass_change = self.massChangeHG
             elif self.massChangeRG is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 3:
                 evolutionType.stop()
@@ -219,7 +219,7 @@ class SphStar:
                 evolutionType.parameters.stabilize_new_stellar_model_flag = False
                 print "new evolution with different mass change"
                 evolutionType.set_RGB_wind_scheme(0)
-                mainStar = evolutionType.new_particle_from_model(StellarModel(currentStar), currentStar.age)
+                mainStar = evolutionType.new_particle_from_model(currentStar, currentStar.age)
                 mainStar.mass_change = self.massChangeRG
             elif self.massChangeAGB is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 5 and evolutionType.get_AGB_wind_scheme != 0:
                 evolutionType.stop()
@@ -232,7 +232,7 @@ class SphStar:
                 evolutionType.parameters.stabilize_new_stellar_model_flag = False
                 print "new evolution with different mass change"
                 evolutionType.set_AGB_wind_scheme(0)
-                mainStar = evolutionType.new_particle_from_model(StellarModel(currentStar), currentStar.age)
+                mainStar = evolutionType.new_particle_from_model(currentStar, currentStar.age)
                 mainStar.mass_change = self.massChangeAGB
 
         evolutionType.stop()

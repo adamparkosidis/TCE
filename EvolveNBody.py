@@ -78,7 +78,8 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
                      .format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
-                            str(time.localtime().tm_sec)), number_of_workers=numberOfWorkers)
+                            str(time.localtime().tm_sec)), number_of_workers=numberOfWorkers,
+                     redirect_sdterr_file=outputDirectory + "/sph_err.log")
     if sphCode.__name__ == "Fi":
         system.parameters.timestep = t_end / n_steps
         system.parameters.eps_is_h_flag = True
@@ -86,7 +87,7 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
         system.parameters.time_step = t_end / n_steps
         system.parameters.gadget_output_directory = outputDirectory
     #system.parameters.begin_time = beginTime
-    system.parameters.time_limit_cpu = 7200000000 | units.s
+    system.parameters.time_limit_cpu = 7200000000 | units.yr
     print "core radius:",core.radius.as_string_in(units.RSun), core.radius
     print "current timestep_accuracy= ", system.parameters.timestep_accuracy_parameter
     system.parameters.timestep_accuracy_parameter = 0.05
@@ -94,8 +95,9 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     system.parameters.time_max = t_end * 1.5
     system.dm_particles.add_particle(core)
     print "core added to hydro"
-    system.gas_particles.add_particles(envelope)
-    print "envelope added to hydro"
+    if len(envelope) > 1:
+        system.gas_particles.add_particles(envelope)
+        print "envelope added to hydro"
     print system.dm_particles
     #print core
     print system.parameters.epsilon_squared

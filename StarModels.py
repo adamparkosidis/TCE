@@ -195,7 +195,8 @@ class SphStar:
                         break
             mainStar.evolve_one_step()
             currentStar = StellarModel(mainStar)
-            if self.massChangeHG is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 2:
+            if self.massChangeHG is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 2 \
+                    and evolutionType.get_RGB_wind_scheme != 0 and mainStar.mass_change != self.massChangeHG:
                 evolutionType.stop()
                 evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +
@@ -208,7 +209,8 @@ class SphStar:
                 evolutionType.set_RGB_wind_scheme(0)
                 mainStar = evolutionType.new_particle_from_model(currentStar, currentStar.age)
                 mainStar.mass_change = self.massChangeHG
-            elif self.massChangeRG is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 3:
+            elif self.massChangeRG is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 3 and \
+                    evolutionType.get_RGB_wind_scheme != 0 and mainStar.mass_change != self.massChangeRG:
                 evolutionType.stop()
                 evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +
@@ -221,7 +223,8 @@ class SphStar:
                 evolutionType.set_RGB_wind_scheme(0)
                 mainStar = evolutionType.new_particle_from_model(currentStar, currentStar.age)
                 mainStar.mass_change = self.massChangeRG
-            elif self.massChangeAGB is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 5 and evolutionType.get_AGB_wind_scheme != 0:
+            elif self.massChangeAGB is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 5 \
+                    and evolutionType.get_AGB_wind_scheme != 0 and  mainStar.mass_change != self.massChangeAGB:
                 evolutionType.stop()
                 evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +

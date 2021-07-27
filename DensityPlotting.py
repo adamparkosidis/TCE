@@ -127,7 +127,8 @@ class SphGiant:
         print("giant thermal: ", self.thermalEnergy)
         self.gasPotential = self.GasPotentialEnergy()
         print("gas potential: ", self.gasPotential)
-        self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core)
+        self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core, 0.0 | units.m)
+        #self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core, self.core.radius/2.8)
         print("giant potential: ", self.potentialEnergy)
         #print "potential energies: ", self.gasPotential, self.gasParticles.mass[-1]*self.gas.mass*constants.G/self.radius
         #self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core)
@@ -148,7 +149,7 @@ class SphGiant:
             dy = y - y_vector[i + 1:]
             dz = z - z_vector[i + 1:]
             dr_squared = (dx * dx) + (dy * dy) + (dz * dz)
-            dr = (dr_squared + epsilon[i+1:]**2).sqrt()
+            dr = (dr_squared + (epsilon[i+1:]/2.8)**2).sqrt()
             m_m = mass[i] * mass[i + 1:]
 
             energy_of_this_particle = constants.G * ((m_m / dr).sum())
@@ -331,6 +332,7 @@ class SphGiant:
         extra_potential = [0.0 | units.erg / units.g for particle in  self.gasParticles]
         if companion is not None:
             com_particle.mass += companion.mass
+            #com_particle.mass -= self.core.mass
             extra_potential = [CalculatePotentialEnergy(particle, companion) / particle.mass for particle in
                                self.gasParticles]
         print("using method ", method)
@@ -339,6 +341,7 @@ class SphGiant:
                                                      particle, com_particle) for particle in self.gasParticles]
         else:
             self.CalculateGasSpecificPotentials()
+            print("calculated potentials for gas")
             specificEnergy = [self.gasSpesificPotentials[i] + CalculatePotentialEnergy(self.gasParticles[i],
                                                                                           self.core) / self.gasParticles[i].mass \
                                  + extra_potential[i] + specificKinetics[i] for i in range(len(self.gasParticles))]
@@ -365,7 +368,6 @@ class SphGiant:
         block_size = max // n
         if block_size == 0:
             block_size = 1  # if more than 100m particles, then do 1 by one
-
         mass = self.gasParticles.mass
         x_vector = self.gasParticles.x
         y_vector = self.gasParticles.y
@@ -528,7 +530,7 @@ def CalculateQuadropoleMomentOfParticle(particle):
                                                                                   particle.ay * particle.y +
                                                                                   particle.az * particle.z +
                                                                                   CalculateVectorSize(particle.velocity)**2))).value_in(units.m**2 * units.kg * units.s**-2)
-    return float(Qxx),float(Qxy),float(Qxz),float(Qyx),float(Qyy),float(Qyz),float(Qzx),float(Qzy),float(Qzz)
+    return Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz
 
 def GetPropertyAtRadius(mesaStarPropertyProfile, mesaStarRadiusProfile, radius):
     profileLength = len(mesaStarRadiusProfile)
@@ -748,7 +750,7 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False, plotDust
 
 
 
-def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, dustRadius=700 | units.RSun, width = 4.0 | units.AU, side_on = False, timeStep = 0.2):
+def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, dustRadius=700 | units.RSun, width = 20.0 | units.AU, side_on = False, timeStep = 0.2):
     if not HAS_PYNBODY:
         print("problem plotting")
         return
@@ -760,13 +762,15 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
     pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
     if not side_on:
+        '''
         with angmom.faceon(pyndata, cen=[0.0,0.0,0.0], vcen=[0.0,0.0,0.0]):
+            
             pynbody_sph.image(pyndata, resolution=2000,width=width.value_in(length_unit), units='g cm^-3',
                                  vmin= vmin, vmax= vmax, cmap="hot", title = str(i * timeStep) + " days")
             UnitlessArgs.current_plot = native_plot.gca()
-            '''native_plot.xlim(xmax=2, xmin=-10)
+            native_plot.xlim(xmax=2, xmin=-10)
             native_plot.ylim(ymax=6, ymin=-6)
-            native_plot.xticks([-10,-8,-6,-4,-2,0,2],[-6,-4,-2,0,2,4,6])'''
+            native_plot.xticks([-10,-8,-6,-4,-2,0,2],[-6,-4,-2,0,2,4,6])
             native_plot.ylabel('y[AU]')
             yLabel = 'y[AU]'
             #pyplot.xlim(-5,-2)
@@ -779,11 +783,14 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
             #pyplot.ylim(-190,390)
             if plotDust:
                 circle_with_radius(core.x, core.y,dustRadius, fill=False, color='white', linestyle= 'dashed', linewidth=3.0)
+        '''
+        print("nothing")
     else:
-        outputDir += "/side_on"
-        pyplot.rc('font',family='Serif',size=30)
-        fig, (face, side) = pyplot.subplots(nrows=1,ncols=2, figsize=(40,14))
-        fig.subplots_adjust(wspace=0.01)
+        #outputDir += "/side_on"
+        outputDir += "/both"
+        pyplot.rc('font',family='Serif',size=57)
+        fig, (face, side) = pyplot.subplots(nrows=1,ncols=2, figsize=(36,14))
+        fig.subplots_adjust(wspace=0.1,hspace=0.0)
         with angmom.faceon(pyndata, cen=[0.0, 0.0, 0.0], vcen=[0.0, 0.0, 0.0]):
             pynbody_sph.image(pyndata, subplot=face, resolution=2000, width=width.value_in(length_unit),
                               units='g cm^-3',show_cbar=False, clear=False,
@@ -794,10 +801,10 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
                     #both coordinates are inside the boundaries- otherwise dont plot it
                     face.scatter(core.x.value_in(units.AU), core.y.value_in(units.AU), c="r")
             face.scatter(binary.x.value_in(units.AU), binary.y.value_in(units.AU), c="w")
-            face.set_ylabel('y[AU]')
-            face.set_xlabel('x[AU]')
+            face.set_ylabel('y[AU]',fontsize=60, labelpad=-45)
+            face.set_xlabel('x[AU]',fontsize=55)
         with angmom.sideon(pyndata, cen=[0.0, 0.0, 0.0], vcen=[0.0, 0.0, 0.0]):
-            im2 = pynbody_sph.image(pyndata, subplot=side, resolution=2000, width=width.value_in(length_unit),
+            imside = pynbody_sph.image(pyndata, subplot=side, resolution=2000, width=width.value_in(length_unit),
                               units='g cm^-3', show_cbar=False, ret_im=True, clear=False,
                               vmin=vmin, vmax=vmax, cmap="hot")
             side.set_adjustable('box-forced')
@@ -806,11 +813,13 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
                     # both coordinates are inside the boundaries- otherwise dont plot it
                     side.scatter(core.x.value_in(units.AU), core.z.value_in(units.AU), c="r")
             side.scatter(binary.x.value_in(units.AU), binary.z.value_in(units.AU), c="w")
-            side.set_ylabel('z[AU]')
-            side.set_xlabel('x[AU]')
+            side.set_ylabel('z[AU]',fontsize=60,labelpad=-45)
+            side.set_xlabel('x[AU]',fontsize=55)
         fig.suptitle(str(i * timeStep) + " days")
-        cbar = pyplot.colorbar(im2, aspect=10,fraction=0.08,pad=0.01,panchor=(0,0),anchor=(0,0))
-        cbar.set_label('Density $[g/cm^3]$')
+        cbar = pyplot.colorbar(imside, aspect=10,fraction=0.1,pad=0.01,panchor=(0,0),anchor=(0,0))
+        cbar.set_label('Density $[g/cm^3]$',fontsize=60)
+        #bar_ticks = cbar.ax.get_yticklabels()
+        #bar.ax.set_yticklabels(cbar_ticks,fontsize=30)
         '''    
         with angmom.sideon(pyndata, cen=[0.0,0.0,0.0], vcen=[0.0,0.0,0.0]):
             pynbody_sph.sideon_image(pyndata, resolution=2000,width=width.value_in(length_unit), units='g cm^-3',
@@ -827,8 +836,8 @@ def PlotDensity(sphGiant,core,binary,i, outputDir, vmin, vmax, plotDust=False, d
                 circle_with_radius(core.x, core.z,dustRadius, fill=False, color='white', linestyle= 'dashed', linewidth=3.0)
         '''
     #native_plot.colorbar(fontsize=20.0)
-    matplotlib.rcParams.update({'font.size': 30, 'font.family': 'Serif'})
-    pyplot.rcParams.update({'font.size': 30, 'font.family': 'Serif'})
+    matplotlib.rcParams.update({'font.size': 60, 'font.family': 'Serif','xtick.labelsize': 60, 'ytick.labelsize': 60})
+    pyplot.rcParams.update({'font.size': 60, 'font.family': 'Serif'})
     #pyplot.rc('text', usetex=True)
     #cbar.ax.set_yticklabels(cbar
     # .ax.get_yticklabels(), fontsize=24)
@@ -841,7 +850,7 @@ def PlotVelocity(sphGiant,core,binary,step, outputDir, vmin, vmax, timeStep = 0.
         print(HAS_PYNBODY)
         print("problem plotting")
         return
-    width = 1.7 * sphGiant.position.lengths_squared().amax().sqrt()
+    width = 1.5 * sphGiant.position.lengths_squared().amax().sqrt()
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
     pyndata = convert_particles_to_pynbody_data(sphGiant, length_unit, pynbody_unit)
     UnitlessArgs.strip([1]|length_unit, [1]|length_unit)
@@ -955,6 +964,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
         centerOfMassPosition = [0.0,0.0,0.0] | units.m
         centerOfMassVelocity = [0.0,0.0,0.0] | units.m/units.s
 
+        
         #print [CalculateVectorSize(part.velocity).as_quantity_in(units.m / units.s) for part in sphGiant.gasParticles]
         if isBinary:
             if CalculateVectorSize(CalculateSeparation(sphGiant.core, companion)) < min(sphGiant.core.radius,
@@ -969,27 +979,29 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 
             print("com: ", parts.center_of_mass(), step)
             print("com v: ", parts.center_of_mass_velocity(), i)
+            
             centerOfMassPosition = parts.center_of_mass()
             centerOfMassVelocity = parts.center_of_mass_velocity()
-
+            
             comParticle = Particle()
             comParticle.position = centerOfMassPosition
             comParticle.velocity = centerOfMassVelocity
-
+            
+            '''    
             sphGiant.CountLeavingParticlesInsideRadius(com_position=centerOfMassPosition,
                                                        com_velocity=centerOfMassVelocity, companion=companion,
                                                        method=massLossMethod)
             print("leaving particles: ", sphGiant.leavingParticles)
             print("unbounded mass: ", sphGiant.totalUnboundedMass)
             massLoss[i] = sphGiant.totalUnboundedMass.value_in(massLossUnits)
-
+            
             semmimajor = CalculateSemiMajor(CalculateVelocityDifference(companion, sphGiant.core), CalculateSeparation(companion, sphGiant.core),companion.mass + sphGiant.core.mass).as_quantity_in(units.AU)
             CalculateEccentricity(companion, sphGiant.core)
             #check if the companion is inside, take into account only the inner mass of the companion's orbit
             sphGiant.CalculateInnerSPH(companion, com_position=centerOfMassPosition, com_velocity=centerOfMassVelocity)
             #print "innerGasMass: ", sphGiant.innerGas.mass.value_in(units.MSun)
             innerMass[i] = sphGiant.innerGas.mass.value_in(innerMassUnits)
-
+            
             newBinaryVelocityDifference = CalculateVelocityDifference(companion, sphGiant.innerGas)
             newBinarySeparation = CalculateSeparation(companion, sphGiant.innerGas)
             newBinaryMass = companion.mass + sphGiant.innerGas.mass
@@ -998,6 +1010,8 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             eccentricity = CalculateEccentricity(companion, sphGiant.innerGas)
             eccentricities[i] = eccentricity
             binaryDistances[i] = CalculateVectorSize(newBinarySeparation).value_in(binaryDistancesUnits)
+                        
+            
             sphGiant.CalculateEnergies(comV=centerOfMassVelocity)
 
             uGiant[i] = sphGiant.thermalEnergy.value_in(uGiantUnits)
@@ -1011,12 +1025,15 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 
             pGas[i] = sphGiant.gasPotential.value_in(pGasUnits)
             pGiant[i] = sphGiant.potentialEnergy.value_in(pGiantUnits)
+            print(sphGiant.potentialEnergy)
             pCompCore[i] = CalculatePotentialEnergy(sphGiant.core, companion).value_in(pCompCoreUnits)
+            
             pCompGas = (sphGiant.potentialEnergyWithParticle(companion)).value_in(pGasUnits)
 
             pTot[i] = pGiant[i] + pCompGas + pCompCore[i]
             eTot[i] = kTot + pTot[i] + uGiant[i]
-
+                     
+            
             try:
                 separation = CalculateSeparation(companion, comParticle)
                 specificAngularCOM = CalculateSpecificMomentum(CalculateVelocityDifference(companion, comParticle),
@@ -1031,9 +1048,12 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
                     companionAngularMomentaUnits)
 
 
-                gasAngularMomentaTot = sphGiant.GetAngularMomentumOfGas(centerOfMassPosition, centerOfMassVelocity)
+
+                gasAngularMomentaTot = sphGiant.GetAngularMomentumOfGas()#centerOfMassPosition, centerOfMassVelocity)
                 gasAngularMomenta[i] = gasAngularMomentaTot[2].value_in(gasAngularMomentaUnits)
 
+                print companionAngularMomenta[i], companionAngularMomentaTot, gasAngularMomenta[i], gasAngularMomentaTot[0]
+                
                 angularGiant = sphGiant.GetAngularMomentum(centerOfMassPosition, centerOfMassVelocity)
                 giantAngularMomenta[i] = angularGiant[2].value_in(giantAngularMomentaUnits)
 
@@ -1054,9 +1074,9 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 
             except:
                 print("could not calculate angular momenta, ", sys.exc_info()[0])
-
+                        
             semmimajors[i] = semmimajor.value_in(semmimajorsUnits)
-
+            
             #check if the binary is breaking up
             if newBinarySpecificEnergy > 0 | (units.m **2 / units.s **2):
                 print("binary is breaking up", binary.specificEnergy, step)
@@ -1075,12 +1095,14 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             Qzx[i] += (Qzx_p + Qzx_g)/(10**40)
             Qzy[i] += (Qzy_p + Qzy_g)/(10**40)
             Qzz[i] += (Qzz_p + Qzz_g)/(10**40)
+            '''
 
-        temperature_density_plot(sphGiant, step, outputDir, toPlot)
 
-        central_position = centerOfMassPosition
-        central_velocity = centerOfMassVelocity
+        
+        central_position = centerOfMassPosition#sphGiant.gas.position #centerOfMassPosition
+        central_velocity = centerOfMassVelocity#sphGiant.gas.velocity #centerOfMassVelocity
 
+        
         sphGiant.gasParticles.position -= central_position
         sphGiant.gasParticles.velocity -= central_velocity
         sphGiant.core.position -= central_position
@@ -1088,8 +1110,11 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 
         companion.position -= central_position
         companion.velocity -= central_velocity
-
-        innerAngularMomenta[i] = sphGiant.innerGas.angularMomentum[2].value_in(innerAngularMomentaUnits)
+        
+        print(central_position.as_quantity_in(units.AU), sphGiant.gasParticles.center_of_mass().as_quantity_in(units.AU),sphGiant.core.position.as_quantity_in(units.AU))
+        
+        temperature_density_plot(sphGiant, step, outputDir, toPlot)
+        #innerAngularMomenta[i] = sphGiant.innerGas.angularMomentum[2].value_in(innerAngularMomentaUnits)
         if toPlot:
             PlotDensity(sphGiant.gasParticles,sphGiant.core,companion, step , outputDir, vmin, vmax, plotDust= plotDust,
                         dustRadius=dustRadius, timeStep=timeStep)
@@ -1114,7 +1139,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                        angularGasCOM, angularTot, localRadius=50.0|units.RSun,
                        toPlot = False, opposite= False, axesOriginInInnerBinaryCenterOfMass= False, timeStep=0.2):
     energyUnits = units.kg*(units.km**2) / units.s**2
-    specificAngularMomentumUnits = (energyUnits * units.s / units.kg) / 10000
+    specificAngularMomentumUnits = (energyUnits * units.s / units.kg) * 10000
 
     for i in [j - beginStep for j in chunk]:
         print(time.ctime(), "step: ", i)
@@ -1132,6 +1157,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
 
         particle1 , particle2 = binary[0] , binary[1]
         innerBinary = Star(particle1,particle2)
+        
         #change the position and velocity of center of mass to 0
         centerOfMassPosition = (sphGiant.position * sphGiant.mass + innerBinary.position * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
         centerOfMassVelocity = (sphGiant.v * sphGiant.mass + innerBinary.velocity * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
@@ -1176,12 +1202,13 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                 print("triple2 is breaking up", triple2.specificEnergy, i * timeStep)
 
             separationStep = 0
-
+        '''
         #all the three are connected
         sphGiant.CountLeavingParticlesInsideRadius()
         print("leaving particles: ", sphGiant.leavingParticles)
         print("unbounded mass: ", sphGiant.totalUnboundedMass)
         print(time.ctime(), "beginning innerGas calculations of step ", i)
+        
         sphGiant.CalculateInnerSPH(innerBinary, localRadius)
         innerMass[i] = sphGiant.innerGas.mass.value_in(units.MSun)
 
@@ -1202,7 +1229,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         eOuters[i] = eOuter
         localDensity[i] = sphGiant.localDensity.value_in(units.MSun/units.RSun**3)
         inclinations[i] = inclination
-
+        
+        
         kInner[i]= innerBinary.kineticEnergy.value_in(energyUnits)
         pInner[i] = innerBinary.potentialEnergy.value_in(energyUnits)
         angularInner[i] = CalculateVectorSize(innerBinary.angularMomentum).value_in(specificAngularMomentumUnits * units.kg)
@@ -1216,6 +1244,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         angularOuter[i] = (innerBinary.mass * sphGiant.innerGas.mass *
                            (constants.G*aOuter/(innerBinary.mass+sphGiant.innerGas.mass))**0.5)\
                                 .value_in(specificAngularMomentumUnits * units.kg)
+        print angularOuter[i]
         #inner gas of particle 1
         innerMass1[i] , aOuters1[i], eOuters1[i], triple1Distances[i] = CalculateBinaryParameters(particle1, sphGiant)
         kOuter1[i] = (sphGiant.innerGas.kineticEnergy +
@@ -1224,7 +1253,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                        (triple1Distances[i] | units.RSun)).value_in(energyUnits)
         angularOuter1[i] = (particle1.mass*sphGiant.innerGas.mass*
                                (constants.G*(aOuters1[i] | units.AU)/(particle1.mass+sphGiant.innerGas.mass))**0.5).value_in(specificAngularMomentumUnits* units.kg)
-
+        
         #inner gas of particle2
         innerMass2[i] , aOuters2[i], eOuters2[i], triple2Distances[i] = CalculateBinaryParameters(particle2, sphGiant)
         kOuter2[i] = (sphGiant.innerGas.kineticEnergy +
@@ -1233,7 +1262,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                       (triple2Distances[i] | units.RSun)).value_in(energyUnits)
         angularOuter2[i] = (particle2.mass*sphGiant.innerGas.mass*
                            (constants.G*(aOuters2[i] | units.AU)/(particle2.mass+sphGiant.innerGas.mass))**0.5).value_in(specificAngularMomentumUnits * units.kg)
-
+        
         #real energies
         sphGiant.CalculateEnergies()
         kGas[i] = sphGiant.gasKinetic.value_in(energyUnits)
@@ -1244,8 +1273,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         pPartsCore = CalculatePotentialEnergy(sphGiant.core, particle1) + \
                      CalculatePotentialEnergy(sphGiant.core, particle2)
         pCores[i] = pPartsCore.value_in(energyUnits)
-        pPartGas[i] = (sphGiant.potentialEnergyWithParticle(particle1,sphGiant.core.radius/2.8) +
-                   sphGiant.potentialEnergyWithParticle(particle2,sphGiant.core.radius/2.8)).value_in(energyUnits)
+        pPartGas[i] = (sphGiant.potentialEnergyWithParticle(particle1, 0.0 | units.m) +
+                   sphGiant.potentialEnergyWithParticle(particle2, 0.0 | units.m)).value_in(energyUnits)
         #total energies
         kTot[i] = (sphGiant.kineticEnergy).value_in(energyUnits) + kInner[i]
         pTot[i] = sphGiant.potentialEnergy.value_in(energyUnits) + pInner[i] + pPartGas[i] + pCores[i]
@@ -1253,6 +1282,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         print("pTot: ", pTot[i], pGas[i],pOuterCore[i],pInner[i])
         print("kTot: ",kTot[i])
         print("eTot: ", eTot[i])
+        
         try:
             separation1 = CalculateSeparation(particle1,comParticle)
             specificAngularCOM1 = CalculateSpecificMomentum(CalculateVelocityDifference(particle1,comParticle), separation1)
@@ -1276,6 +1306,7 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             angularToty = angularGiant[1] + angularOuterCOMy
             angularTotz = angularGiant[2] + angularOuterCOMz
             angularTot[i] = ((angularTotx**2 + angularToty**2 + angularTotz**2)**0.5).value_in(specificAngularMomentumUnits * units.kg)
+            print "angular: ", angularTotx, angularToty, angularTotz
             omegaGiant[i] = sphGiant.omegaPotential.value_in(energyUnits)
             comp = Particles(particles=[particle1,particle2])
             comp.move_to_center()
@@ -1285,18 +1316,21 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
             print("omega tot: ", omegaTot[i])
         except:
             print("could not calculate angular momenta, ", sys.exc_info()[0])
+            #raise
+        '''
 
-        print(time.ctime(), "temperature_density_plotting of step ", i)
-        temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
-        print(time.ctime(), "finished temperature plotting of step: ", i)
+
         if toPlot:
-            central_position = sphGiant.gas.position
-            central_velocity = sphGiant.gas.velocity
+            central_position = centerOfMassPosition #sphGiant.gas.position
+            central_velocity = centerOfMassVelocity #sphGiant.gas.velocity
             '''
             if axesOriginInInnerBinaryCenterOfMass:
                 central_position = innerBinary.position
                 central_velocity = innerBinary.velocity
             '''
+            print(time.ctime(), "temperature_density_plotting of step ", i)
+            temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
+            print(time.ctime(), "finished temperature plotting of step: ", i)
             sphGiant.gasParticles.position -= central_position
             sphGiant.gasParticles.velocity -= central_velocity
             sphGiant.core.position -= central_position
@@ -1309,8 +1343,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                 PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin=5e29, vmax= 1e35, width= 30.0 * 3.0 | units.RSun, timeStep=timeStep)
                 PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin=5e29, vmax= 1e35, width= 30.0 * 3.0 | units.RSun, side_on=True, timeStep=timeStep)
             else:
-                PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax, width= 4.0 | units.AU, timeStep=timeStep)
-                PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax, width= 4.0 | units.AU, side_on=True, timeStep=timeStep)
+                PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax, width= 6.0 | units.AU, timeStep=timeStep)
+                PlotDensity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax, width= 6.0 | units.AU, side_on=True, timeStep=timeStep)
             PlotVelocity(sphGiant.gasParticles,sphGiant.core,binary,i + beginStep, outputDir, vmin, vmax)
 
         #close opened handles
@@ -1515,8 +1549,9 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
             chunkSize = 1
 
     chunks = [xrange(i,i+chunkSize) for i in xrange(beginStep,lastStep,chunkSize)]
+    
     if len(chunks) > 1:
-        lastChunkBegin = chunks[-2][-1] + 1
+        lastChunkBegin = chunks[-2][-1]
     else:
         lastChunkBegin = beginStep
     chunks[-1] = xrange(lastChunkBegin, lastStep)
@@ -1571,6 +1606,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
         newInnerMass2.append(float(innerMass2[j]) | units.MSun)
         newLocalDensity.append(float(localDensity[j]) | units.MSun / units.RSun**3)
     separationStep = int(separationStep.value)
+    
 
     PlotBinaryDistance([(newBinaryDistances, "InnerBinaryDistances"), (newTripleDistances, "tripleDistances"), (newTriple1Distances, "triple1Distances"),
                         (newTriple2Distances, "triple2Distances")], outputDir + "/graphs", beginStep,timeStep,toPlot)
@@ -1722,6 +1758,10 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
         pass
     try:
         os.makedirs(outputDir + "/side_on")
+    except(OSError):
+        pass
+    try:
+        os.makedirs(outputDir + "/both")
     except(OSError):
         pass
     try:

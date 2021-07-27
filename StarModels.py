@@ -82,6 +82,7 @@ class SphStar:
         parser.read(configurationFile)
         self.pointStar = pointStar
         self.massChangeMS = None
+        self.massChangeHG = None
         self.massChangeRG = None
         self.massChangeAGB = None
         self.sphParticles = int(parser.get(configurationSection, "sphParticles"))
@@ -170,7 +171,7 @@ class SphStar:
             os.makedirs(savingPath)
         except(OSError):
             pass
-        
+
         evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +

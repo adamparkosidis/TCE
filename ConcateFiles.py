@@ -7,12 +7,13 @@ def InitParser():
     parser.add_argument('--last', type=str, help='last day')
     parser.add_argument('--name', type=str, help='name of files without times')
     parser.add_argument('--source_dir', type=str, help='path to files directory')
+    parser.add_argument('--timestep', type=float,default=0.2, help='timesteps in days')
     return parser
 
 def GetLastDayOfFile(fileName):
     return fileName.split('_to_')[-1].split('days')[0]
 
-def GetListOfFilesToConcat(timesDict, curr_first, last):
+def GetListOfFilesToConcat(timesDict, curr_first, last, timestep):
     if curr_first == last:
         return []
 
@@ -21,13 +22,20 @@ def GetListOfFilesToConcat(timesDict, curr_first, last):
         return None
 
     for f in timesDict[curr_first]:
-        l = GetListOfFilesToConcat(timesDict, str(float(GetLastDayOfFile(f)) + 0.2), last)
+        print f
+        l = GetListOfFilesToConcat(timesDict, str(float(GetLastDayOfFile(f)) + timestep), last, timestep)
         if l is not None:
             return [f] + l
 
-        l = GetListOfFilesToConcat(timesDict, str(float(GetLastDayOfFile(f)) + 0.1), last)
+        l = GetListOfFilesToConcat(timesDict, str(float(GetLastDayOfFile(f))), last, timestep)
         if l is not None:
             return [f] + l
+        '''
+        for step in range(0,20):
+            l = GetListOfFilesToConcat(timesDict, str(float(GetLastDayOfFile(f)) + 0.1 * step), last, timestep)
+            if l is not None:
+                return [f] + l
+        '''
 
     return None
 
@@ -54,7 +62,7 @@ if __name__ == "__main__":
             begintimeDict[beginTime] = []
         begintimeDict[beginTime].append(f)
 
-    filesToConcat = GetListOfFilesToConcat(begintimeDict, args.first, args.last)
+    filesToConcat = GetListOfFilesToConcat(begintimeDict, args.first, args.last, args.timestep)
     if filesToConcat is None:
         print "could not concat those files..."
     else:

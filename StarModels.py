@@ -88,10 +88,16 @@ class SphStar:
         self.coreMass = float(parser.get(configurationSection, "coreMass")) | units.MSun
         if parser.has_option(configurationSection, "massChangeMS"):
             self.massChangeMS = float(parser.get(configurationSection, "massChangeMS")) | units.MSun / units.yr
+        if parser.has_option(configurationSection, "massChangeHG"):
+            self.massChangeHG = float(parser.get(configurationSection, "massChangHG")) | units.MSun / units.yr
         if parser.has_option(configurationSection, "massChangeRG"):
-            self.massChangeMS = float(parser.get(configurationSection, "massChangeRG")) | units.MSun / units.yr
+            self.massChangeRG = float(parser.get(configurationSection, "massChangeRG")) | units.MSun / units.yr
         if parser.has_option(configurationSection, "massChangeAGB"):
-            self.massChangeMS = float(parser.get(configurationSection, "massChangeAGB")) | units.MSun / units.yr
+            self.massChangeAGB = float(parser.get(configurationSection, "massChangeAGB")) | units.MSun / units.yr
+        if parser.has_option(configurationSection, "Mass"):
+            self.targetMass = float(parser.get(configurationSection, "Mass")) | units.MSun
+        else:
+            self.targetMass = None
         self.relaxationTime = float(parser.get(configurationSection, "relaxationTime")) | units.day
         self.relaxationTimeSteps = float(parser.get(configurationSection, "relaxationTimeSteps"))
         self.evolutionTime = float(parser.get(configurationSection, "evolutionTime")) | units.day
@@ -175,9 +181,26 @@ class SphStar:
         if self.massChangeMS is not None:
             evolutionType.mass_change = self.massChangeMS
         print "particle added, current radius = ", mainStar.radius.as_quantity_in(units.AU), "target radius = ", self.pointStar.radius
-        while mainStar.radius < self.pointStar.radius and mainStar.core_mass < self.coreMass:
+        while mainStar.radius < self.pointStar.radius and mainStar.core_mass < 1.02 * self.coreMass:
+            if self.targetMass is not None:
+                if mainStar.mass <= 1.02 * self.targetMass and mainStar.mass >= 0.98 * self.targetMass:
+                    if mainStar.core_mass > 0.98* self.coreMass:
+                        break
             mainStar.evolve_one_step()
-            if self.massChangeRG is not None and mainStar.stellar_type >= 3 and evolutionType.get_RGB_wind_scheme != 0:
+            if self.massChangeHG is not None and mainStar.stellar_type >= 2 and evolutionType.get_RGB_wind_scheme != 0:
+                evolutionType.stop()
+                evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
+                     .format(str(time.localtime().tm_year) + "-" +
+                            str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
+                            str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
+                            str(time.localtime().tm_sec)))
+                evolutionType.initialize_code()
+                evolutionType.parameters.stabilize_new_stellar_model_flag = False
+                print "new evolution with different mass change"
+                evolutionType.set_RGB_wind_scheme(0)
+                mainStar = evolutionType.new_particle_from_model(mainStar, mainStar.age)
+                mainStar.mass_change = self.massChangeHG
+            elif self.massChangeRG is not None and mainStar.stellar_type >= 3 and evolutionType.get_RGB_wind_scheme != 0:
                 evolutionType.stop()
                 evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +
@@ -190,7 +213,7 @@ class SphStar:
                 evolutionType.set_RGB_wind_scheme(0)
                 mainStar = evolutionType.new_particle_from_model(mainStar, mainStar.age)
                 mainStar.mass_change = self.massChangeRG
-            if self.massChangeAGB is not None and mainStar.stellar_type >= 5 and evolutionType.get_AGB_wind_scheme != 0:
+            elif self.massChangeAGB is not None and mainStar.stellar_type >= 5 and evolutionType.get_AGB_wind_scheme != 0:
                 evolutionType.stop()
                 evolutionType = code(redirection="file", redirect_file= savingPath + "/mesa_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +

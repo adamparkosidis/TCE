@@ -69,11 +69,12 @@ class SphStar:
         thermal_energy_profile = star.get_thermal_energy_profile()
         radius_profile = star.get_radius_profile()
         E = 0.0 |units.erg
+        #print star.core_mass, star.mass
         for i in range(len(mass_profile)):
             if (cumulative_mass_profile[i] * star.mass) < star.core_mass:
                 continue
             E += (thermal_energy_profile[i] -constants.G*(cumulative_mass_profile[i] * star.mass)/radius_profile[i])*(mass_profile[i] * star.mass)
-
+        
         return E
 
     def CheckLimitType(self, starType):
@@ -136,7 +137,7 @@ class SphStar:
                     unpickledFile = pickle.load(mesaFile)
                     mainStar = evolutionType.new_particle_from_model(unpickledFile,unpickledFile.age)
                     print "model loaded"
-                    #mainStar.finalize_stellar_model(age)
+                    #evolutionType.finalize_stellar_model(unpickledFile.age)
             else:
                 print "there is no such file as ", savedMesa
         if mainStar is None:
@@ -146,6 +147,9 @@ class SphStar:
             mainStar.radius.as_quantity_in(units.RSun)," current type=",mainStar.stellar_type,\
             "  target radius = ", self.radius, " target type = ",stellar_type
         oldStellarType = mainStar.stellar_type.value_in(units.stellar_type)
+        #if oldStellarType == 3:
+
+        mainStar.mass_change = -5.7*10**-7 | units.MSun / units.yr
         maxRadii = mainStar.radius
         oldTime = time.time()
         try:
@@ -153,11 +157,17 @@ class SphStar:
         except(OSError):
             pass
         mainStar.reset_number_of_backups_in_a_row()
+        maxE = 0
+        maxLambda = 0
         while mainStar.radius < self.radius or \
                 (self.radius.value_in(units.RSun) == 0 and
                      self.CheckLimitType(mainStar.stellar_type.value_in(units.stellar_type))):
+            #if mainStar.mass < 0.77 | units.MSun:
+            #    break
             try:
                 mainStar.evolve_one_step()
+                evolutionType.parameters.RGB_wind_scheme=0
+                mainStar.RGB_wind_scheme = 0
             except:
                 try:
                     radiuses.append(mainStar.radius)
@@ -166,10 +176,10 @@ class SphStar:
                         maxRadii = mainStar.radius
                     if mainStar.stellar_type.value_in(units.stellar_type)!= oldStellarType:
                         oldStellarType = mainStar.stellar_type.value_in(units.stellar_type)
-                        #print mainStar.stellar_type, mainStar.radius, maxRadii
+                        print mainStar.stellar_type, mainStar.temperature, mainStar.radius, maxRadii
                     E = self.CalculateBindingEnergy(mainStar)
-                    print "E=", E
-                    print "lamda=", (-constants.G * mainStar.mass * (mainStar.mass - mainStar.core_mass) / mainStar.radius) / E
+                    #print "E=", E
+                    #print "lamda=", (-constants.G * mainStar.mass * (mainStar.mass - mainStar.core_mass) / mainStar.radius) / E
                     mainStar.reset_number_of_backups_in_a_row()
                     mainStar.evolve_one_step()
                 except Exception as e:
@@ -179,6 +189,7 @@ class SphStar:
             if (currTime-oldTime) > 120:
                 print "*",mainStar.radius
             oldTime = currTime
+            #print mainStar.wind
             #old=mainStar2.age
             #mainStar2.evolve_for(70|units.yr)
             #mainStar.evolve_for(mainStar2.age-old)
@@ -201,20 +212,23 @@ class SphStar:
             radiuses.append(mainStar.radius)
             times.append(mainStar.age)
             if mainStar.stellar_type.value_in(units.stellar_type) != oldStellarType:
-                print mainStar.stellar_type, mainStar.radius , maxRadii
+                print mainStar.stellar_type, mainStar.mass,mainStar.core_mass, mainStar.temperature, mainStar.radius , maxRadii
+                #print maxE, maxLambda
                 #save a pickle of all the mesa properties
                 outputCurrentFile = savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type))
                 if not os.path.isfile(outputCurrentFile):
                     with open(outputCurrentFile,'wb') as openedFile:
                         pickle.dump(StellarModel(mainStar), openedFile, pickle.HIGHEST_PROTOCOL)
                 oldStellarType = mainStar.stellar_type.value_in(units.stellar_type)
+                if oldStellarType == 3:
+                    evolutionType.set_RGB_wind_scheme(0)
+                    mainStar.mass_change = 5.7*10**-7 | units.MSun / units.yr
             else:
                 if maxRadii < mainStar.radius:
                     maxRadii = mainStar.radius
 
-            E = self.CalculateBindingEnergy(mainStar)
-            print "E=", E
-            print "lamda=", (-constants.G * mainStar.mass * (mainStar.mass - mainStar.core_mass) / mainStar.radius) / E
+                    #maxE = self.CalculateBindingEnergy(mainStar)
+                    #maxLambda = (-constants.G * mainStar.mass * (mainStar.mass - mainStar.core_mass) / mainStar.radius) / maxE
         radiuses.append(mainStar.radius)
 
         print evolutionType

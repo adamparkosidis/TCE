@@ -3,7 +3,7 @@ import os.path
 import shutil
 import math
 import pickle
-
+import sys
 from amuse.units import units, constants, nbody_system
 from amuse.units import *
 from amuse.units.quantities import AdaptingVectorQuantity, VectorQuantity
@@ -15,11 +15,12 @@ def VectorCross(v1,v2):
      vx = v1[1]*v2[2]-v1[2]*v2[1]
      vy = v1[2]*v2[0]-v1[0]*v2[2]
      vz = v1[0]*v2[1]-v1[1]*v2[0]
-     v = v1
-     v[0] = vx
-     v[1] = vy
-     v[2] = vz
-     return v
+     #v = v1
+     #v[0] = vx
+     #v[1] = vy
+     #v[2] = vz
+     v = ((vx,vy,vz))
+     return ((vx,vy,vz))
 
 def SqalarMul(v1,v2):
     return v1[0]*v2[0]+v1[1]*v2[1]+v1[2]*v2[2]
@@ -58,7 +59,11 @@ def CalculateEccentricity(particle1,particle2):
 def CalculateInclination(V12,R12,V23,R23):
     h12 = CalculateSpecificMomentum(V12,R12)
     h23 = CalculateSpecificMomentum(V23,R23)
-    return math.degrees(math.acos(SqalarMul(h12,h23)/(CalculateVectorSize(h12)*CalculateVectorSize(h23))))
+    dotprod = SqalarMul(h12,h23)
+    sizeprod = (CalculateVectorSize(h12)*CalculateVectorSize(h23))
+    inc = math.degrees(math.acos(dotprod/sizeprod))
+    sys.stderr.write("CalculateIncAfetercalc*****")
+    return inc
 
 
 def CalculateSpecificEnergy(V,R,particle1,particle2):
@@ -68,6 +73,7 @@ def CalculateSpecificEnergy(V,R,particle1,particle2):
 
 def CalculateVectorSize(vector):
     returnValue = (vector[0]**2 + vector[1]**2 + vector[2]**2)**0.5
+    #print returnValue, vector
     return returnValue
 
 def GetVelocitySize(particle):

@@ -17,6 +17,7 @@ from amuse.io import read_set_from_file
 from amuse.units.nbody_system import nbody_to_si
 import StarModels
 import EvolveNBody
+from StarModels import *
 
 
 def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, takeSavedMesa = False):
@@ -105,7 +106,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     StarModels.SaveState(savedPath, starEnvelope.total_mass() + starCore.mass, starEnvelope, dmStars, outerBinary.semimajorAxis, sphMetaData)
 
     #moving the main star back to the center
-    diffPosition = starCore.position - giant.position
+    diffPosition =  GiantSPHCenterOfMassPosition(starEnvelope, starCore) - giant.position
     #diffVelocity = (starCore.velocity*starCore.mass + starEnvelope.center_of_mass_velocity() * starEnvelope.total_mass())/ giant.mass
     starEnvelope.position -= diffPosition
     starCore.position = giant.position

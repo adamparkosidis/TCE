@@ -299,9 +299,9 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
                     giantInSet = triple.add_particle(giant)
                     innerBinary.stars = triple - giantInSet
 
-                    triple.move_to_center()
-                    #triple.position -= giantInSet.position
-                    #triple.velocity -= giantInSet.velocity
+                    #triple.move_to_center()
+                    triple.position -= giantInSet.position
+                    triple.velocity -= giantInSet.velocity
                     print "could not parse inner binary, created new"
 
             companions = innerBinary
@@ -355,9 +355,9 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
             giantInSet = triple.add_particle(giant)
             innerBinary.stars = triple - giantInSet
 
-            triple.move_to_center()
-            #triple.position -= giantInSet.position
-            #triple.velocity -= giantInSet.velocity
+            #triple.move_to_center()
+            triple.position -= giantInSet.position
+            triple.velocity -= giantInSet.velocity
 
             #moving the main star back to the center
             centerOfMassPos = GiantSPHCenterOfMassPosition(starEnvelope, starCore)

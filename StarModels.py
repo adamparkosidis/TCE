@@ -94,8 +94,8 @@ class SphStar:
             self.massChangeRG = float(parser.get(configurationSection, "massChangeRG")) | units.MSun / units.yr
         if parser.has_option(configurationSection, "massChangeAGB"):
             self.massChangeAGB = float(parser.get(configurationSection, "massChangeAGB")) | units.MSun / units.yr
-        if parser.has_option(configurationSection, "Mass"):
-            self.targetMass = float(parser.get(configurationSection, "Mass")) | units.MSun
+        if parser.has_option(configurationSection, "mass"):
+            self.targetMass = float(parser.get(configurationSection, "mass")) | units.MSun
         else:
             self.targetMass = None
         self.relaxationTime = float(parser.get(configurationSection, "relaxationTime")) | units.day

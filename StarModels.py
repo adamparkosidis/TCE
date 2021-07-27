@@ -95,6 +95,8 @@ class SphStar:
             self.massChangeRG = float(parser.get(configurationSection, "massChangeRG")) | units.MSun / units.yr
         if parser.has_option(configurationSection, "massChangeAGB"):
             self.massChangeAGB = float(parser.get(configurationSection, "massChangeAGB")) | units.MSun / units.yr
+        if parser.has_option(configurationSection, "initial_mass_for_winds"):
+            self.initial_mass_for_winds = float(parser.get(configurationSection, "initial_mass_for_winds")) | units.MSun
         if parser.has_option(configurationSection, "mass"):
             self.targetMass = float(parser.get(configurationSection, "mass")) | units.MSun
         else:
@@ -186,6 +188,7 @@ class SphStar:
 
         mainStar = evolutionType.particles.add_particle(self.pointStar)
         old_type = mainStar.stellar_type
+        windBegan = False
         if self.massChangeMS is not None:
             evolutionType.mass_change = self.massChangeMS
         print "particle added, current radius = ", mainStar.radius.as_quantity_in(units.AU), "target radius = ", self.pointStar.radius
@@ -199,6 +202,9 @@ class SphStar:
                 print mainStar
                 old_type = mainStar.stellar_type
             currentStar = StellarModel(mainStar)
+            if not windBegan and self.initial_mass_for_winds is not None and mainStar.mass < self.initial_mass_for_winds:
+                continue
+
             if self.massChangeHG is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 2 \
                     and evolutionType.get_RGB_wind_scheme != 0 and mainStar.mass_change != self.massChangeHG:
                 evolutionType.stop()
@@ -213,6 +219,8 @@ class SphStar:
                 evolutionType.set_RGB_wind_scheme(0)
                 mainStar = evolutionType.new_particle_from_model(currentStar, currentStar.age)
                 mainStar.mass_change = self.massChangeHG
+                windBegan = True
+                print mainStar
             elif self.massChangeRG is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 3 and \
                     evolutionType.get_RGB_wind_scheme != 0 and mainStar.mass_change != self.massChangeRG:
                 evolutionType.stop()
@@ -227,6 +235,8 @@ class SphStar:
                 evolutionType.set_RGB_wind_scheme(0)
                 mainStar = evolutionType.new_particle_from_model(currentStar, currentStar.age)
                 mainStar.mass_change = self.massChangeRG
+                windBegan = True
+                print mainStar
             elif self.massChangeAGB is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 5 \
                     and evolutionType.get_AGB_wind_scheme != 0 and  mainStar.mass_change != self.massChangeAGB:
                 evolutionType.stop()
@@ -241,6 +251,8 @@ class SphStar:
                 evolutionType.set_AGB_wind_scheme(0)
                 mainStar = evolutionType.new_particle_from_model(currentStar, currentStar.age)
                 mainStar.mass_change = self.massChangeAGB
+                windBegan = True
+                print mainStar
 
         evolutionType.stop()
         print evolutionType

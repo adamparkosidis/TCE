@@ -85,7 +85,7 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
                     sphCore=binary.stars[0], stars=None,
                     endTime=metaData.evolutionTime, timeSteps=metaData.evolutionTimeSteps,
                     numberOfWorkers=metaData.numberOfWorkers, step=step,
-                    savedVersionPath=savedVersionPath, saveAfterMinute=400000, system=system)
+                    savedVersionPath=savedVersionPath, saveAfterMinute=0, system=system)
 
     print "****************** Simulation Completed ******************"
 

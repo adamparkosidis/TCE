@@ -9,6 +9,7 @@ from amuse.community.mesa.interface import MESA
 import StarModels
 
 types = dict()
+types["PMS"] = 1 | units.stellar_type
 types["MS"] = (1 + 1) | units.stellar_type
 types["RGB"] = (1 + 9) | units.stellar_type
 types["AGB"] = (1 + 9) | units.stellar_type
@@ -118,7 +119,7 @@ class SphStar:
          str(time.localtime().tm_sec)))
         evolutionType = code(redirection='file',redirect_file=output_file)
         evolutionType.initialize_code()
-        #evolutionType.parameters.stabilize_new_stellar_model_flag = False
+        evolutionType.parameters.stabilize_new_stellar_model_flag = False
         #evolutionType2=code()
         print "evolving with MESA"
         radiuses = []
@@ -133,7 +134,7 @@ class SphStar:
             if os.path.isfile(savedMesa):
                 with open(savedMesa, 'rb') as mesaFile:
                     unpickledFile = pickle.load(mesaFile)
-                    mainStar = evolutionType.new_particle_from_model(unpickledFile)
+                    mainStar = evolutionType.new_particle_from_model(unpickledFile,unpickledFile.age)
                     print "model loaded"
                     #mainStar.finalize_stellar_model(age)
             else:

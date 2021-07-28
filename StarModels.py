@@ -90,7 +90,7 @@ class SphStar:
         if parser.has_option(configurationSection, "massChangeMS"):
             self.massChangeMS = float(parser.get(configurationSection, "massChangeMS")) | units.MSun / units.yr
         if parser.has_option(configurationSection, "massChangeHG"):
-            self.massChangeHG = float(parser.get(configurationSection, "massChangHG")) | units.MSun / units.yr
+            self.massChangeHG = float(parser.get(configurationSection, "massChangeHG")) | units.MSun / units.yr
         if parser.has_option(configurationSection, "massChangeRG"):
             self.massChangeRG = float(parser.get(configurationSection, "massChangeRG")) | units.MSun / units.yr
         if parser.has_option(configurationSection, "massChangeAGB"):

@@ -88,7 +88,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = 0
     binary.stars.velocity -= binary.stars[0].velocity
 
     sphStar1 = StarModels.SphStar(binary.stars[0],configurationFile,configurationSection="SphStar1",
-                                savedMesaStarPath = savedPath + "/sph1", takeSavedMesa=takeSavedMesa)
+                                savedMesaStarPath = savedPath + "/sph1", takeSavedMesa=(takeSavedMesa or takeSavedSPH!=0))
 
     print "Now having the first sph star , ready for relaxing"
 
@@ -98,7 +98,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = 0
     binary.stars.velocity -= binary.stars[1].velocity
 
     sphStar2 = StarModels.SphStar(binary.stars[1],configurationFile,configurationSection="SphStar2",
-                                savedMesaStarPath = savedPath + "/sph2", takeSavedMesa=takeSavedMesa)
+                                savedMesaStarPath = savedPath + "/sph2", takeSavedMesa=(takeSavedMesa or takeSavedSPH==2))
 
     print "Now having the second sph star , ready for relaxing"
 

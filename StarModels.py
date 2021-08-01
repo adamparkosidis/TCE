@@ -75,6 +75,7 @@ class StellarModel:
         self.X_Fe = composition[7]*0.0
         self.dmass = star.get_mass_profile() * star.mass
         self.age = star.age
+        self.core_mass = star.core_mass
 
 class SphStar:
     def __init__(self, pointStar, configurationFile="", configurationSection="", savedMesaStarPath = "", takeSavedMesa = False,savedGas="", savedDm=""):

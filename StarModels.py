@@ -129,11 +129,16 @@ class SphStar:
                                                            do_store_composition = False,base_grid_options=dict(type="fcc"))
                     except:
                         with open(savedMesaStarPath + "/" + MESA.__name__,'rb') as mesaFile:
-                            mesaStar = pickle.load(mesaFile)
-                        self.sphStar = convert_stellar_model_to_SPH(mesaStar, self.sphParticles, do_relax=False,
+                            evolutionType = MESA()
+                            evolutionType.initialize_code()
+                            evolutionType.parameters.stabilize_new_stellar_model_flag = False
+                            unpickledFile = pickle.load(mesaFile)
+                            mesaStar = evolutionType.new_particle_from_model(unpickledFile,unpickledFile.age)
+                            self.sphStar = convert_stellar_model_to_SPH(mesaStar, self.sphParticles, do_relax=False,
                                                                     with_core_particle=True,
                                                                     target_core_mass=mesaStar.core_mass,
                                                                     base_grid_options=dict(type="fcc"))
+                            evolutionType.stop()
             else:
                 mesaStar = self.EvolveStarWithStellarCode(MESA, savedMesaStarPath)
                 self.sphStar = convert_stellar_model_to_SPH(mesaStar, self.sphParticles, do_relax = False, with_core_particle=True,

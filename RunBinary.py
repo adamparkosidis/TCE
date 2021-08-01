@@ -115,7 +115,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = 0
 
     else:
         if takeSavedSPH == 2:
-            star1Envelope, dmStars1 = StarModels.TakeSPHSavedState(savedPath + "/sph1/relaxation", step=-1)
+            star1Envelope, dmStars1 = StarModels.TakeSPHSavedState(savedPath + "/sph1", step=-1)
         else:
             star1Envelope, dmStars1 = StarModels.TakeSPHSavedState(savedPath + "/sph1/relaxation", step=step)
 

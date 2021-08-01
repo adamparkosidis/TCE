@@ -456,7 +456,7 @@ def TakeSPHSavedState(savedVersionPath,step=-1):
     starCore = load[0]
     sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
 
-    return starEnvelope, starCore, sphMetaData
+    return starEnvelope, starCore
 
 def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 , doubleSPH=False):
     '''

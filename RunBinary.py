@@ -130,7 +130,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = 0
 
     print("first sph star is relaxed")
 
-    if takeSavedSPH == 2:
+    if takeSavedSPH == 2 and step != -1:
         star2Envelope, dmStars2 = StarModels.TakeSPHSavedState(savedPath + "/sph2/relaxation", step)
     else:
         star2Envelope, dmStars2 = EvolveNBody.Run(totalMass= binary.stars.total_mass(),

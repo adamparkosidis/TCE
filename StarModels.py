@@ -432,6 +432,17 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
     #return starMass, starEnvelope, starCore, innerBinary, outerBinary.semimajorAxis, sphMetaData
     return starMass, starEnvelope, starCore, companions, outerBinary.semimajorAxis, sphMetaData
 
+def TakeSPHSavedState(savedVersionPath,step=-1):
+    if step > -1:
+        starEnvelope = LoadGas(savedVersionPath+"/gas_{0}.amuse".format(step))
+        load = LoadDm(savedVersionPath + "/dm_{0}.amuse".format(step))
+    else:
+        starEnvelope = LoadGas(savedVersionPath + "/envelope.amuse")
+        load = LoadDm(savedVersionPath + "/dm.amuse")
+    starCore = load[0]
+    sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
+
+    return starEnvelope, starCore, sphMetaData
 
 def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 , doubleSPH=False):
     '''

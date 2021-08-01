@@ -127,7 +127,8 @@ class SphStar:
                                                            with_core_particle = True, target_core_mass  = self.coreMass ,
                                                            do_store_composition = False,base_grid_options=dict(type="fcc"))
                     except:
-                        mesaStar = pickle.load(savedMesaStarPath + "/" + MESA.__name__)
+                        with open(savedMesaStarPath + "/" + MESA.__name__,'rb') as mesaFile:
+                            mesaStar = pickle.load(mesaFile)
                         self.sphStar = convert_stellar_model_to_SPH(mesaStar, self.sphParticles, do_relax=False,
                                                                     with_core_particle=True,
                                                                     target_core_mass=mesaStar.core_mass,

@@ -4,11 +4,12 @@ import time
 import pickle
 import math
 import os
+import sys
 from amuse.lab import *
 from amuse.units import *
 from amuse.datamodel import Particle
 from amuse.ext import orbital_elements
-from amuse.plot import plot, native_plot, sph_particles_plot
+#from amuse.plot import plot, native_plot, sph_particles_plot
 
 import EvolveNBody, BinaryCalculations, StarFromMesaCSVFile
 
@@ -90,13 +91,15 @@ class SphStar:
         if parser.has_option(configurationSection, "massChangeMS"):
             self.massChangeMS = float(parser.get(configurationSection, "massChangeMS")) | units.MSun / units.yr
         if parser.has_option(configurationSection, "massChangeHG"):
-            self.massChangeHG = float(parser.get(configurationSection, "massChangHG")) | units.MSun / units.yr
+            self.massChangeHG = float(parser.get(configurationSection, "massChangeHG")) | units.MSun / units.yr
         if parser.has_option(configurationSection, "massChangeRG"):
             self.massChangeRG = float(parser.get(configurationSection, "massChangeRG")) | units.MSun / units.yr
         if parser.has_option(configurationSection, "massChangeAGB"):
             self.massChangeAGB = float(parser.get(configurationSection, "massChangeAGB")) | units.MSun / units.yr
         if parser.has_option(configurationSection, "initial_mass_for_winds"):
             self.initial_mass_for_winds = float(parser.get(configurationSection, "initial_mass_for_winds")) | units.MSun
+        else:
+            self.initial_mass_for_winds = None
         if parser.has_option(configurationSection, "mass"):
             self.targetMass = float(parser.get(configurationSection, "mass")) | units.MSun
         else:
@@ -188,14 +191,16 @@ class SphStar:
 
         mainStar = evolutionType.particles.add_particle(self.pointStar)
         old_type = mainStar.stellar_type
-        windBegan = False
+        windBegan = (self.initial_mass_for_winds is None) 
         if self.massChangeMS is not None:
             evolutionType.mass_change = self.massChangeMS
         print "particle added, current radius = ", mainStar.radius.as_quantity_in(units.AU), "target radius = ", self.pointStar.radius
         while mainStar.radius < self.pointStar.radius and mainStar.core_mass < 1.02 * self.coreMass:
             if self.targetMass is not None:
+                #print self.targetMass, mainStar.mass
                 if mainStar.mass <= 1.02 * self.targetMass and mainStar.mass >= 0.98 * self.targetMass:
                     if mainStar.core_mass > 0.98* self.coreMass:
+                        print "reached target masses"
                         break
             mainStar.evolve_one_step()
             if mainStar.stellar_type != old_type:
@@ -251,6 +256,7 @@ class SphStar:
                     mainStar.mass_change = self.massChangeAGB
                     windBegan = True
                     print mainStar
+        mesaFile = savingPath + "/" + code.__name__
         mesaFile = savingPath + "/" + code.__name__
         outputCurrentFile = mesaFile
         if os.path.isfile(mesaFile):
@@ -323,6 +329,7 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
             companions.add_particle(loadedDms[-1])
         else:
             starCore=loadedDms[-1]
+
             try:
                 innerBinary = Binary(particles=Particles(2, particles=[loadedDms[0], loadedDms[1]]))
             except:
@@ -494,6 +501,7 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 , double
         binary.stars[0].mass = starMass
 
         sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
+        
 
     return starEnvelope, starCore, binary, binary.semimajorAxis, sphMetaData
 
@@ -653,7 +661,7 @@ class Binary:
             print "orbitalPhase: ", orbitalPhase, "initial separation: ", initialSeparation.as_quantity_in(units.RSun)
             relative_x = initialSeparation * math.sin((math.pi-orbitalPhase)%(2*math.pi))
             relative_y = -initialSeparation * math.cos(orbitalPhase)
-
+            print relative_x, relative_y
             [relative_vy, relative_vx] = self.GetRelativeVelocityAtAngel(orbitalPhase)
 
             stars[1].x = relative_x * math.cos(self.angle) - relative_y * math.sin(self.angle)
@@ -731,7 +739,7 @@ class Binary:
             print "could get initial semmimajor axis"
         if self.semimajorAxis is None:
             mass = particles.total_mass()
-            self.semimajorAxis = BinaryCalculations.CalculateSemiMajor(velocityDifference,separation,mass)
+            self.semimajorAxis = BinaryCalculations.CalculateSemiMajor(velocityDifference,separation,mass)    
         self.inclination = math.radians(BinaryCalculations.CalculateInclination((0,0,0) | (units.m / units.s),(0,0,0)| units.m,
                                                                    velocityDifference, separation))
         self.eccentricity =BinaryCalculations.CalculateEccentricity(self.stars[0],self.stars[1])

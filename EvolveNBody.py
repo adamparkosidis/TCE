@@ -3,7 +3,7 @@
 import time
 import pickle
 import os
-
+import sys
 from amuse.units.quantities import AdaptingVectorQuantity
 from amuse.lab import *
 from amuse.community.gadget2.interface import Gadget2
@@ -73,13 +73,14 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     try:
         os.makedirs(outputDirectory)
     except(OSError):
+        print "problem with making dirs"
         pass
-    system = sphCode(unitConverter, mode="adaptivegravity", redirection="file", redirect_file= outputDirectory + "/sph_code_out{0}.log"
+    system = sphCode(unitConverter, mode="adaptivegravity",number_of_workers=numberOfWorkers, redirection="file", redirect_file= outputDirectory + "/sph_code_out{0}.log"
                      .format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
-                            str(time.localtime().tm_sec)), number_of_workers=numberOfWorkers,
-                     redirect_sdterr_file=outputDirectory + "/sph_err.log")
+                            str(time.localtime().tm_sec)),redirect_stderr_file=outputDirectory + "/sph_err.log")
+
     if sphCode.__name__ == "Fi":
         system.parameters.timestep = t_end / n_steps
         system.parameters.eps_is_h_flag = True
@@ -88,11 +89,13 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
         system.parameters.gadget_output_directory = outputDirectory
     #system.parameters.begin_time = beginTime
     system.parameters.time_limit_cpu = 7200000000 | units.yr
+    
     print "core radius:",core.radius.as_string_in(units.RSun), core.radius
     print "current timestep_accuracy= ", system.parameters.timestep_accuracy_parameter
     system.parameters.timestep_accuracy_parameter = 0.05
     print "current time max= ", system.parameters.time_max
     system.parameters.time_max = t_end * 1.5
+    system.commit_parameters()
     system.dm_particles.add_particle(core)
     print "core added to hydro"
     if len(envelope) > 1:
@@ -105,6 +108,8 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     print system.parameters.timestep
     print system.parameters.begin_time
     print system.parameters.time_max
+    print system.parameters.comoving_integration_flag
+    print system.parameters.max_size_timestep
     print "output directory: ", system.parameters.gadget_output_directory
     return system
 
@@ -114,11 +119,14 @@ def CoupledSystem(hydroSystem, binarySystem, t_end, n_steps, beginTime, relax = 
         os.makedirs(outputDirectory)
     except(OSError):
         pass
+    
+    #numberOfWorkers = 6
     kickerCode = MI6(unitConverter,number_of_workers= numberOfWorkers, redirection='file', redirect_file=outputDirectory + '/kicker_code_mi6_out{0}.log'.format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec)))
     print "kicker code intialized"
+
     epsilonSquared = (hydroSystem.dm_particles.radius[0]/ 2.8)**2
     kickerCode.parameters.epsilon_squared = epsilonSquared
     print epsilonSquared
@@ -141,9 +149,10 @@ def PrintEnergies(coupledSystem):
                 print "potential on companions: ", coupledSystem.partners[sys]
     except:
         pass
+    '''
     print "kinetic energy: ", coupledSystem.kinetic_energy
     print "thermal energy: ", coupledSystem.thermal_energy
-    print "total energy: ", coupledSystem.potential_energy + coupledSystem.kinetic_energy + coupledSystem.thermal_energy
+    print "total energy: ", coupledSystem.potential_energy + coupledSystem.kinetic_energy + coupledSystem.thermal_energy'''
 
 def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
         savedVersionPath="", saveAfterMinute=1, step=-1, relax=False,initialCOM=None,
@@ -158,6 +167,7 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
     else:
         adding = "evolution"
 
+
     try:
         os.makedirs(savedVersionPath + "/" + adding)
     except(OSError):
@@ -171,11 +181,11 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
     timeStep = endTime / timeSteps
     currentTime = 0.0 | units.Myr
     currentSimulationTime = currentTime
-
     if step != -1:
         currentTime = step * timeStep
 
     coupledSystem = system
+    '''
     try:
         dm = coupledSystem.dm_particles.copy()
         gas = coupledSystem.gas_particles.copy()
@@ -183,7 +193,7 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
         coupledSystem.dm_particles = coupledSystem.particles
         dm = coupledSystem.particles.copy()
         gas = None
-
+    '''
     if initialCOM is None:
         if relax and step==-1:
             initialCOM = coupledSystem.particles.center_of_mass()
@@ -204,9 +214,10 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
     currentSecond = time.time()
     # coupledSystem.time = currentTime
     print "starting SPH " + adding
-    print coupledSystem.dm_particles
+    #print coupledSystem.dm_particles
     print "evolving from step ", step + 1
     #print "beggining time: ", coupledSystem.time + currentTime
+
     if step == -1:
         try:
             StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_00.amuse", gas)
@@ -215,7 +226,7 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
             print "didnt save gas"
             StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_00.amuse", coupledSystem.particles)
         print "pre state saved - {0}".format(savedVersionPath) + "/" + adding
-        PrintEnergies(coupledSystem)
+        #PrintEnergies(coupledSystem)
 
     while currentTime < endTime:
         step += 1
@@ -232,14 +243,21 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
             print "com v: ", particles.center_of_mass_velocity()
         else:
             # check if there is a merger - don't continue
-            if CheckMerger(coupledSystem.dm_particles):
-                coupledSystem.stop()
-                return coupledSystem.gas_particles, coupledSystem.dm_particles
+            print "checking for a merger"
+            #if CheckMerger(coupledSystem.dm_particles):
+            #    coupledSystem.stop()
+            #    return coupledSystem.gas_particles, coupledSystem.dm_particles
             #    sinks.accrete(coupledSystem.gas_particles)
-
+        '''
+        print "thermal energy: ", coupledSystem.thermal_energy
+        print "potential energy: ", coupledSystem.potential_energy
+        print "kinetic: ", coupledSystem.kinetic_energy
+        '''
+        
+        print "evolving..."  
         coupledSystem.evolve_model(currentSimulationTime + timeStep)
         print "   Evolved to:", (currentTime + timeStep).as_quantity_in(units.day)
-        # print "time step is - ", coupledSystem.get_time_step()
+        #print "time step is - ", coupledSystem.get_time_step()
         currentTime += timeStep
         currentSimulationTime += timeStep
         if (time.time() - currentSecond) > saveAfterMinute * 60:
@@ -255,7 +273,7 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
                                   coupledSystem.particles)
                 print "state saved - {0}".format(savedVersionPath) + "/" + adding
                 print coupledSystem.dm_particles
-                PrintEnergies(coupledSystem)
+                #PrintEnergies(coupledSystem)
                 currentSecond = time.time()
         dm = coupledSystem.dm_particles.copy()
         gas = coupledSystem.gas_particles.copy()
@@ -306,6 +324,7 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
     else:
         adding = "evolution"
 
+    
 
     try:
         os.makedirs(savedVersionPath + "/" + adding)
@@ -330,7 +349,10 @@ def Run(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10000 | uni
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec))
         os.makedirs(outputDirectory)
-        if relax and step==-1:
+        
+
+        if relax and step==-1: 
+            #coreParticleRadius = sphCore.radius * 20.0 * (500.0 * 1000.0 / 250000) #will be 20 for 250K, 10 for 500K and less for better resolution
             coreParticleRadius = sphCore.radius * 20.0 * (250.0 * 1000.0 / len(sphEnvelope)) # will be 20 for 250K, 10 for 500K and less for better resolution
         else:
             try:
@@ -416,7 +438,7 @@ def EvolveBinary(totalMass, semmiMajor, sphEnvelope, sphCore, stars, endTime= 10
                             str(time.localtime().tm_sec))
         os.makedirs(outputDirectory)
         if relax and step==-1:
-            coreParticleRadius = sphCore.radius * 20.0 * (250.0 * 1000.0 / len(sphEnvelope)) # will be 10 for 250K, 5 for 500K and less for better resolution
+            coreParticleRadius = sphCore.radius * 20.0 * (250.0 * 1000.0 / len(sphEnvelope)) # will be 20 for 250K, 5 for 500K and less for better resolution
         else:
             coreParticleRadius = sphCore.epsilon
         hydroSystem = HydroSystem(sphCode, sphEnvelope, sphCore, endTime, timeSteps, currentTime, coreParticleRadius, numberOfWorkers, outputDirectory=outputDirectory + "/hydro")

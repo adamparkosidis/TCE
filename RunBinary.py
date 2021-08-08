@@ -15,14 +15,15 @@ import EvolveNBody
 
 
 
-def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, takeSavedMesa = False, doubleSPH=False):
+def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = 0, takeSavedMesa = False,
+                       doubleSPH=False, step=-1):
     '''
     creating the binary
     :return:main star's mass, the envelope particles, the core particles, the binary stars and the binary semmimajor
     '''
     #check if 2SPH and if yes return CreateTwoSPHBinarySystem
     if doubleSPH:
-        return CreateTwoSPHBinarySystem(configurationFile,savedPath,takeSavedSPH,takeSavedMesa)
+        return CreateTwoSPHBinarySystem(configurationFile,savedPath,takeSavedSPH,takeSavedMesa, step)
 
     binary = StarModels.Binary(configurationFile, configurationSection="Binary")
     binary.stars.radius = binary.radius
@@ -70,7 +71,7 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
 
     return starEnvelope, starCore, binary, binary.semimajorAxis, sphMetaData
 
-def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, takeSavedMesa = False):
+def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = 0, takeSavedMesa = False, step=-1):
     '''
     creating the TCE
     :return:main star's mass, the envelope particles, the core particles, the binary stars and the binary semmimajor
@@ -87,7 +88,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = F
     binary.stars.velocity -= binary.stars[0].velocity
 
     sphStar1 = StarModels.SphStar(binary.stars[0],configurationFile,configurationSection="SphStar1",
-                                savedMesaStarPath = savedPath + "/sph1", takeSavedMesa=takeSavedMesa)
+                                savedMesaStarPath = savedPath + "/sph1", takeSavedMesa=(takeSavedMesa or takeSavedSPH!=0))
 
     print "Now having the first sph star , ready for relaxing"
 
@@ -97,7 +98,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = F
     binary.stars.velocity -= binary.stars[1].velocity
 
     sphStar2 = StarModels.SphStar(binary.stars[1],configurationFile,configurationSection="SphStar2",
-                                savedMesaStarPath = savedPath + "/sph2", takeSavedMesa=takeSavedMesa)
+                                savedMesaStarPath = savedPath + "/sph2", takeSavedMesa=(takeSavedMesa or takeSavedSPH==2))
 
     print "Now having the second sph star , ready for relaxing"
 
@@ -105,34 +106,45 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = F
     sphStar1.core_particle.radius = core_radius
     sphStar2.core_particle.radius = core_radius
 
-    star1Envelope, dmStars1 = EvolveNBody.Run(totalMass= binary.stars.total_mass(),
-                    semmiMajor= binary.semimajorAxis, sphEnvelope= sphStar1.gas_particles, sphCore=sphStar1.core_particle,
-                                             stars=binary.stars, endTime= sphStar1.relaxationTime,
-                                             timeSteps= sphStar1.relaxationTimeSteps, relax=True, takeCompanionInRelaxation=False,
-                                              numberOfWorkers= sphStar1.numberOfWorkers, savedVersionPath=savedPath + "/sph1", saveAfterMinute=15)
+    if takeSavedSPH == 0:
+        star1Envelope, dmStars1 = EvolveNBody.Run(totalMass= binary.stars.total_mass(),
+                        semmiMajor= binary.semimajorAxis, sphEnvelope= sphStar1.gas_particles, sphCore=sphStar1.core_particle,
+                                                 stars=binary.stars, endTime= sphStar1.relaxationTime,
+                                                 timeSteps= sphStar1.relaxationTimeSteps, relax=True, takeCompanionInRelaxation=False,
+                                                  numberOfWorkers= sphStar1.numberOfWorkers, savedVersionPath=savedPath + "/sph1", saveAfterMinute=15)
+
+    else:
+        if takeSavedSPH == 2:
+            star1Envelope, dmStars1 = StarModels.TakeSPHSavedState(savedPath + "/sph1", step=-1)
+        else:
+            star1Envelope, dmStars1 = StarModels.TakeSPHSavedState(savedPath + "/sph1/relaxation", step=step)
+
+
     star1Core = dmStars1[-1]
     star1Core.radius = sphStar1.core_particle.radius
     sph1MetaData = StarModels.SphMetaData(sphStar1)
 
-    #saved state
-    StarModels.SaveState(savedPath + "/sph1", star1Envelope.total_mass() + star1Core.mass, star1Envelope, dmStars1, binary.semimajorAxis, sph1MetaData)
+    # saved state
+    StarModels.SaveState(savedPath + "/sph1", star1Envelope.total_mass() + star1Core.mass, star1Envelope, dmStars1,
+                         binary.semimajorAxis, sph1MetaData)
 
-    print "first sph star is relaxed"
+    print("first sph star is relaxed")
 
-
-
-    star2Envelope, dmStars2 = EvolveNBody.Run(totalMass= binary.stars.total_mass(),
-                    semmiMajor= binary.semimajorAxis, sphEnvelope= sphStar2.gas_particles, sphCore=sphStar2.core_particle,
-                                             stars=binary.stars, endTime= sphStar2.relaxationTime,
-                                             timeSteps= sphStar2.relaxationTimeSteps, relax=True, takeCompanionInRelaxation=False,
-                                              numberOfWorkers= sphStar2.numberOfWorkers, savedVersionPath=savedPath + "/sph2", saveAfterMinute=15)
+    if takeSavedSPH == 2 and step != -1:
+        star2Envelope, dmStars2 = StarModels.TakeSPHSavedState(savedPath + "/sph2/relaxation", step)
+    else:
+        star2Envelope, dmStars2 = EvolveNBody.Run(totalMass= binary.stars.total_mass(),
+                        semmiMajor= binary.semimajorAxis, sphEnvelope= sphStar2.gas_particles, sphCore=sphStar2.core_particle,
+                                                 stars=binary.stars, endTime= sphStar2.relaxationTime,
+                                                 timeSteps= sphStar2.relaxationTimeSteps, relax=True, takeCompanionInRelaxation=False,
+                                                  numberOfWorkers= sphStar2.numberOfWorkers, savedVersionPath=savedPath + "/sph2", saveAfterMinute=15)
     star2Core = dmStars2[-1]
     print star2Core
     star2Core.radius = sphStar2.core_particle.radius
     sph2MetaData = StarModels.SphMetaData(sphStar2)
     #saved state
     StarModels.SaveState(savedPath + "/sph2", star2Envelope.total_mass() + star2Core.mass, star2Envelope, dmStars2, binary.semimajorAxis, sph2MetaData)
-    print "second sph star is relaxed and saved"
+    print("second sph star is relaxed and saved")
 
     binary.stars.move_to_center()
     binary.stars[0].mass = sphStar1.particles.total_mass()
@@ -232,10 +244,12 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
             StarModels.TakeBinarySavedState(savedVersionPath + "/evolution", configurationFile, step, doubleSPH=doubleSPH)
     elif takeSavedState == "Relax": # this option is currently supported only for the circumstellar case, for the other need to form the companions
         if doubleSPH:
-            print("continuing relaxation of double SPH was not implemented")
-            return
-        starEnvelope, starCore, binary, semmimajor,sphMetaData = \
-            StarModels.TakeBinarySavedState(savedVersionPath + "/relaxation", configurationFile, step=step)
+            starEnvelope, starCore, binary, semmimajor, sphMetaData = CreateBinarySystem(configurationFile,
+                                                                                         savedVersionPath, takeSavedSPH=1,
+                                                                                         doubleSPH=doubleSPH, step=step)
+        else:
+            starEnvelope, starCore, binary, semmimajor,sphMetaData = \
+                StarModels.TakeBinarySavedState(savedVersionPath + "/relaxation", configurationFile, step=step)
         relax=True
         simulationTime = sphMetaData.relaxationTime
         simulationTimeSteps = sphMetaData.relaxationTimeSteps
@@ -243,7 +257,16 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
             initialCOM = sphMetaData.initialCOM
             initialCOMV = sphMetaData.initialCOMV
         except:
-            print "couldn't rertrieve initial com"
+            print("couldn't rertrieve initial com")
+    elif takeSavedState == "Relax2":
+        if not doubleSPH:
+            print("no implementation for relax2 without doubleSPH")
+            return
+        starEnvelope, starCore, binary, semmimajor, sphMetaData = CreateBinarySystem(configurationFile,
+                                                                                     savedVersionPath,
+                                                                                     doubleSPH=doubleSPH,
+                                                                                     takeSavedSPH=2, step=step)
+
     else:
         if takeSavedState == "Mesa":
             starEnvelope, starCore, binary, semmimajor, sphMetaData = CreateBinarySystem(configurationFile,

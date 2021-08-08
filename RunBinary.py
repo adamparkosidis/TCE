@@ -127,6 +127,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = F
                                              timeSteps= sphStar2.relaxationTimeSteps, relax=True, takeCompanionInRelaxation=False,
                                               numberOfWorkers= sphStar2.numberOfWorkers, savedVersionPath=savedPath + "/sph2", saveAfterMinute=15)
     star2Core = dmStars2[-1]
+    print star2Core
     star2Core.radius = sphStar2.core_particle.radius
     sph2MetaData = StarModels.SphMetaData(sphStar2)
     #saved state
@@ -161,9 +162,11 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = F
     totalCores.add_particle(star2Core)
     StarModels.SaveState(savedPath, totalEnvelope.total_mass() + totalCores.mass, totalEnvelope, totalCores, binary.semimajorAxis, sph1MetaData)
     #now a trick so that the usuall code will include all particles in the hydro- all envelopes and core1 will be added from binary0 and core2 as the companion.
-    binary.stars[-1] = star2Core
+    binary.stars[-1].mass = star2Core.mass
+    binary.stars[-1].position = star2Core.position
+    binary.stars[-1].velocity = star2Core.velocity
     binary.stars[0].mass += star2Envelope
-    return totalEnvelope, star1Core , binary, binary.semimajorAxis, sph1MetaData
+    return totalEnvelope, star1Core, binary, binary.semimajorAxis, sph1MetaData
 
 
 def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savings/Passy/500000",
@@ -268,8 +271,8 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
 
     print "****************** Simulation Completed ******************"
 
-def IsTrue(str):
-    if str.upper =="TRUE" or str == "1":
+def IsTrue(string):
+    if string.upper == "TRUE" or string == "1":
         return True
     return False
 

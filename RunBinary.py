@@ -177,7 +177,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = 0
     binary.stars[-1].mass = star2Core.mass
     binary.stars[-1].position = star2Core.position
     binary.stars[-1].velocity = star2Core.velocity
-    binary.stars[0].mass += star2Envelope
+    binary.stars[0].mass += star2Envelope.total_mass()
     return totalEnvelope, star1Core, binary, binary.semimajorAxis, sph1MetaData
 
 

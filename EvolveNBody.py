@@ -257,8 +257,8 @@ def RunSystem(system=None, endTime=10000 | units.yr, timeSteps=3,
                 print coupledSystem.dm_particles
                 PrintEnergies(coupledSystem)
                 currentSecond = time.time()
-        #dm = coupledSystem.dm_particles.copy()
-        #gas = coupledSystem.gas_particles.copy()
+        dm = coupledSystem.dm_particles.copy()
+        gas = coupledSystem.gas_particles.copy()
 
         # if not relax:
         #    print "masses: ", sinks.mass.as_quantity_in(units.MSun)

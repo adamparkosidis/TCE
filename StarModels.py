@@ -464,6 +464,8 @@ def TakeSPHSavedState(savedVersionPath,step=-1):
         starEnvelope = LoadGas(savedVersionPath + "/envelope.amuse")
         load = LoadDm(savedVersionPath + "/dm.amuse")
     starCore = load
+    if len(load) > 1:
+        starCore = load[0]
     sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
 
     return starEnvelope, starCore

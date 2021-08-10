@@ -7,7 +7,7 @@ import os
 import sys
 from amuse.lab import *
 from amuse.units import *
-from amuse.datamodel import Particle
+from amuse.datamodel import Particle, Particles
 from amuse.ext import orbital_elements
 #from amuse.plot import plot, native_plot, sph_particles_plot
 
@@ -323,6 +323,16 @@ def GiantSPHCenterOfMassPosition(sphEnvelope, sphCore):
 def GiantSPHCenterOfMassVelocity(sphEnvelope, sphCore):
     return (sphCore.velocity*sphCore.mass + sphEnvelope.center_of_mass_velocity() * sphEnvelope.total_mass())/ (sphEnvelope.total_mass() + sphCore.mass)
 
+def MoveSPHToPoint(starEnvelope, starCore, pointParticle):
+    diffPos = (starEnvelope.center_of_mass() - pointParticle.position)
+    diffVel = (starEnvelope.center_of_mass_velocity() - pointParticle.velocity)
+    starEnvelope.position -= diffPos
+    starCore1.position -= diffPos
+    starEnvelope.velocity -= diffVel
+    starCore.velocity -= diffVel
+
+    return starEnvelope, starCore
+
 def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposite=False):
     '''
     :param savedVersionPath: the path to where you have your saved state
@@ -480,18 +490,41 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 , double
             binary.UpdateWithMassChange()
         sphMetaData = pickle.load(open(savedVersionPath + "/../metaData.p", "rb"))
     else:
-        starEnvelope = LoadGas(savedVersionPath+"/envelope.amuse")
-        load = LoadDm(savedVersionPath + "/dm.amuse")
-        print load
 
-        starCore = load[0]
-        starMass = starEnvelope.total_mass() + starCore.mass
+        binary = Binary(configurationFile, configurationSection="Binary")
+        binary.stars.radius = binary.radius
 
         if doubleSPH:
-            binary = Binary(particles=Particles(2, particles=[load[0], load[1]]))
+            starEnvelope1, starCore1 = TakeSPHSavedState(savedVersionPath + "/sph1")
+            binary.stars[0].mass = starEnvelope1.total_mass() + starCore1.mass
+
+            starEnvelope2, starCore2 = TakeSPHSavedState(savedVersionPath + "/sph2")
+            binary.stars[1].mass = starEnvelope2.total_mass() + starCore2.mass
+
+            binary.UpdateWithMassChange()
+
+            starEnvelope1, starCore1 = MoveSPHToPoint(starEnvelope1,starCore1,binary.stars[0])
+            print starCore1
+            starEnvelope2, starCore2 = MoveSPHToPoint(starEnvelope2,starCore2,binary.stars[1])
+            print starCore2
+            starEnvelope = Particles()
+            starEnvelope.add_particles(starEnvelope1)
+            starEnvelope.add_particles(starEnvelope2)
+            starCore = starCore1
+            starMass = starEnvelope.total_mass() + starCore1.mass
+            binary.stars[1].mass = starCore2.mass
+            binary.stars[1].position = starCore2.position
+            binary.stars[1].velocity = starCore2.velocity
+
+            print binary.stars
+
         else:
-            binary = Binary(configurationFile, configurationSection="Binary")
-            binary.stars.radius = binary.radius
+            starEnvelope = LoadGas(savedVersionPath + "/envelope.amuse")
+            load = LoadDm(savedVersionPath + "/dm.amuse")
+            print load
+
+            starCore = load[0]
+            starMass = starEnvelope.total_mass() + starCore.mass
             binary.stars[0].mass = starMass
             binary.UpdateWithMassChange()
 

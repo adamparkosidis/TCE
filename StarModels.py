@@ -327,7 +327,7 @@ def MoveSPHToPoint(starEnvelope, starCore, pointParticle):
     diffPos = (starEnvelope.center_of_mass() - pointParticle.position)
     diffVel = (starEnvelope.center_of_mass_velocity() - pointParticle.velocity)
     starEnvelope.position -= diffPos
-    starCore1.position -= diffPos
+    starCore.position -= diffPos
     starEnvelope.velocity -= diffVel
     starCore.velocity -= diffVel
 

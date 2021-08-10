@@ -324,8 +324,8 @@ def GiantSPHCenterOfMassVelocity(sphEnvelope, sphCore):
     return (sphCore.velocity*sphCore.mass + sphEnvelope.center_of_mass_velocity() * sphEnvelope.total_mass())/ (sphEnvelope.total_mass() + sphCore.mass)
 
 def MoveSPHToPoint(starEnvelope, starCore, pointParticle):
-    diffPos = (starEnvelope.center_of_mass() - pointParticle.position)
-    diffVel = (starEnvelope.center_of_mass_velocity() - pointParticle.velocity)
+    diffPos = starEnvelope.center_of_mass() - pointParticle.position
+    diffVel = starEnvelope.center_of_mass_velocity() - pointParticle.velocity
     starEnvelope.position -= diffPos
     starCore.position -= diffPos
     starEnvelope.velocity -= diffVel
@@ -502,9 +502,9 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 , double
             binary.stars[1].mass = starEnvelope2.total_mass() + starCore2.mass
 
             binary.UpdateWithMassChange()
-
+            print "core1 before:", starCore1
             starEnvelope1, starCore1 = MoveSPHToPoint(starEnvelope1,starCore1,binary.stars[0])
-            print starCore1
+            print "after:", starCore1
             starEnvelope2, starCore2 = MoveSPHToPoint(starEnvelope2,starCore2,binary.stars[1])
             print starCore2
             starEnvelope = Particles()

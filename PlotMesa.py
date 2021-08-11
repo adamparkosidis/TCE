@@ -81,19 +81,24 @@ class Star:
             self.radius_profile = structure.radius
             self.composition_profile = structure.composition
             self.temperature = structure.temperature
-            x = self.composition_profile[0]
-            y = self.composition_profile[1] + self.composition_profile[2]
-            z = 1 - (x + y)
+
+            try:
+                self.mass = structure.mass
+                self.number_of_zones = structure.number_of_zones
+                x = self.composition_profile[0]
+                y = self.composition_profile[1] + self.composition_profile[2]
+                z = 1 - (x + y)
+            except:
+                self.mass = structure.dmass.sum()
+                self.number_of_zones = len(structure.dmass)
+                x = structure.X_H
+                y = structure.X_He
+                z = [1-(x[i]+y[i]) for i in range(len(x))]
+
             self.mu_profile = x
             for i in range(len(x)):
                 self.mu_profile[i] = mu(x[i], y[i], z[i])
             self.specific_internal_energy_profile = 1.5 * constants.kB * self.temperature / self.mu_profile
-            try:
-                self.mass = structure.mass
-                self.number_of_zones = structure.number_of_zones
-            except:
-                self.mass = structure.dmass.sum()
-                self.number_of_zones = len(structure.dmass)
 
         self.pressure = (2.0 / 3) * self.specific_internal_energy_profile * self.density_profile
         self.sound_speed = (((5.0 / 3.0) * constants.kB * self.temperature /

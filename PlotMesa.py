@@ -77,7 +77,6 @@ class Star:
             self.temperature =  self.specific_internal_energy_profile * self.mu_profile / (1.5 * constants.kB)
         else: #assuming a pickle of the messa model
             self.radius = structure.radius.sum()
-            self.number_of_zones = structure.number_of_zones
             self.density_profile = structure.rho
             self.radius_profile = structure.radius
             self.composition_profile = structure.composition
@@ -91,8 +90,11 @@ class Star:
             self.specific_internal_energy_profile = 1.5 * constants.kB * self.temperature / self.mu_profile
             try:
                 self.mass = structure.mass
+                self.number_of_zones = structure.number_of_zones
             except:
                 self.mass = structure.dmass.sum()
+                self.number_of_zones = len(structure.dmass)
+
         self.pressure = (2.0 / 3) * self.specific_internal_energy_profile * self.density_profile
         self.sound_speed = (((5.0 / 3.0) * constants.kB * self.temperature /
                              self.mu_profile) ** 0.5).as_quantity_in(units.m / units.s)

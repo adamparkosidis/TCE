@@ -324,8 +324,8 @@ def GiantSPHCenterOfMassVelocity(sphEnvelope, sphCore):
     return (sphCore.velocity*sphCore.mass + sphEnvelope.center_of_mass_velocity() * sphEnvelope.total_mass())/ (sphEnvelope.total_mass() + sphCore.mass)
 
 def MoveSPHToPoint(starEnvelope, starCore, pointParticle):
-    diffPos = starEnvelope.center_of_mass() - pointParticle.position
-    diffVel = starEnvelope.center_of_mass_velocity() - pointParticle.velocity
+    diffPos = GiantSPHCenterOfMassPosition(starEnvelope, starCore) - pointParticle.position
+    diffVel = GiantSPHCenterOfMassVelocity(starEnvelope, starCore) - pointParticle.velocity
     starEnvelope.position -= diffPos
     starCore.position -= diffPos
     starEnvelope.velocity -= diffVel

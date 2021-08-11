@@ -28,6 +28,29 @@ import pynbody
 import pynbody.plot.sph as pynbody_sph
 from amuse.plot import scatter, xlabel, ylabel, plot, native_plot, sph_particles_plot
 
+
+class StellarModel:
+    def __init__(self, star):
+        self.radius = star.get_radius_profile()
+        self.rho = star.get_density_profile()
+        self.temperature = star.get_temperature_profile()
+        self.luminosity = star.get_luminosity_profile()
+        composition = star.get_chemical_abundance_profiles()
+        self.composition = composition
+        self.X_H = composition[0]
+        self.X_He = composition[1] + composition[2]
+        self.X_C = composition[3]
+        self.X_N = composition[4]
+        self.X_O = composition[5]
+        self.X_Ne = composition[6]
+        self.X_Mg = composition[7]
+        self.X_Si = composition[7]*0.0
+        self.X_Fe = composition[7]*0.0
+        self.dmass = star.get_mass_profile() * star.mass
+        self.age = star.age
+        self.core_mass = star.core_mass
+
+
 class Star:
     def __init__(self, pickleFile):
         self.pickle_file = pickleFile
@@ -53,7 +76,6 @@ class Star:
             self.midpoints_profile   = structure['midpoints_profile']
             self.temperature =  self.specific_internal_energy_profile * self.mu_profile / (1.5 * constants.kB)
         else: #assuming a pickle of the messa model
-            self.mass = structure.mass
             self.radius = structure.radius.sum()
             self.number_of_zones = structure.number_of_zones
             self.density_profile = structure.rho
@@ -65,9 +87,12 @@ class Star:
             z = 1 - (x + y)
             self.mu_profile = x
             for i in range(len(x)):
-                self.mu_profile[i] = mu(x[i],y[i],z[i])
+                self.mu_profile[i] = mu(x[i], y[i], z[i])
             self.specific_internal_energy_profile = 1.5 * constants.kB * self.temperature / self.mu_profile
-
+            try:
+                self.mass = structure.mass
+            except:
+                self.mass = structure.dmass.sum()
         self.pressure = (2.0 / 3) * self.specific_internal_energy_profile * self.density_profile
         self.sound_speed = (((5.0 / 3.0) * constants.kB * self.temperature /
                              self.mu_profile) ** 0.5).as_quantity_in(units.m / units.s)

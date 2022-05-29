@@ -16,13 +16,13 @@ def evolve_giant(giant, stop_radius):
     while (giant_in_code.radius < 10 | units.RSun):
         giant_in_code.evolve_one_step()
     
-    print "Giant starts to ascend the giant branch, now saving model every step..."
-    print giant_in_code.as_set()
+    print("Giant starts to ascend the giant branch, now saving model every step...")
+    print(giant_in_code.as_set())
     
     i = 0
     while (giant_in_code.radius < stop_radius):
         giant_in_code.evolve_one_step()
-        print giant_in_code.radius, giant_in_code.age
+        print(giant_in_code.radius, giant_in_code.age)
         pickle_file_name = "./model_{0:=04}_".format(i) + "%0.1f"%(giant_in_code.radius.value_in(units.RSun))
         pickle_stellar_model(giant_in_code, pickle_file_name)
         i += 1
@@ -36,6 +36,6 @@ if __name__ == "__main__":
     
     giant = Particle(mass = triple_parameters["mass_out"])
     
-    print "\nEvolving with", stellar_evolution_code.__name__
+    print("\nEvolving with", stellar_evolution_code.__name__)
     evolve_giant(giant, 110 | units.RSun)
-    print "Done"
+    print("Done")

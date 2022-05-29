@@ -341,10 +341,10 @@ class GifWriter:
             # Get begin and end for both dimensions
             X = np.argwhere(diff.sum(0))
             Y = np.argwhere(diff.sum(1))
-            print "-----------------------"
-            print i
-            print diff
-            print "x: ",X
+            print("-----------------------")
+            print(i)
+            print(diff)
+            print("x: ",X)
             # Get rect coordinates
             if X.size and Y.size:
                 x0, x1 = X[0], X[-1]+1
@@ -354,7 +354,7 @@ class GifWriter:
                 y0, y1 = 0, 2
 
             # Cut out and store
-            print y0, y1, x0, x1 
+            print(y0, y1, x0, x1) 
             im2 = im[y0:y1,x0:x1]
             prev = im
             ims2.append(im2)
@@ -911,8 +911,8 @@ class NeuQuant:
         if rad <= 1:
             rad = 0
 
-        print("Beginning 1D learning: samplepixels = %1.2f  rad = %i" %
-                                                    (samplepixels, rad) )
+        print(("Beginning 1D learning: samplepixels = %1.2f  rad = %i" %
+                                                    (samplepixels, rad) ))
         step = 0
         pos = 0
         if lengthcount%NeuQuant.PRIME1 != 0:
@@ -930,7 +930,7 @@ class NeuQuant:
             if i%100 == 99:
                 tmp = '\b'*len(printed_string)
                 printed_string = str((i+1)*100/samplepixels)+"%\n"
-                print(tmp + printed_string)
+                print((tmp + printed_string))
             p = self.pixels[pos]
             r = (p >> 16) & 0xff
             g = (p >>  8) & 0xff
@@ -960,7 +960,7 @@ class NeuQuant:
                     rad = 0
 
         finalAlpha = (1.0*alpha)/self.INITALPHA
-        print("Finished 1D learning: final alpha = %1.2f!" % finalAlpha)
+        print(("Finished 1D learning: final alpha = %1.2f!" % finalAlpha))
 
     def fix(self):
         for i in range(self.NETSIZE):
@@ -1038,7 +1038,7 @@ class NeuQuant:
         kdtree = cKDTree(self.colormap[:,:3],leafsize=10)
         result = kdtree.query(px2)
         colorindex = result[1]
-        print("Distance: %1.2f" % (result[0].sum()/(w*h)) )
+        print(("Distance: %1.2f" % (result[0].sum()/(w*h)) ))
         px2[:] = self.colormap[colorindex,:3]
 
         return Image.fromarray(px).convert("RGB").quantize(palette=self.paletteImage())

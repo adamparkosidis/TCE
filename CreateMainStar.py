@@ -8,9 +8,9 @@ import RelaxModel
 ### evolve with MESA ###
 def  EvolveStarWithMesa(star,radius):
     evolutionType = MESA()
-    print "evolving with MESA"
+    print("evolving with MESA")
     mainStar = evolutionType.particles.add_particle(star)
-    print "particle added, current radius = ",mainStar.radius, "target radius = ", radius
+    print("particle added, current radius = ",mainStar.radius, "target radius = ", radius)
     while mainStar.radius < radius:
         mainStar.evolve_one_step()
         #print "radius = " ,mainStar.radius

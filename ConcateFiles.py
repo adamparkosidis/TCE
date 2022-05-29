@@ -18,11 +18,11 @@ def GetListOfFilesToConcat(timesDict, curr_first, last, timestep):
         return []
 
     if curr_first not in timesDict:
-        print curr_first, " is not the first in any file"
+        print(curr_first, " is not the first in any file")
         return None
 
     for f in timesDict[curr_first]:
-        print f
+        print(f)
         l = GetListOfFilesToConcat(timesDict, str(float(GetLastDayOfFile(f)) + timestep), last, timestep)
         if l is not None:
             return [f] + l
@@ -64,9 +64,9 @@ if __name__ == "__main__":
 
     filesToConcat = GetListOfFilesToConcat(begintimeDict, args.first, args.last, args.timestep)
     if filesToConcat is None:
-        print "could not concat those files..."
+        print("could not concat those files...")
     else:
         newFile = open(args.source_dir + "\\" + args.name + "time_" + args.first + "_to_" + args.last, mode="w")
         newFile.write(ConcateFiles(filesToConcat))
         newFile.close()
-        print "new file has been saved to ", args.source_dir + "\\" + args.name + "time_" + args.first + "_to_" + args.last
+        print("new file has been saved to ", args.source_dir + "\\" + args.name + "time_" + args.first + "_to_" + args.last)

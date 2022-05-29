@@ -28,7 +28,7 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = 0, take
     binary = StarModels.Binary(configurationFile, configurationSection="Binary")
     binary.stars.radius = binary.radius
     giant = binary.stars[0]
-    print "binary: ", binary.stars
+    print("binary: ", binary.stars)
 
     #put the giant in the center
     binary.stars.position -= giant.position
@@ -41,7 +41,7 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = 0, take
     binary.UpdateWithMassChange()
 
 
-    print "Now having the sph star and the binaries, ready for relaxing"
+    print("Now having the sph star and the binaries, ready for relaxing")
     starEnvelope, dmStars = EvolveNBody.EvolveBinary(totalMass= binary.stars.total_mass(),
                     semmiMajor= binary.semimajorAxis, sphEnvelope= sphStar.gas_particles, sphCore=sphStar.core_particle,
                                              stars=binary.stars, endTime= sphStar.relaxationTime,
@@ -59,7 +59,7 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = 0, take
 
     #moving the main star back to the center
     diffPosition = GiantSPHCenterOfMassPosition(starEnvelope, starCore) - giant.position
-    print "diff position: ", diffPosition
+    print("diff position: ", diffPosition)
     starEnvelope.position -= diffPosition
     starCore.position -= diffPosition
     starEnvelope.velocity = giant.velocity
@@ -80,7 +80,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = 0
     print("creating a double SPH system")
     binary = StarModels.Binary(configurationFile, configurationSection="Binary")
     binary.stars.radius = binary.radius
-    print binary
+    print(binary)
 
 
     #put the giant in the center
@@ -90,7 +90,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = 0
     sphStar1 = StarModels.SphStar(binary.stars[0],configurationFile,configurationSection="SphStar1",
                                 savedMesaStarPath = savedPath + "/sph1", takeSavedMesa=(takeSavedMesa or takeSavedSPH!=0))
 
-    print "Now having the first sph star , ready for relaxing"
+    print("Now having the first sph star , ready for relaxing")
 
 
     binary.stars.move_to_center()
@@ -100,7 +100,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = 0
     sphStar2 = StarModels.SphStar(binary.stars[1],configurationFile,configurationSection="SphStar2",
                                 savedMesaStarPath = savedPath + "/sph2", takeSavedMesa=(takeSavedMesa or takeSavedSPH==2))
 
-    print "Now having the second sph star , ready for relaxing"
+    print("Now having the second sph star , ready for relaxing")
 
     core_radius = max(sphStar1.core_particle.radius, sphStar2.core_particle.radius)
     sphStar1.core_particle.radius = core_radius
@@ -139,7 +139,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = 0
                                                  timeSteps= sphStar2.relaxationTimeSteps, relax=True, takeCompanionInRelaxation=False,
                                                   numberOfWorkers= sphStar2.numberOfWorkers, savedVersionPath=savedPath + "/sph2", saveAfterMinute=15)
     star2Core = dmStars2[-1]
-    print star2Core
+    print(star2Core)
     star2Core.radius = sphStar2.core_particle.radius
     sph2MetaData = StarModels.SphMetaData(sphStar2)
     #saved state
@@ -232,7 +232,7 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
 
         EvolveNBody.RunSystem(system,sphMetaData.relaxationTime,sphMetaData.relaxationTimeSteps,savedVersionPath,0,step,False)
 
-        print "****************** Simulation Completed ******************"
+        print("****************** Simulation Completed ******************")
         return
 
     # creating the triple system
@@ -273,7 +273,7 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
                                                                                          savedVersionPath,
                                                                                          takeSavedMesa= True,
                                                                                          doubleSPH=doubleSPH)
-            print starCore
+            print(starCore)
         else:
             starEnvelope, starCore, binary, semmimajor, sphMetaData = CreateBinarySystem(configurationFile,
                                                                                          savedVersionPath,
@@ -292,7 +292,7 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
                     savedVersionPath=savedVersionPath,relax= relax, initialCOM=initialCOM,
                     initialCOMV=initialCOMV)
 
-    print "****************** Simulation Completed ******************"
+    print("****************** Simulation Completed ******************")
 
 def IsTrue(string):
     if string.upper == "TRUE" or string == "1":

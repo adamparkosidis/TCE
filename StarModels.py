@@ -1,4 +1,4 @@
-import ConfigParser
+import configparser
 import numpy
 import time
 import pickle
@@ -16,8 +16,8 @@ import EvolveNBody, BinaryCalculations, StarFromMesaCSVFile
 
 def CreatePointStar(configurationFile="", configurationSection=""):
     star = Particle()
-    print 'parsing configurations'
-    parser = ConfigParser.ConfigParser()
+    print('parsing configurations')
+    parser = configparser.ConfigParser()
     parser.read(configurationFile)
     star.mass = float(parser.get(configurationSection, "mass")) | units.MSun
     star.metalicity = float(parser.get(configurationSection, "metalicity"))
@@ -28,21 +28,21 @@ def CreatePointStar(configurationFile="", configurationSection=""):
 
 
 def MergeParticles(particles):
-    print "merging stars: "
-    print particles.position
+    print("merging stars: ")
+    print(particles.position)
     try:
-        print "keys: ", [part.key for part in particles]
+        print("keys: ", [part.key for part in particles])
     except:
-        print "x: ", particles.x
+        print("x: ", particles.x)
     newParticle = Particle()
     newParticle.mass = particles.total_mass()
     newParticle.radius = particles.total_radius()
-    print "total radius: ", newParticle.radius
+    print("total radius: ", newParticle.radius)
     try:
         smallestParticle = particles.sorted_by_attribute("radius")[-1]
         newParticle.radius += smallestParticle.radius
     except:
-        print "no option to retrieve the smallest radius, using 0"
+        print("no option to retrieve the smallest radius, using 0")
     newParticle.position = particles.center_of_mass()
     newParticle.vel1ocity = particles.center_of_mass_velocity()
 
@@ -79,8 +79,8 @@ class StellarModel:
 
 class SphStar:
     def __init__(self, pointStar, configurationFile="", configurationSection="", savedMesaStarPath = "", takeSavedMesa = False,savedGas="", savedDm=""):
-        print 'parsing configurations'
-        parser = ConfigParser.ConfigParser()
+        print('parsing configurations')
+        parser = configparser.ConfigParser()
         parser.read(configurationFile)
         self.pointStar = pointStar
         self.massChangeMS = None
@@ -117,7 +117,7 @@ class SphStar:
             self.core_particle = LoadDm(savedDm)
         else:
             if takeSavedMesa:
-                print "taking save state from: ", savedMesaStarPath + "/" + MESA.__name__
+                print("taking save state from: ", savedMesaStarPath + "/" + MESA.__name__)
                 if savedMesaStarPath.split('.')[-1] == "csv":
                     mesaStar = StarFromMesaCSVFile.GetStar(savedMesaStarPath)
                     self.sphStar = convert_stellar_model_to_SPH(mesaStar, self.sphParticles, do_relax = False, with_core_particle=True,
@@ -146,10 +146,10 @@ class SphStar:
 
             self.gas_particles = self.sphStar.gas_particles
             self.core_particle = self.sphStar.core_particle
-            print "sph center of mass before moving to the pointStar position: ", (self.gas_particles.center_of_mass()*self.gas_particles.total_mass()
+            print("sph center of mass before moving to the pointStar position: ", (self.gas_particles.center_of_mass()*self.gas_particles.total_mass()
                                                                                    +self.core_particle.position*self.core_particle.mass)\
-                                                                                  /(self.gas_particles.total_mass()+self.core_particle.mass)
-            print "point star position: ", pointStar.position
+                                                                                  /(self.gas_particles.total_mass()+self.core_particle.mass))
+            print("point star position: ", pointStar.position)
             self.particles = Particles()
             self.gas_particles = self.particles.add_particles(self.gas_particles)
             self.core_particle = self.particles.add_particle(self.core_particle)
@@ -160,11 +160,11 @@ class SphStar:
             self.core_particle.position += pointStar.position
             self.core_particle.velocity += pointStar.velocity
 
-            print "core:" ,self.core_particle
+            print("core:" ,self.core_particle)
             self.initialCOM = self.particles.center_of_mass()
             self.initialCOMV = self.particles.center_of_mass_velocity()
-            print "sph center of mass: ", self.initialCOM
-            print "sph center of mass velocity: ", self.initialCOMV
+            print("sph center of mass: ", self.initialCOM)
+            print("sph center of mass velocity: ", self.initialCOMV)
 
     def CalculateBindingEnergy(self, star):
         mass_profile = star.get_mass_profile()
@@ -197,7 +197,7 @@ class SphStar:
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
                             str(time.localtime().tm_sec)))
 
-        print "evolving with MESA"
+        print("evolving with MESA")
 
         if self.massChangeMS is not None: # we define our mass change manually from zero age
             evolutionType.parameters.RGB_wind_scheme = 0
@@ -208,17 +208,17 @@ class SphStar:
         windBegan = (self.initial_mass_for_winds is None) 
         if self.massChangeMS is not None:
             evolutionType.mass_change = self.massChangeMS
-        print "particle added, current radius = ", mainStar.radius.as_quantity_in(units.AU), "target radius = ", self.pointStar.radius
+        print("particle added, current radius = ", mainStar.radius.as_quantity_in(units.AU), "target radius = ", self.pointStar.radius)
         while mainStar.radius < self.pointStar.radius and mainStar.core_mass < 1.02 * self.coreMass:
             if self.targetMass is not None:
                 #print self.targetMass, mainStar.mass
                 if mainStar.mass <= 1.02 * self.targetMass and mainStar.mass >= 0.98 * self.targetMass:
                     if mainStar.core_mass > 0.98* self.coreMass:
-                        print "reached target masses"
+                        print("reached target masses")
                         break
             mainStar.evolve_one_step()
             if mainStar.stellar_type != old_type:
-                print mainStar
+                print(mainStar)
                 old_type = mainStar.stellar_type
             currentStar = StellarModel(mainStar)
             if windBegan or (self.initial_mass_for_winds is not None and mainStar.mass <= self.initial_mass_for_winds):
@@ -232,12 +232,12 @@ class SphStar:
                                 str(time.localtime().tm_sec)))
                     evolutionType.initialize_code()
                     evolutionType.parameters.stabilize_new_stellar_model_flag = False
-                    print "new evolution with different mass change"
+                    print("new evolution with different mass change")
                     evolutionType.set_RGB_wind_scheme(0)
                     mainStar = evolutionType.new_particle_from_model(currentStar, currentStar.age)
                     mainStar.mass_change = self.massChangeHG
                     windBegan = True
-                    print mainStar
+                    print(mainStar)
                 elif self.massChangeRG is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 3 and \
                         evolutionType.get_RGB_wind_scheme != 0 and mainStar.mass_change != self.massChangeRG:
                     evolutionType.stop()
@@ -248,12 +248,12 @@ class SphStar:
                                 str(time.localtime().tm_sec)))
                     evolutionType.initialize_code()
                     evolutionType.parameters.stabilize_new_stellar_model_flag = False
-                    print "new evolution with different mass change"
+                    print("new evolution with different mass change")
                     evolutionType.set_RGB_wind_scheme(0)
                     mainStar = evolutionType.new_particle_from_model(currentStar, currentStar.age)
                     mainStar.mass_change = self.massChangeRG
                     windBegan = True
-                    print mainStar
+                    print(mainStar)
                 elif self.massChangeAGB is not None and mainStar.stellar_type.value_in(units.stellar_type) >= 5 \
                         and evolutionType.get_AGB_wind_scheme != 0 and  mainStar.mass_change != self.massChangeAGB:
                     evolutionType.stop()
@@ -264,12 +264,12 @@ class SphStar:
                                 str(time.localtime().tm_sec)))
                     evolutionType.initialize_code()
                     evolutionType.parameters.stabilize_new_stellar_model_flag = False
-                    print "new evolution with different mass change"
+                    print("new evolution with different mass change")
                     evolutionType.set_AGB_wind_scheme(0)
                     mainStar = evolutionType.new_particle_from_model(currentStar, currentStar.age)
                     mainStar.mass_change = self.massChangeAGB
                     windBegan = True
-                    print mainStar
+                    print(mainStar)
         mesaFile = savingPath + "/" + code.__name__
         mesaFile = savingPath + "/" + code.__name__
         outputCurrentFile = mesaFile
@@ -278,13 +278,13 @@ class SphStar:
         with open(outputCurrentFile, 'wb') as openedFile:
             pickle.dump(StellarModel(mainStar), openedFile, pickle.HIGHEST_PROTOCOL)
         # pickle_stellar_model(mainStar, savingPath + "/" + code.__name__)
-        print "star saved to: ", savingPath + "/" + code.__name__, "mass: ", mainStar.mass, "stellar type:", mainStar.stellar_type
-        print "core mass from " + code.__name__ + " is ", mainStar.core_mass
+        print("star saved to: ", savingPath + "/" + code.__name__, "mass: ", mainStar.mass, "stellar type:", mainStar.stellar_type)
+        print("core mass from " + code.__name__ + " is ", mainStar.core_mass)
         Ebin = self.CalculateBindingEnergy(mainStar)
-        print "binding energy= ", Ebin, " lambda= ", -(constants.G * mainStar.mass *
-                                                       (mainStar.mass - mainStar.core_mass) / mainStar.radius) / Ebin
+        print("binding energy= ", Ebin, " lambda= ", -(constants.G * mainStar.mass *
+                                                       (mainStar.mass - mainStar.core_mass) / mainStar.radius) / Ebin)
 
-        print mainStar
+        print(mainStar)
 
         return mainStar
 
@@ -339,7 +339,7 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
     :param opposite: if the main star is in the inner binry and not the outer
     :return: the saved system- NOTICE that if opposite=True it returns the whole system! (different output)
     '''
-    print "using saved state file - {0}".format(savedVersionPath) , "config file: ", configurationFile
+    print("using saved state file - {0}".format(savedVersionPath) , "config file: ", configurationFile)
     giant = CreatePointStar(configurationFile,configurationSection="MainStar")
     outerBinary = Binary(configurationFile, configurationSection="OuterBinary")
     companions=Particles()
@@ -373,7 +373,7 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
                     #triple.move_to_center()
                     triple.position -= giantInSet.position
                     triple.velocity -= giantInSet.velocity
-                    print "could not parse inner binary, created new"
+                    print("could not parse inner binary, created new")
 
             companions = innerBinary
 
@@ -442,16 +442,16 @@ def TakeTripleSavedState(savedVersionPath, configurationFile, step = -1 , opposi
             starEnvelope.velocity = giantInSet.velocity
             starCore.velocity = giantInSet.velocity
 
-            print "binary position :", innerBinary.stars.center_of_mass()
-            print"new sph center of mass position: ", (GiantSPHCenterOfMassPosition(starEnvelope, starCore)).as_quantity_in(units.AU)
-            print "new core position: ", starCore.position.as_quantity_in(units.AU)
-            print (GiantSPHCenterOfMassPosition(starEnvelope, starCore) - innerBinary.stars.center_of_mass()).as_quantity_in(units.AU)
+            print("binary position :", innerBinary.stars.center_of_mass())
+            print("new sph center of mass position: ", (GiantSPHCenterOfMassPosition(starEnvelope, starCore)).as_quantity_in(units.AU))
+            print("new core position: ", starCore.position.as_quantity_in(units.AU))
+            print((GiantSPHCenterOfMassPosition(starEnvelope, starCore) - innerBinary.stars.center_of_mass()).as_quantity_in(units.AU))
 
             companions = innerBinary
 
     sphMetaData = pickle.load(open(savedVersionPath + "/metaData.p", "rb"))
-    print companions
-    print starCore
+    print(companions)
+    print(starCore)
     
     #return starMass, starEnvelope, starCore, innerBinary, outerBinary.semimajorAxis, sphMetaData
     return starMass, starEnvelope, starCore, companions, outerBinary.semimajorAxis, sphMetaData
@@ -475,19 +475,19 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 , double
     :param savedVersionPath: the path to where you have your saved state
     :return: the saved system
     '''
-    print "using saved state file - {0}".format(savedVersionPath)
+    print("using saved state file - {0}".format(savedVersionPath))
     if step > -1:
         starEnvelope = LoadGas(savedVersionPath+"/gas_{0}.amuse".format(step))
         load = LoadDm(savedVersionPath + "/dm_{0}.amuse".format(step))
-        print load
+        print(load)
         starCore=load[0]
         starMass = starEnvelope.total_mass() + starCore.mass
         if len(load) > 1:
             binary = Binary(particles=Particles(2, particles=[load[0], load[1]]))
-            print "binary loaded: ", binary.stars
+            print("binary loaded: ", binary.stars)
         else:
             binary = Binary(configurationFile, configurationSection="Binary")
-            print "continue run of a single star and no binary"
+            print("continue run of a single star and no binary")
             binary.stars[0].mass = starMass
             binary.UpdateWithMassChange()
         sphMetaData = pickle.load(open(savedVersionPath + "/../metaData.p", "rb"))
@@ -504,11 +504,11 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 , double
             binary.stars[1].mass = starEnvelope2.total_mass() + starCore2.mass
 
             binary.UpdateWithMassChange()
-            print "core1 before:", starCore1
+            print("core1 before:", starCore1)
             starEnvelope1, starCore1 = MoveSPHToPoint(starEnvelope1,starCore1,binary.stars[0])
-            print "after:", starCore1
+            print("after:", starCore1)
             starEnvelope2, starCore2 = MoveSPHToPoint(starEnvelope2,starCore2,binary.stars[1])
-            print starCore2
+            print(starCore2)
             starEnvelope = Particles()
             starEnvelope.add_particles(starEnvelope1)
             starEnvelope.add_particles(starEnvelope2)
@@ -518,25 +518,25 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 , double
             binary.stars[1].position = starCore2.position
             binary.stars[1].velocity = starCore2.velocity
 
-            print binary.stars
+            print(binary.stars)
 
         else:
             starEnvelope = LoadGas(savedVersionPath + "/envelope.amuse")
             load = LoadDm(savedVersionPath + "/dm.amuse")
-            print load
+            print(load)
 
             starCore = load[0]
             starMass = starEnvelope.total_mass() + starCore.mass
             binary.stars[0].mass = starMass
             binary.UpdateWithMassChange()
 
-            print "sph com: ", GiantSPHCenterOfMassPosition(starEnvelope,starCore)
-            print "sph velocity: ", GiantSPHCenterOfMassVelocity(starEnvelope,starCore)
+            print("sph com: ", GiantSPHCenterOfMassPosition(starEnvelope,starCore))
+            print("sph velocity: ", GiantSPHCenterOfMassVelocity(starEnvelope,starCore))
 
             binary.stars.position -= binary.stars[0].position
             binary.stars.velocity -= binary.stars[0].velocity
 
-            print "binary loaded: ", binary.stars
+            print("binary loaded: ", binary.stars)
             #changing according to before relaxation
             diffPosition = GiantSPHCenterOfMassPosition(starEnvelope,starCore) - binary.stars[0].position
             #diffVelocity = GiantSPHCenterOfMassVelocity(starEnvelope,starCore) - binary.stars[0].velocity
@@ -552,11 +552,11 @@ def TakeBinarySavedState(savedVersionPath, configurationFile, step = -1 , double
             '''
             starEnvelope.velocity = binary.stars[0].velocity
             starCore.velocity = binary.stars[0].velocity
-            print "(giant, star): ", binary.stars
-            print "sph com: ", GiantSPHCenterOfMassPosition(starEnvelope, starCore)
-            print "core: ", starCore.position
-            print "sph velocity: ", GiantSPHCenterOfMassVelocity(starEnvelope, starCore)
-            print "some sph velocities: ", starEnvelope.velocity[0], starEnvelope.velocity[-1]
+            print("(giant, star): ", binary.stars)
+            print("sph com: ", GiantSPHCenterOfMassPosition(starEnvelope, starCore))
+            print("core: ", starCore.position)
+            print("sph velocity: ", GiantSPHCenterOfMassVelocity(starEnvelope, starCore))
+            print("some sph velocities: ", starEnvelope.velocity[0], starEnvelope.velocity[-1])
         #changing the mass to the one after relaxation
         binary.stars[0].mass = starMass
 
@@ -584,11 +584,11 @@ def SaveState(savedVersionPath, starMass, starEnvelope, dms, tripleSemmimajor, s
     pickle.dump(sphMetaData,open(savedVersionPath+"/metaData.p", 'wb'), pickle.HIGHEST_PROTOCOL)
     SaveDm(savedVersionPath+"/dm.amuse", dms)
     SaveGas(savedVersionPath+"/envelope.amuse", starEnvelope)
-    print "state saved - {0}".format(savedVersionPath)
+    print("state saved - {0}".format(savedVersionPath))
 class Star:
 
     def __init__(self, configurationFile="", configurationSection="", savedMesaStarPath = "", takeSavedMesa = False):
-        print 'Creating Particle'
+        print('Creating Particle')
         self.star = Particle()
         if configurationSection == "":
             self.star.mass = 2.0 | units.MSun
@@ -601,8 +601,8 @@ class Star:
             self.relaxationTime = 10| units.day
             self.relaxationTimeSteps = 1
         else:
-            print 'parsing configurations'
-            parser = ConfigParser.ConfigParser()
+            print('parsing configurations')
+            parser = configparser.ConfigParser()
             parser.read(configurationFile)
             self.star.mass = float(parser.get(configurationSection, "mass")) | units.MSun
             self.coreMass = float(parser.get(configurationSection, "coreMass")) | units.MSun
@@ -682,8 +682,8 @@ class Binary:
     '''
     def __init__(self, configurationFile="", configurationSection="", particles=None):
         if particles is None:
-            print "Initializing ", configurationSection
-            parser = ConfigParser.ConfigParser()
+            print("Initializing ", configurationSection)
+            parser = configparser.ConfigParser()
             parser.read(configurationFile)
             masses = [float(parser.get(configurationSection, "mass1")) | units.MSun,
                       float(parser.get(configurationSection, "mass2")) | units.MSun]
@@ -718,10 +718,10 @@ class Binary:
                 initialSeparation = self.RocheLobeFactor * self.radius[0] / self.CalculateRocheLobeRadius()
                 orbitalPhase = -1.0 * math.acos(self.semimajorAxis * (1-self.eccentricity**2) /
                                          (self.eccentricity * initialSeparation) - 1.0 / self.eccentricity)
-            print "orbitalPhase: ", orbitalPhase, "initial separation: ", initialSeparation.as_quantity_in(units.RSun)
+            print("orbitalPhase: ", orbitalPhase, "initial separation: ", initialSeparation.as_quantity_in(units.RSun))
             relative_x = initialSeparation * math.sin((math.pi-orbitalPhase)%(2*math.pi))
             relative_y = -initialSeparation * math.cos(orbitalPhase)
-            print relative_x, relative_y
+            print(relative_x, relative_y)
             [relative_vy, relative_vx] = self.GetRelativeVelocityAtAngel(orbitalPhase)
 
             stars[1].x = relative_x * math.cos(self.angle) - relative_y * math.sin(self.angle)
@@ -733,15 +733,15 @@ class Binary:
                     relative_vx ** 2 + relative_vy ** 2) ** 0.5
 
 
-            print self.inclination
-            print stars[1].vx, stars[1].vz
-            print self.semimajorAxis, self.eccentricity, stars.total_mass()
-            print GetRelativeVelocityAtApastron(stars.total_mass(), self.semimajorAxis, self.eccentricity)
-            print "binary stars before moving to center:", stars
+            print(self.inclination)
+            print(stars[1].vx, stars[1].vz)
+            print(self.semimajorAxis, self.eccentricity, stars.total_mass())
+            print(GetRelativeVelocityAtApastron(stars.total_mass(), self.semimajorAxis, self.eccentricity))
+            print("binary stars before moving to center:", stars)
             stars.move_to_center()
 
             self.stars = stars
-            print "after moving:", self.stars
+            print("after moving:", self.stars)
         else:
             self.LoadBinary(particles, configurationFile, configurationSection)
         self.velocity = self.stars.center_of_mass_velocity()
@@ -758,7 +758,7 @@ class Binary:
             initialSeparation = self.RocheLobeFactor * self.radius[0] / self.CalculateRocheLobeRadius()
             orbitalPhase = -1.0 * math.acos(self.semimajorAxis * (1 - self.eccentricity ** 2) /
                                             (self.eccentricity * initialSeparation) - 1.0 / self.eccentricity)
-        print "orbitalPhase: ", orbitalPhase
+        print("orbitalPhase: ", orbitalPhase)
         relative_x = initialSeparation * math.sin((math.pi - orbitalPhase) % (2 * math.pi))
         relative_y = -initialSeparation * math.cos(orbitalPhase)
 
@@ -777,13 +777,13 @@ class Binary:
         self.stars[1].vz = math.sin(self.inclination) * (
                 relative_vx ** 2 + relative_vy ** 2) ** 0.5
 
-        print "updated mass positions, and velocities" , self.stars
+        print("updated mass positions, and velocities" , self.stars)
         self.stars.move_to_center()
-        print "after moving to center: ", self.stars
+        print("after moving to center: ", self.stars)
 
 
     def LoadBinary(self, particles, configurationFile="", configurationSection=""):
-        print "loading binary "
+        print("loading binary ")
         self.stars = particles
         masses = [particles[0].mass,particles[1].mass]
         self.radius = particles.radius
@@ -792,11 +792,11 @@ class Binary:
         self.semimajorAxis = None
         try:
             if configurationFile != "":
-                parser = ConfigParser.ConfigParser()
+                parser = configparser.ConfigParser()
                 parser.read(configurationFile)
                 self.semimajorAxis = float(parser.get(configurationSection, "semmimajor")) | units.AU
         except:
-            print "could get initial semmimajor axis"
+            print("could get initial semmimajor axis")
         if self.semimajorAxis is None:
             mass = particles.total_mass()
             self.semimajorAxis = BinaryCalculations.CalculateSemiMajor(velocityDifference,separation,mass)    

@@ -11,7 +11,7 @@ import EvolveNBody
 
 
 def Start(savedVersionPath="/home/hilaglanz/Documents/80265", step=-1,
-          configurationFile="/home/hilaglanz/Documents/80265/TCEConfiguration.ini", mergedParticles=01, opposite=False):
+          configurationFile="/home/hilaglanz/Documents/80265/TCEConfiguration.ini", mergedParticles=0o1, opposite=False):
     '''
     This is the main function of our simulation
     :param savedVersionPath: path to the saved state
@@ -51,8 +51,8 @@ def Start(savedVersionPath="/home/hilaglanz/Documents/80265", step=-1,
         else:
             companion = StarModels.MergeParticles(Particles(particles=[binary[0], binary[1]]))
 
-    print "core: ", starCore
-    print "companion: ", companion
+    print("core: ", starCore)
+    print("companion: ", companion)
 
     outputDirectory = savedVersionPath + "/codes_output_{0}".format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
@@ -72,7 +72,7 @@ def Start(savedVersionPath="/home/hilaglanz/Documents/80265", step=-1,
                     endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
                     savedVersionPath=savedVersionPath, saveAfterMinute= 0, system=coupledSystem)
 
-    print "****************** Simulation Completed ******************"
+    print("****************** Simulation Completed ******************")
 
 
 if __name__ == "__main__":
@@ -85,5 +85,5 @@ if __name__ == "__main__":
             Start(savedVersionPath=args[1], step=int(args[2]),
               configurationFile=args[1] + "/TCEConfiguration.ini", mergedParticles=args[3], opposite=bin(int(args[4])))
     else:
-        print "can do nothing without arguments"
+        print("can do nothing without arguments")
 

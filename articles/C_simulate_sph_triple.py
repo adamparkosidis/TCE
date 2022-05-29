@@ -33,7 +33,7 @@ def new_working_directory():
         i += 1
     new_directory = os.path.join(current_directory, "run_{0:=03}".format(i))
     os.mkdir(new_directory)
-    print "Created new directory for output:", new_directory
+    print("Created new directory for output:", new_directory)
     os.mkdir(os.path.join(new_directory, "plots"))
     os.mkdir(os.path.join(new_directory, "snapshots"))
     shutil.copy(__file__, new_directory)
@@ -64,7 +64,7 @@ def new_coupled_system(hydro, binary_system, t_end, n_steps):
     return coupled_system
 
 def evolve_system(coupled_system, t_end, n_steps):
-    times = (t_end * range(1, n_steps+1) / n_steps).as_quantity_in(units.day)
+    times = (t_end * list(range(1, n_steps+1)) / n_steps).as_quantity_in(units.day)
     
     sinks = new_sink_particles(coupled_system.codes[0].particles, sink_radius=4.0|units.RSun)
 
@@ -86,11 +86,11 @@ def evolve_system(coupled_system, t_end, n_steps):
     for i_step, time in enumerate(times):
         sinks.accrete(coupled_system.gas_particles)
         coupled_system.evolve_model(time)
-        print "   Evolved to:", time
+        print("   Evolved to:", time)
         potential_energies.append(coupled_system.potential_energy)
         kinetic_energies.append(coupled_system.kinetic_energy)
         thermal_energies.append(coupled_system.thermal_energy)
-        print "   Energies calculated"
+        print("   Energies calculated")
         density_plot(coupled_system, i_step + begin_step)
         if i_step % 1 == 0:
             snapshotfile = os.path.join("snapshots", "hydro_triple_{0:=06}_gas.amuse".format(i_step + begin_step))
@@ -151,7 +151,7 @@ if __name__ == "__main__":
     n_steps = 7000
     
     new_working_directory()
-    print "Initializing triple"
+    print("Initializing triple")
     #giant, binary = set_up_initial_conditions(relative_inclination)
     #print "\nInitialization done:\n", giant + binary
     
@@ -159,13 +159,13 @@ if __name__ == "__main__":
 
     binary = LoadBinaries(dm_particles_file)
 
-    print "\nSetting up {0} to simulate triple system".format(sph_code.__name__)
+    print("\nSetting up {0} to simulate triple system".format(sph_code.__name__))
     hydro = new_hydro(sph_code, sph_giant, core, t_end, n_steps, core.radius)
-    print "\nSetting up {0} to simulate triple system".format(dynamics_code.__name__)
+    print("\nSetting up {0} to simulate triple system".format(dynamics_code.__name__))
     binary_system = new_dynamics_for_binary(dynamics_code, binary)
-    print "\nSetting up Bridge to simulate triple system"
+    print("\nSetting up Bridge to simulate triple system")
     coupled_system = new_coupled_system(hydro, binary_system, t_end, n_steps)
     
-    print "\nEvolving to {0}".format(t_end)
+    print("\nEvolving to {0}".format(t_end))
     evolve_system(coupled_system, t_end, n_steps)
-    print "Done"
+    print("Done")

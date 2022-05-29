@@ -79,7 +79,7 @@ def CalculateSpecificEnergy(V,R,particle1,particle2):
 
 def PlotDensity(sph_giant,core,binary):
     if not HAS_PYNBODY:
-        print "problem plotting"
+        print("problem plotting")
         #return
     pynbody_column_density_plot(sph_giant, width=5|units.AU)
     scatter(core.x, core.y, c="r")
@@ -167,11 +167,11 @@ def GetPositionSize(particle):
     return CalculateVectorSize((particle.x ,particle.y,  particle.z))
 
 def CheckLeavingParticle(sphStar,core,mass):
-    for particle in xrange(len(sphStar.vx)):
+    for particle in range(len(sphStar.vx)):
         energy = -constants.G*(sphStar.mass[particle]+mass)/(CalculateVectorSize((sphStar.x[particle],sphStar.y[particle],sphStar.z[particle])))\
                  + 0.5*(CalculateVectorSize((sphStar.vx[particle],sphStar.vy[particle],sphStar.vz[particle]))**2)
         if energy > 0 | (units.m **2 / units.s **2):
-            print "particle ", particle, " has left the system"
+            print("particle ", particle, " has left the system")
 
 def PlotOrbitalParameters(x,y,plotFile ='dynamics.jpg' ):
 
@@ -187,7 +187,7 @@ def PlotOrbitalParameters(x,y,plotFile ='dynamics.jpg' ):
 
 def Plot1Axe(x, fileName):
     timeStep = 1400.0/7000.0
-    timeLine = [time*timeStep*3600*24 for time in xrange(len(x))] | units.day
+    timeLine = [time*timeStep*3600*24 for time in range(len(x))] | units.day
     native_plot.figure(figsize= (20, 20), dpi= 80)
     #PlotOrbitalParameters(x,steps,plotFile=fileName)
     plot(timeLine,x)
@@ -234,8 +234,8 @@ if __name__ == "__main__":
     particle1Masses = []
     particle2Masses = []
     inclinations = []
-    print len(dmFiles)
-    for i in xrange(len(dmFiles)):
+    print(len(dmFiles))
+    for i in range(len(dmFiles)):
         gas_particles_file = os.path.join(os.getcwd(), "run_006/snapshots/", gasFiles[i])
         dm_particles_file = os.path.join(os.getcwd(), "run_006/snapshots/", dmFiles[i])
         relative_inclination = math.radians(9.0)
@@ -265,22 +265,22 @@ if __name__ == "__main__":
         eInner = CalculateEccentricity(particle1,particle2, aInner)
 
         if CalculateVectorSize(innerBinary.separation) < 13.0*(10**8) | units.m: #if its closer than 2 solar raiuses
-            print "merger!" , innerBinary.separation
+            print("merger!" , innerBinary.separation)
 
         if innerBinary.specificEnergy > 0 | (units.m **2 / units.s **2):
-            print "binary is breaking up", innerBinary.specificEnergy
+            print("binary is breaking up", innerBinary.specificEnergy)
 
             if triple1.specificEnergy > 0 | (units.m **2 / units.s **2):
-                        print "triple1 is breaking up", triple1.specificEnergy
+                        print("triple1 is breaking up", triple1.specificEnergy)
 
             if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
-                        print "triple2 is breaking up", triple2.specificEnergy
+                        print("triple2 is breaking up", triple2.specificEnergy)
             continue
 
 
         tripleVCOM = (innerBinary.mass * innerBinary.v + giant.mass*giant.v)/(innerBinary.mass + giant.mass)
         tripleCOM = (innerBinary.mass * innerBinary.position + giant.mass * giant.position) / (innerBinary.mass + giant.mass)
-        print "System's Center Of Mass: ", tripleCOM[0].as_quantity_in(units.AU), tripleCOM[1].as_quantity_in(units.AU), tripleCOM[2].as_quantity_in(units.AU)
+        print("System's Center Of Mass: ", tripleCOM[0].as_quantity_in(units.AU), tripleCOM[1].as_quantity_in(units.AU), tripleCOM[2].as_quantity_in(units.AU))
         tripleMass = innerBinary.mass + giant.mass
 
 
@@ -314,7 +314,7 @@ if __name__ == "__main__":
         inclinations.append(CalculateInclination(tripleVelocityDifference,tripleSeparation,innerBinary.velocityDifference,innerBinary.separation))
         #print  aOuter / aInner
         particle1Mass, particle2Mass, giantMass = particle1.mass.as_quantity_in(units.MSun), particle2.mass.as_quantity_in(units.MSun), giant.mass.as_quantity_in(units.MSun)
-        print "masses: ",particle1Mass, particle2Mass, giantMass
+        print("masses: ",particle1Mass, particle2Mass, giantMass)
         particle1Masses.append(particle1Mass | units.MSun)
         particle2Masses.append(particle2Mass | units.MSun)
         giantMasses.append(giantMass | units.MSun)

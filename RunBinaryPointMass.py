@@ -31,7 +31,7 @@ def CreateBinarySystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     binary.UpdateWithMassChange() # so the velocities are also updated
     binary.stars[0].epsilon = 10 * sphStar.core_particle.radius
 
-    print "binary: ", binary.stars
+    print("binary: ", binary.stars)
 
     return binary, metaData
 
@@ -66,8 +66,8 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
         binary.stars[0].velocity = StarModels.GiantSPHCenterOfMassVelocity(starEnvelope, starCore)
         separation = binary.separation()
         radius = starEnvelope.total_radius()
-        print "initial separation= ", separation.as_quantity_in(units.RSun), "current giant radius= ", radius.as_quantity_in(units.RSun)
-        print "Roche-Lobe factor= ", separation*binary.CalculateRocheLobeRadius() / radius
+        print("initial separation= ", separation.as_quantity_in(units.RSun), "current giant radius= ", radius.as_quantity_in(units.RSun))
+        print("Roche-Lobe factor= ", separation*binary.CalculateRocheLobeRadius() / radius)
 
     else:
         if takeSavedState == "Mesa":
@@ -87,7 +87,7 @@ def Start(savedVersionPath = "/vol/sci/astro/bigdata/code/amuse-10.0/Glanz/savin
                     numberOfWorkers=metaData.numberOfWorkers, step=step,
                     savedVersionPath=savedVersionPath, saveAfterMinute=0, system=system)
 
-    print "****************** Simulation Completed ******************"
+    print("****************** Simulation Completed ******************")
 
 if __name__ == "__main__":
     args = sys.argv

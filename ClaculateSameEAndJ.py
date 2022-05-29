@@ -6,5 +6,5 @@ m_2 = 0.001
 A = (1+e_1)*m_1
 B = -(2*m_1*(1+e_1)+m_2*(1-e_1**2)+(m_1+m_2)*(1-e_1)**2)
 C = m_1*(1+e_1) + m_2*(1-e_1**2) - (m_1+m_2)*(1-e_1)**2
-print(-B + math.sqrt(B**2 - 4*A*C)/(2*A))
-print(-B - math.sqrt(B**2 - 4*A*C)/(2*A))
+print((-B + math.sqrt(B**2 - 4*A*C)/(2*A)))
+print((-B - math.sqrt(B**2 - 4*A*C)/(2*A)))

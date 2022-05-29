@@ -56,7 +56,7 @@ def CreateTripleSystem(configurationFile, savedPath = "", takeSavedSPH = False, 
     giant.position = innerBinary.stars[0].position
     giant.velocity = innerBinary.stars[0].velocity
 
-    print "Now having the sph star and the binaries, ready for relaxing"
+    print("Now having the sph star and the binaries, ready for relaxing")
     outputDirectory = savedPath + "/codes_output_{0}".format(str(time.localtime().tm_year) + "-" +
                             str(time.localtime().tm_mon) + "-" + str(time.localtime().tm_mday) + "-" +
                             str(time.localtime().tm_hour) + ":" + str(time.localtime().tm_min) + ":" +
@@ -182,7 +182,7 @@ def Start(savedVersionPath = "Glanz/savings/TCEBecomming/500000/nbody", takeSave
                     endTime= sphMetaData.evolutionTime, timeSteps= sphMetaData.evolutionTimeSteps, numberOfWorkers= sphMetaData.numberOfWorkers, step= step,
                     savedVersionPath=savedVersionPath, saveAfterMinute= 0, system=coupledSystem)
 
-    print "****************** Simulation Completed ******************"
+    print("****************** Simulation Completed ******************")
 if __name__ == "__main__":
     args = sys.argv
     if len(args) > 1:

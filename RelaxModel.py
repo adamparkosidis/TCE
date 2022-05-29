@@ -22,19 +22,19 @@ class RelaxedModel:
         centerOfMassRadius = gas.center_of_mass()
         centerOfMassV = gas.center_of_mass_velocity()
 
-        print "starting SPH relaxation"
+        print("starting SPH relaxation")
         native_plot.figure(figsize=(30, 30), dpi=60)
         timeStep = endTime / timeSteps
         currentTime = 0.0 | units.Myr
         currentStep = 0
         while currentTime < endTime:
             evolutionCode.evolve_model(currentTime)
-            print "current time = ", evolutionCode.model_time.as_quantity_in(units.yr)
+            print("current time = ", evolutionCode.model_time.as_quantity_in(units.yr))
             currentTime += timeStep
             gas = evolutionCode.gas_particles.copy()
             sph_particles_plot(gas)
             native_plot.savefig(savedVersionPath + "/pics/relax_{0}".format(currentStep))
-            print "pic {0} saved".format(currentStep)
+            print("pic {0} saved".format(currentStep))
             gas.add_particle(evolutionCode.dm_particles)
             evolutionCode.gas_particles.position += (centerOfMassRadius - gas.center_of_mass())
             evolutionCode.dm_particles.position += (centerOfMassRadius - gas.center_of_mass())

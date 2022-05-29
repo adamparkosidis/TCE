@@ -30,7 +30,7 @@ def new_working_directory():
         i += 1
     new_directory = os.path.join(current_directory, "run_{0:=03}".format(i))
     os.mkdir(new_directory)
-    print "Created new directory for output:", new_directory
+    print("Created new directory for output:", new_directory)
     os.mkdir(os.path.join(new_directory, "plots"))
     shutil.copy(__file__, new_directory)
     os.chdir(new_directory)
@@ -48,7 +48,7 @@ def set_up_initial_conditions(relative_inclination):
 def set_up_inner_binary(inclination):
     semimajor_axis = triple_parameters["a_in"]
     masses = triple_parameters["masses_in"]
-    print "   Initializing inner binary"
+    print("   Initializing inner binary")
     stars =  Particles(2)
     stars.mass = masses
     stars.position = [0.0, 0.0, 0.0] | units.AU
@@ -64,7 +64,7 @@ def set_up_inner_binary(inclination):
 def set_up_outer_star(inner_binary_mass):
     semimajor_axis = triple_parameters["a_out"]
     eccentricity = triple_parameters["eccentricity_out"]
-    print "   Initializing outer star"
+    print("   Initializing outer star")
     giant = Particle()
     giant.mass = triple_parameters["mass_out"]
     giant.position = semimajor_axis * (1 + eccentricity) * ([1, 0, 0] | units.none)
@@ -89,7 +89,7 @@ def set_up_sph_giant(giant, stellar_structure_file, number_of_sph_particles):
     sph_giant.velocity += giant.velocity
     core.position += giant.position
     core.velocity += giant.velocity
-    print "Core radius:", model.core_radius.as_string_in(units.RSun)
+    print("Core radius:", model.core_radius.as_string_in(units.RSun))
     return sph_giant, core, model.core_radius
 
 def new_dynamics_for_binary(dynamics_code, binary_particles):
@@ -123,7 +123,7 @@ def new_coupled_system(hydro, binary_system, t_end, n_steps):
     return coupled_system
 
 def evolve_system(coupled_system, t_end, n_steps):
-    times = (t_end * range(1, n_steps+1) / n_steps).as_quantity_in(units.day)
+    times = (t_end * list(range(1, n_steps+1)) / n_steps).as_quantity_in(units.day)
     hydro = coupled_system.codes[0].code # only calculate potential energy for the giant (SPH particles)
     '''
     potential_energies = hydro.potential_energy.as_vector_with_length(1).as_quantity_in(units.J)
@@ -131,18 +131,18 @@ def evolve_system(coupled_system, t_end, n_steps):
     thermal_energies = hydro.thermal_energy.as_vector_with_length(1).as_quantity_in(units.J)
     '''
     giant = coupled_system.particles
-    print "coupled"
+    print("coupled")
     giant_initial_position = giant.center_of_mass()
-    print "initial Position"
+    print("initial Position")
     giant_initial_velocity = giant.center_of_mass_velocity()
     for i_step, time in enumerate(times):
-        print i_step
+        print(i_step)
         giant.position += giant_initial_position - giant.center_of_mass()
         giant.velocity = (giant.velocity - giant.center_of_mass_velocity()) * (i_step * 1.0 / n_steps) + giant_initial_velocity
         
-        print "   Evolving...",
+        print("   Evolving...", end=' ')
         coupled_system.evolve_model(time)
-        print "   Evolved to:", time,
+        print("   Evolved to:", time, end=' ')
 
         '''
         potential_energies.append(hydro.potential_energy)
@@ -155,7 +155,7 @@ def evolve_system(coupled_system, t_end, n_steps):
         write_set_to_file(coupled_system.gas_particles, snapshotfile, format='amuse')
         snapshotfile = "hydro_giant_dm.amuse"
         write_set_to_file(coupled_system.dm_particles, snapshotfile, format='amuse')
-        print "   Energies calculated"
+        print("   Energies calculated")
     
     coupled_system.stop()
     
@@ -163,7 +163,7 @@ def evolve_system(coupled_system, t_end, n_steps):
 
 def density_plot(coupled_system, i_step):
     if not HAS_PYNBODY:
-        print "problem plotting"
+        print("problem plotting")
         #return
     figname = os.path.join("plots", "hydro_giant{0:=04}.png".format(i_step))
     pynbody_column_density_plot(coupled_system.gas_particles, width=5|units.AU, vmin= 1e16, vmax= 1e34)
@@ -171,7 +171,7 @@ def density_plot(coupled_system, i_step):
     scatter(coupled_system.dm_particles[:-1].x, coupled_system.dm_particles[:-1].y, c="w")
     pyplot.savefig(figname)
     pyplot.close()
-    print "  -   Hydroplot saved to: ", figname
+    print("  -   Hydroplot saved to: ", figname)
 
 
 def energy_evolution_plot(time, kinetic, potential, thermal, figname = "energy_evolution.png"):
@@ -201,23 +201,23 @@ if __name__ == "__main__":
     
     new_working_directory()
     
-    print "Initializing triple"
+    print("Initializing triple")
     giant, binary = set_up_initial_conditions(relative_inclination)
-    print "\nInitialization done:\n", giant + binary
+    print("\nInitialization done:\n", giant + binary)
     
-    print "Converting giant from file {0} to {1} SPH particles".format(stellar_structure_file, number_of_sph_particles)
+    print("Converting giant from file {0} to {1} SPH particles".format(stellar_structure_file, number_of_sph_particles))
     sph_giant, core, core_radius = set_up_sph_giant(giant, stellar_structure_file, number_of_sph_particles)
 
 
-    print "\nSetting up {0} to simulate triple system".format(sph_code.__name__)
+    print("\nSetting up {0} to simulate triple system".format(sph_code.__name__))
     hydro = new_hydro(sph_code, sph_giant, core, t_end, n_steps, core_radius)
-    print "\nSetting up {0} to simulate triple system".format(dynamics_code.__name__)
+    print("\nSetting up {0} to simulate triple system".format(dynamics_code.__name__))
     binary_system = new_dynamics_for_binary(dynamics_code, binary)
-    print "\nSetting up Bridge to simulate triple system"
+    print("\nSetting up Bridge to simulate triple system")
     coupled_system = new_coupled_system(hydro, binary_system, t_end, n_steps)
     
-    print "\nEvolving to {0}".format(t_end)
+    print("\nEvolving to {0}".format(t_end))
     evolve_system(coupled_system, t_end, n_steps)
     
-    print "Done"
+    print("Done")
 

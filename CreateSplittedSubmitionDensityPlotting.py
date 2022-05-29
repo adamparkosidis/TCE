@@ -10,7 +10,7 @@ def main(args):
         else:
             chunkSize = 1
 
-    for i in xrange(args.BEGIN_STEP,args.LAST_STEP,chunkSize):
+    for i in range(args.BEGIN_STEP,args.LAST_STEP,chunkSize):
         jobName = "density" + args.RADII + str(i)
         innerDir = args.INNER_DIR
         if innerDir is None:
@@ -53,5 +53,5 @@ def InitParser():
 if __name__ == "__main__":
     parser = InitParser()
     args = parser.parse_args()
-    print args
+    print(args)
     main(args)

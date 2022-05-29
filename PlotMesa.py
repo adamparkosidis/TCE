@@ -103,7 +103,7 @@ class Star:
         self.pressure = (2.0 / 3) * self.specific_internal_energy_profile * self.density_profile
         self.sound_speed = (((5.0 / 3.0) * constants.kB * self.temperature /
                              self.mu_profile) ** 0.5).as_quantity_in(units.m / units.s)
-        print len(self.specific_internal_energy_profile), len(self.temperature), len(self.sound_speed)
+        print(len(self.specific_internal_energy_profile), len(self.temperature), len(self.sound_speed))
 
 
 def mu(X = None, Y = 0.25, Z = 0.02, x_ion = 0.1):
@@ -115,7 +115,7 @@ def mu(X = None, Y = 0.25, Z = 0.02, x_ion = 0.1):
     if X is None:
         X = 1.0 - Y - Z
     elif abs(X + Y + Z - 1.0) > 1e-6:
-        print "Error in calculating mu: mass fractions do not sum to 1.0"
+        print("Error in calculating mu: mass fractions do not sum to 1.0")
     return constants.proton_mass / (X*(1.0+x_ion) + Y*(1.0+2.0*x_ion)/4.0 + Z*x_ion/2.0)
 
 
@@ -138,13 +138,13 @@ def structure_from_star(star):
 
 def temperature_density_plot(outputDir, pickleFile):
     if not HAS_PYNBODY:
-        print "problem plotting"
+        print("problem plotting")
         return
     width = 5.0 | units.AU
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
 
     star = Star(outputDir + "/" + pickleFile)
-    print star.number_of_zones
+    print(star.number_of_zones)
     data = structure_from_star(star)
     adding = pickleFile.split("MESA")[-1]
     figure = pyplot.figure(figsize = (8, 10))
@@ -203,7 +203,7 @@ def temperature_density_plot(outputDir, pickleFile):
 def Plot1Axe(x, fileName, outputDir, timeStep= 1400.0/7000.0, beginTime = 0):
     if len(x) == 0:
         return
-    timeLine = [beginTime + time * timeStep for time in xrange(len(x))] | units.day
+    timeLine = [beginTime + time * timeStep for time in range(len(x))] | units.day
     native_plot.figure(figsize= (20, 20), dpi= 80)
     plot(timeLine,x)
     xlabel('time[days]')
@@ -240,13 +240,13 @@ def InitializeSnapshots(savingDir):
 
 def main(args= ["/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels"]):
     savingDir = GetArgs(args)
-    print "plotting pics to " +  savingDir + "/radial_profile" +  " from " +  os.path.join(os.getcwd(),savingDir)
+    print("plotting pics to " +  savingDir + "/radial_profile" +  " from " +  os.path.join(os.getcwd(),savingDir))
     try:
         os.makedirs(savingDir + "/radial_profile")
     except(OSError):
-        print ""
+        print("")
     pickleMesaFiles = InitializeSnapshots(savingDir)
-    print "found ",len(pickleMesaFiles) ," pickled files"
+    print("found ",len(pickleMesaFiles) ," pickled files")
     for pickleFile in pickleMesaFiles:
         temperature_density_plot(savingDir, pickleFile)
 

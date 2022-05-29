@@ -2,7 +2,7 @@ import os
 import time
 import argparse
 import pickle
-import ConfigParser
+import configparser
 from amuse.units import units, constants
 from amuse.lab import *
 from amuse.community.mesa.interface import MESA
@@ -38,8 +38,8 @@ class StellarModel:
 
 class SphStar:
     def __init__(self, pointStar, configurationFile="", configurationSection="", savedVersionPath="",savedMesaStarPath = "", takeSavedMesa = False, savedGas="", savedDm=""):
-        print 'parsing configurations'
-        parser = ConfigParser.ConfigParser()
+        print('parsing configurations')
+        parser = configparser.ConfigParser()
         parser.read(configurationFile)
         self.pointStar = pointStar
         self.sphParticles = float(parser.get(configurationSection, "sphParticles"))
@@ -122,7 +122,7 @@ class SphStar:
         evolutionType.initialize_code()
         evolutionType.parameters.stabilize_new_stellar_model_flag = False
         #evolutionType2=code()
-        print "evolving with MESA"
+        print("evolving with MESA")
         radiuses = []
         times = []
         p = Particle(mass= self.pointStar.mass)
@@ -136,16 +136,16 @@ class SphStar:
                 with open(savedMesa, 'rb') as mesaFile:
                     unpickledFile = pickle.load(mesaFile)
                     mainStar = evolutionType.new_particle_from_model(unpickledFile,unpickledFile.age)
-                    print "model loaded"
+                    print("model loaded")
                     #evolutionType.finalize_stellar_model(unpickledFile.age)
             else:
-                print "there is no such file as ", savedMesa
+                print("there is no such file as ", savedMesa)
         if mainStar is None:
             mainStar = evolutionType.particles.add_particle(self.pointStar)
 
-        print "particle with mass=",mainStar.mass,"  added, current radius = ", \
+        print("particle with mass=",mainStar.mass,"  added, current radius = ", \
             mainStar.radius.as_quantity_in(units.RSun)," current type=",mainStar.stellar_type,\
-            "  target radius = ", self.radius, " target type = ",stellar_type
+            "  target radius = ", self.radius, " target type = ",stellar_type)
         oldStellarType = mainStar.stellar_type.value_in(units.stellar_type)
         #if oldStellarType == 3:
 
@@ -176,18 +176,18 @@ class SphStar:
                         maxRadii = mainStar.radius
                     if mainStar.stellar_type.value_in(units.stellar_type)!= oldStellarType:
                         oldStellarType = mainStar.stellar_type.value_in(units.stellar_type)
-                        print mainStar.stellar_type, mainStar.temperature, mainStar.radius, maxRadii
+                        print(mainStar.stellar_type, mainStar.temperature, mainStar.radius, maxRadii)
                     E = self.CalculateBindingEnergy(mainStar)
                     #print "E=", E
                     #print "lamda=", (-constants.G * mainStar.mass * (mainStar.mass - mainStar.core_mass) / mainStar.radius) / E
                     mainStar.reset_number_of_backups_in_a_row()
                     mainStar.evolve_one_step()
                 except Exception as e:
-                    print "could not evolve further", e
+                    print("could not evolve further", e)
                     break
             currTime = time.time()
             if (currTime-oldTime) > 120:
-                print "*",mainStar.radius
+                print("*",mainStar.radius)
             oldTime = currTime
             #print mainStar.wind
             #old=mainStar2.age
@@ -212,7 +212,7 @@ class SphStar:
             radiuses.append(mainStar.radius)
             times.append(mainStar.age)
             if mainStar.stellar_type.value_in(units.stellar_type) != oldStellarType:
-                print mainStar.stellar_type, mainStar.mass,mainStar.core_mass, mainStar.temperature, mainStar.radius , maxRadii
+                print(mainStar.stellar_type, mainStar.mass,mainStar.core_mass, mainStar.temperature, mainStar.radius , maxRadii)
                 #print maxE, maxLambda
                 #save a pickle of all the mesa properties
                 outputCurrentFile = savingPath + "/" + code.__name__ + "_" + str(mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type))
@@ -231,8 +231,8 @@ class SphStar:
                     #maxLambda = (-constants.G * mainStar.mass * (mainStar.mass - mainStar.core_mass) / mainStar.radius) / maxE
         radiuses.append(mainStar.radius)
 
-        print evolutionType
-        print mainStar
+        print(evolutionType)
+        print(mainStar)
         outputCurrentFile = savingPath + "/" + code.__name__ + "_" + str(
             mainStar.mass.value_in(units.MSun)) + "_" + str(mainStar.stellar_type.value_in(units.stellar_type))
         if not os.path.isfile(outputCurrentFile):
@@ -246,7 +246,7 @@ class SphStar:
         textFile = open(savingPath + '/times_' + str(mainStar.mass.value_in(units.MSun)) + '.txt', 'w')
         textFile.write(', '.join([str(y) for y in times]))
         textFile.close()
-        print "star saved to: ", savingPath + "/" + code.__name__ , "mass: ",mainStar.mass, "stellar type:", mainStar.stellar_type
+        print("star saved to: ", savingPath + "/" + code.__name__ , "mass: ",mainStar.mass, "stellar type:", mainStar.stellar_type)
         return mainStar
 
 def Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels", takeSavedState = False, step = -1,
@@ -262,9 +262,9 @@ def Start(savedVersionPath = "/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels"
     system.gas_particles.add_particles(sphStar.gas_particles)
     StarModels.SaveDm(savedVersionPath+"/dm_" + str(sphStar.pointStar.mass.value_in(units.MSun)) + "_" + str(sphStar.stellar_type.value_in(units.stellar_type)) +".amuse", system.dm_particles)
     StarModels.SaveGas(savedVersionPath+"/gas_" + str(sphStar.pointStar.mass.value_in(units.MSun)) + "_" + str(sphStar.stellar_type.value_in(units.stellar_type)) +".amuse", system.gas_particles)
-    print "state saved - {0}".format(savedVersionPath)
+    print("state saved - {0}".format(savedVersionPath))
 
-    print "****************** Simulation Completed ******************"
+    print("****************** Simulation Completed ******************")
 
 def InitParser():
     parser = argparse.ArgumentParser(description='')
@@ -280,12 +280,12 @@ if __name__ == "__main__":
     if args.configuration_file == "":
         configuration_files = [config_file for config_file in os.listdir(args.saving_path) if "Configuration.ini" in config_file]
         if len(configuration_files) > 1:
-            print "cant figure out which configuration file to use"
+            print("cant figure out which configuration file to use")
             raise Exception("too many confing files")
         configuration_file = os.path.join(args.saving_path,configuration_files[0])
     else:
         configuration_file = args.configuration_file
-    print "taking config file: ", configuration_file
+    print("taking config file: ", configuration_file)
     Start(savedVersionPath = args.saving_path, takeSavedState = args.takeSavedMesa, step = -1, configurationFile = configuration_file
           ,savedMesaPath= args.savedMesaFile)
     #Start(savedVersionPath="/vol/sci/astro/bigdata/glanz/amuse10/savings/MesaModels/HotJupiter", takeSavedState=False,step=-1,configurationFile="/vol/sci/astro/bigdata/glanz/amuse10/savings/MesaModels/HotJupiter/HJConfiguration.ini")

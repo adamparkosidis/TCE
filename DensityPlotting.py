@@ -66,7 +66,7 @@ class Star:
         self.velocityDifference = CalculateVelocityDifference(particle1,particle2)
         self.separation = CalculateSeparation(particle1,particle2)
         self.specificEnergy = CalculateSpecificEnergy(self.velocityDifference,self.separation,particle1,particle2)
-        print("inner specific energy: ", self.specificEnergy)
+        print(("inner specific energy: ", self.specificEnergy))
         self.potentialEnergy = particles.potential_energy()
         self.kineticEnergy = particles.kinetic_energy()
         particles.move_to_center()
@@ -123,13 +123,13 @@ class SphGiant:
         self.coreKinetic = 0.5 * self.core.mass * (CalculateVectorSize(self.core.velocity))**2
         self.kineticEnergy = self.gasKinetic + self.coreKinetic
         self.thermalEnergy = self.gasParticles.thermal_energy()
-        print("giant kinetic: ", self.kineticEnergy)
-        print("giant thermal: ", self.thermalEnergy)
+        print(("giant kinetic: ", self.kineticEnergy))
+        print(("giant thermal: ", self.thermalEnergy))
         self.gasPotential = self.GasPotentialEnergy()
-        print("gas potential: ", self.gasPotential)
+        print(("gas potential: ", self.gasPotential))
         self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core, 0.0 | units.m)
         #self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core, self.core.radius/2.8)
-        print("giant potential: ", self.potentialEnergy)
+        print(("giant potential: ", self.potentialEnergy))
         #print "potential energies: ", self.gasPotential, self.gasParticles.mass[-1]*self.gas.mass*constants.G/self.radius
         #self.potentialEnergy = self.gasPotential + self.potentialEnergyWithParticle(self.core)
 
@@ -212,14 +212,14 @@ class SphGiant:
                           com_velocity = [0.0,0.0,0.0] | units.m / units.s):
         self.innerGas = Star(None, None)
         radius = CalculateVectorSize(CalculateSeparation(relativeParticle, self.core))
-        print(time.ctime(), "beginning inner gas calculation")
+        print((time.ctime(), "beginning inner gas calculation"))
         self.CalculateSphMassVelocityAndPositionInsideRadius(radius, includeCore=True, centeralParticle=relativeParticle,
                                                              localRadius=localRadius, com_position_for_angular_momenta=com_position,
                                                              com_velocity_for_angular_momenta=com_velocity)
         self.innerGas.x , self.innerGas.y, self.innerGas.z = self.innerGas.position
         self.innerGas.kineticEnergy = 0.5*self.innerGas.mass*CalculateVectorSize(self.innerGas.v)**2
 
-        print(time.ctime(), "calculated!")
+        print((time.ctime(), "calculated!"))
     def CalculateTotalGasMassInsideRadius(self, radius):
         innerMass = self.core.mass
         for particle in self.gasParticles:
@@ -291,7 +291,7 @@ class SphGiant:
                     self.localMass += particle.mass
                     particlesAroundCenteral += 1
 
-        print(time.ctime(), particlesAroundCore, particlesAroundCenteral)
+        print((time.ctime(), particlesAroundCore, particlesAroundCenteral))
         if particlesAroundCore > 0:
             totalMass=  self.innerGas.mass.value_in(units.MSun)
             self.innerGas.vxTot = velocityAndMass[0] / totalMass
@@ -335,7 +335,7 @@ class SphGiant:
             #com_particle.mass -= self.core.mass
             extra_potential = [CalculatePotentialEnergy(particle, companion) / particle.mass for particle in
                                self.gasParticles]
-        print("using method ", method)
+        print(("using method ", method))
         if method == "estimated":
             specificEnergy = [CalculateSpecificEnergy(particle.velocity - com_velocity, particle.position - com_position,
                                                      particle, com_particle) for particle in self.gasParticles]
@@ -358,7 +358,7 @@ class SphGiant:
                 self.leavingParticles += 1
                 self.totalUnboundedMass += particle.mass
 
-        print("over speed ", particlesExceedingMaxVelocity*100.0 / len(self.gasParticles), "limit: ", velocityLimitMax)
+        print(("over speed ", particlesExceedingMaxVelocity*100.0 / len(self.gasParticles), "limit: ", velocityLimitMax))
 
         return self.leavingParticles
     def CalculateGasSpecificPotentials(self):
@@ -542,8 +542,8 @@ def GetPropertyAtRadius(mesaStarPropertyProfile, mesaStarRadiusProfile, radius):
 
 def CalculateCumulantiveMass(densityProfile, radiusProfile):
     profileLength = len(radiusProfile)
-    cmass = [densityProfile[0] * 4.0/3.0 * constants.pi * radiusProfile[0] ** 3 for i in xrange(profileLength)]
-    for i in xrange(1, profileLength):
+    cmass = [densityProfile[0] * 4.0/3.0 * constants.pi * radiusProfile[0] ** 3 for i in range(profileLength)]
+    for i in range(1, profileLength):
         dr = radiusProfile[i] - radiusProfile[i-1]
         cmass[i] = (cmass[i-1] + densityProfile[i] * 4.0 * constants.pi*(radiusProfile[i] ** 2) * dr)
     vectormass = [m.value_in(units.MSun) for m in cmass]
@@ -562,11 +562,11 @@ def CalculateTau(densityProfile, radiusProfile, coreRadius, coreDensity,temperat
     kappa = 12.0 | units.cm**2 / units.g
     #kappa = (3.8*10**22)*(1 + X)* (X + Y)* densityProfile * temperatureProfile**(-7.0/2)
     #print kappa
-    tauPoint = [kappa * densityProfile[i] * (radiusProfile[i+1] - radiusProfile[i]) for i in xrange(0, radiusIndex)]
+    tauPoint = [kappa * densityProfile[i] * (radiusProfile[i+1] - radiusProfile[i]) for i in range(0, radiusIndex)]
     tauPoint.append((0.0 |(units.g*units.cm**-2))*kappa)
     tau = tauPoint
     tau[radiusIndex] = tauPoint[radiusIndex]
-    for i in xrange(radiusIndex - 1, 0 , -1 ):
+    for i in range(radiusIndex - 1, 0 , -1 ):
         tau[i] = tau[i + 1] + tauPoint[i]
     #print tau[-1], tau[-100]
     i = radiusIndex
@@ -604,7 +604,7 @@ def structure_from_star(star):
     cumulative_mass_profile = CalculateCumulantiveMass(density_profile, radius_profile)
     tau = CalculateTau(density_profile, radius_profile, 0.0159 | units.RSun, (0.392|units.MSun)/((4.0/3.0)*constants.pi*(0.0159 |units.RSun)**3), star.temperature, radius_profile[-100])
     sound_speed = star.temperature / star.temperature | units.cm / units.s
-    for i in xrange(len(star.temperature)):
+    for i in range(len(star.temperature)):
         sound_speed[i] = math.sqrt(((5.0/3.0) * constants.kB * star.temperature[i] / mu()).value_in(units.m **2 * units.s**-2)) | units.m / units.s
     return dict(
         radius = radius_profile.as_quantity_in(units.RSun),
@@ -740,13 +740,13 @@ def temperature_density_plot(sphGiant, step, outputDir, toPlot = False, plotDust
         mdot = (4.0 * constants.pi * (dustRadius)**2 * GetPropertyAtRadius(data["density"],data["radius"], dustRadius) * GetPropertyAtRadius(data["sound_speed"],data["radius"],dustRadius)).as_quantity_in(units.MSun / units.yr)
         m =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], dustRadius)
         M =  GetPropertyAtRadius(data["cumulative_mass"], data["radius"], 7000.0 | units.RSun)
-        print("Mdot at 340: ", mdot)
-        print("cs at 340: ",  GetPropertyAtRadius(data["sound_speed"],data["radius"], dustRadius))
+        print(("Mdot at 340: ", mdot))
+        print(("cs at 340: ",  GetPropertyAtRadius(data["sound_speed"],data["radius"], dustRadius)))
         #print "tau at 3000: ",  GetPropertyAtRadius(data["tau"],data["radius"], 3000.0 | units.RSun)
-        print("density at 340: ",  GetPropertyAtRadius(data["density"],data["radius"], dustRadius))
-        print("m over 340: ", (M - m))
-        print("M total: ", M)
-        print("time: ", ((M-m)/mdot))
+        print(("density at 340: ",  GetPropertyAtRadius(data["density"],data["radius"], dustRadius)))
+        print(("m over 340: ", (M - m)))
+        print(("M total: ", M))
+        print(("time: ", ((M-m)/mdot)))
 
 
 
@@ -869,7 +869,7 @@ def Plot1Axe(x, fileName, outputDir, timeStep= 1400.0/7000.0, beginStep = 0, toP
     if len(x) == 0:
         return
     beginTime = beginStep * timeStep
-    timeLine = [beginTime + time * timeStep for time in xrange(len(x))] | units.day
+    timeLine = [beginTime + time * timeStep for time in range(len(x))] | units.day
 
     textFile = open(outputDir + '/' + fileName + 'time_' + str(beginTime) + "_to_" + str(beginTime + (len(x) - 1.0) * timeStep) + 'days.txt', 'w')
     textFile.write(', '.join([str(y) for y in x]))
@@ -900,12 +900,12 @@ def PlotQuadropole(Qxx,Qxy,Qxz,Qyx, Qyy,Qyz,Qzx,Qzy,Qzz, outputDir = 0, timeStep
     if len(Qxx) == 0:
         return
     beginTime = beginStep * timeStep
-    timeLine = [beginTime + time * timeStep for time in xrange(len(Qxx))] | units.day
+    timeLine = [beginTime + time * timeStep for time in range(len(Qxx))] | units.day
 
     textFile = open(outputDir + '/quadropole_time_' + str(beginTime) + "_to_" + str(beginTime + (len(Qxx) - 1.0) * timeStep) + 'days.txt', 'w')
 
     textFile.write("Qxx,Qxy,Qxz,Qyx,Qyy,Qyz,Qzx,Qzy,Qzz\r\n")
-    for i in xrange(0, len(Qxx)):
+    for i in range(0, len(Qxx)):
         textFile.write(' ,'.join([str(Qxx[i] * 10**40), str(Qxy[i] * 10**40), str(Qxz[i] * 10**40),
                                   str(Qyx[i] * 10**40), str(Qyy[i] * 10**40), str(Qyz[i] * 10**40),
                                   str(Qzx[i] * 10**40), str(Qzy[i] * 10**40), str(Qzz[i] * 10**40)]))
@@ -930,7 +930,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
 
     for index,step in enumerate(chunk):
         i = beginStep + index
-        print("step #",i)
+        print(("step #",i))
 
         for f in [obj for obj in gc.get_objects() if isinstance(obj, h5py.File)]:
             try:
@@ -969,7 +969,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
         if isBinary:
             if CalculateVectorSize(CalculateSeparation(sphGiant.core, companion)) < min(sphGiant.core.radius,
                                                                                         companion.radius):
-                print("merger between companion and the giant! step: ", step)
+                print(("merger between companion and the giant! step: ", step))
                 # break
 
             parts = Particles()
@@ -977,8 +977,8 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
             parts.add_particles(sphGiant.gasParticles)
             parts.add_particle(companion)
 
-            print("com: ", parts.center_of_mass(), step)
-            print("com v: ", parts.center_of_mass_velocity(), i)
+            print(("com: ", parts.center_of_mass(), step))
+            print(("com v: ", parts.center_of_mass_velocity(), i))
             
             centerOfMassPosition = parts.center_of_mass()
             centerOfMassVelocity = parts.center_of_mass_velocity()
@@ -1111,7 +1111,7 @@ def AnalyzeBinaryChunk(savingDir,gasFiles,dmFiles,outputDir,chunk, vmin, vmax, b
         companion.position -= central_position
         companion.velocity -= central_velocity
         
-        print(central_position.as_quantity_in(units.AU), sphGiant.gasParticles.center_of_mass().as_quantity_in(units.AU),sphGiant.core.position.as_quantity_in(units.AU))
+        print((central_position.as_quantity_in(units.AU), sphGiant.gasParticles.center_of_mass().as_quantity_in(units.AU),sphGiant.core.position.as_quantity_in(units.AU)))
         
         temperature_density_plot(sphGiant, step, outputDir, toPlot)
         #innerAngularMomenta[i] = sphGiant.innerGas.angularMomentum[2].value_in(innerAngularMomentaUnits)
@@ -1142,14 +1142,14 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
     specificAngularMomentumUnits = (energyUnits * units.s / units.kg) * 10000
 
     for i in [j - beginStep for j in chunk]:
-        print(time.ctime(), "step: ", i)
+        print((time.ctime(), "step: ", i))
         gas_particles_file = os.path.join(os.getcwd(), savingDir,gasFiles[i + beginStep])
         dm_particles_file = os.path.join(os.getcwd(),savingDir, dmFiles[i + beginStep])
 
         sphGiant = SphGiant(gas_particles_file, dm_particles_file, opposite= opposite)
-        print(sphGiant.core)
+        print((sphGiant.core))
         if i == 1:
-            print(sphGiant.gasParticles[0])
+            print((sphGiant.gasParticles[0]))
         #print "neigbbours:", sphGiant.FindLowestNumberOfNeighbours()
         #print "smallest cell radius: ", sphGiant.FindSmallestCell()
         #binary = Particles(2,pickle.load(open(os.path.join(os.getcwd(),savingDir,"binary.p"),"rb")))
@@ -1161,8 +1161,8 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         #change the position and velocity of center of mass to 0
         centerOfMassPosition = (sphGiant.position * sphGiant.mass + innerBinary.position * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
         centerOfMassVelocity = (sphGiant.v * sphGiant.mass + innerBinary.velocity * innerBinary.mass) / (sphGiant.mass + innerBinary.mass)
-        print("center of mass position: ", centerOfMassPosition)
-        print("center of mass velocity: ", centerOfMassVelocity)
+        print(("center of mass position: ", centerOfMassPosition))
+        print(("center of mass velocity: ", centerOfMassVelocity))
 
         comParticle = Particle()
         comParticle.position = centerOfMassPosition
@@ -1175,31 +1175,31 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
         eInner = CalculateEccentricity(particle1,particle2)
 
         if CalculateVectorSize(innerBinary.separation) <= particle1.radius+ particle2.radius:
-            print("merger between the inner binary!" , innerBinary.separation.as_quantity_in(units.RSun) , i * timeStep)
+            print(("merger between the inner binary!" , innerBinary.separation.as_quantity_in(units.RSun) , i * timeStep))
 
         if CalculateVectorSize(CalculateSeparation(sphGiant.core,particle1)) <= sphGiant.core.radius + particle1.radius:
-            print("merger between particle1 and the giant!" , i * timeStep)
+            print(("merger between particle1 and the giant!" , i * timeStep))
             #break
 
         if CalculateVectorSize(CalculateSeparation(sphGiant.core, particle2)) <= sphGiant.core.radius+ particle2.radius:
-            print("merger between particle 2 and the giant!" , i * timeStep)
+            print(("merger between particle 2 and the giant!" , i * timeStep))
             #break
         #check if the binry is breaking up
         if innerBinary.specificEnergy > 0 | (units.m **2 / units.s **2):
-            print("binary is breaking up", innerBinary.specificEnergy , i * timeStep)
+            print(("binary is breaking up", innerBinary.specificEnergy , i * timeStep))
 
         #check if the couple particle1 + giant are breaking up
             if triple1.specificEnergy > 0 | (units.m **2 / units.s **2):
-                print("triple1 is breaking up", triple1.specificEnergy , i * timeStep)
+                print(("triple1 is breaking up", triple1.specificEnergy , i * timeStep))
 
                 #check if the couple particle2 + giant are also breaking up
                 if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
-                    print("triple2 is also breaking up", triple2.specificEnergy , i * timeStep)
+                    print(("triple2 is also breaking up", triple2.specificEnergy , i * timeStep))
                     #break
 
             #check if the couple particle2 + giant are breaking up
             if triple2.specificEnergy > 0 | (units.m **2 / units.s **2):
-                print("triple2 is breaking up", triple2.specificEnergy, i * timeStep)
+                print(("triple2 is breaking up", triple2.specificEnergy, i * timeStep))
 
             separationStep = 0
         '''
@@ -1328,9 +1328,9 @@ def AnalyzeTripleChunk(savingDir, gasFiles, dmFiles, outputDir, chunk, vmin, vma
                 central_position = innerBinary.position
                 central_velocity = innerBinary.velocity
             '''
-            print(time.ctime(), "temperature_density_plotting of step ", i)
+            print((time.ctime(), "temperature_density_plotting of step ", i))
             temperature_density_plot(sphGiant, i + beginStep , outputDir, toPlot)
-            print(time.ctime(), "finished temperature plotting of step: ", i)
+            print((time.ctime(), "finished temperature plotting of step: ", i))
             sphGiant.gasParticles.position -= central_position
             sphGiant.gasParticles.velocity -= central_velocity
             sphGiant.core.position -= central_position
@@ -1361,7 +1361,7 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     else:
         lastStep=min(lastStep, len(dmFiles))
     print(lastStep)
-    workingRange = range(beginStep, lastStep,skip)
+    workingRange = list(range(beginStep, lastStep,skip))
     energyUnits = units.kg*(units.km**2)/(units.s**2)
     angularMomentaUnits = energyUnits * units.s * 10000
 
@@ -1408,9 +1408,9 @@ def AnalyzeBinary(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     leftovers = len(workingRange) - cpus * chunkSize
     chunks = []
     chunks += [workingRange[i:i+min(chunkSize+1,len(workingRange)-i)] for i in
-               xrange(0,leftovers*(chunkSize+1),chunkSize+1)]
+               range(0,leftovers*(chunkSize+1),chunkSize+1)]
     chunks += [workingRange[i:i+min(chunkSize,len(workingRange)-i)] for i in
-               xrange(leftovers*(chunkSize+1),len(workingRange),chunkSize)]
+               range(leftovers*(chunkSize+1),len(workingRange),chunkSize)]
 
     processes = []
     print(chunks)
@@ -1494,7 +1494,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     eOuters = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     eOuters1 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)]) # for the couple particle1 + giant
     eOuters2 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)]) # for the couple particle2 + giant
-    inclinations = multiprocessing.Array('f', range(beginStep, lastStep))
+    inclinations = multiprocessing.Array('f', list(range(beginStep, lastStep)))
     innerMass = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     innerMass1 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
     innerMass2 = multiprocessing.Array('f', [-1.0 for i in range(beginStep, lastStep)])
@@ -1541,20 +1541,20 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
 
     cpus = multiprocessing.cpu_count() - 6
     chunkSize= (lastStep-beginStep)/(multiprocessing.cpu_count() - 6)
-    print("using ", multiprocessing.cpu_count() - 6, " cpus")
+    print(("using ", multiprocessing.cpu_count() - 6, " cpus"))
     if chunkSize == 0:
         if lastStep - beginStep == 0:
             return
         else:
             chunkSize = 1
 
-    chunks = [xrange(i,i+chunkSize) for i in xrange(beginStep,lastStep,chunkSize)]
+    chunks = [range(i,i+chunkSize) for i in range(beginStep,lastStep,chunkSize)]
     
     if len(chunks) > 1:
         lastChunkBegin = chunks[-2][-1]
     else:
         lastChunkBegin = beginStep
-    chunks[-1] = xrange(lastChunkBegin, lastStep)
+    chunks[-1] = range(lastChunkBegin, lastStep)
     processes = []
     print(chunks)
     for chunk in chunks:
@@ -1592,7 +1592,7 @@ def AnalyzeTriple(beginStep, lastStep, dmFiles, gasFiles, savingDir, outputDir, 
     newInnerMass1 = AdaptingVectorQuantity()
     newInnerMass2 = AdaptingVectorQuantity()
     newLocalDensity = AdaptingVectorQuantity()
-    for j in xrange(len(binaryDistances)-1):
+    for j in range(len(binaryDistances)-1):
         newBinaryDistances.append(float(binaryDistances[j]) | units.RSun)
         newTripleDistances.append(float(tripleDistances[j]) | units.RSun)
         newTriple1Distances.append(float(triple1Distances[j]) | units.RSun)
@@ -1742,10 +1742,10 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
     savingDir = os.path.join(args.source_dir, args.savingDir)
     outputDir = os.path.join(savingDir,"pics")
     toCompare = (args.savingDir != "snapshots")
-    print("plotting to " +  outputDir + " plot- " + str(args.plot) +  " from " +  args.savingDir +" begin step = " , args.beginStep , \
+    print(("plotting to " +  outputDir + " plot- " + str(args.plot) +  " from " +  args.savingDir +" begin step = " , args.beginStep , \
         " vmin, vmax = " , args.vmin, args.vmax, "special comparing = ", toCompare, "axes at the origin? ", \
         args.axesOriginInInnerBinaryCenterOfMass, "opossite? ", args.opposite, "timeStep= ", args.timeStep,
-          "localRadius= ",args.localRadius)
+          "localRadius= ",args.localRadius))
     '''savingDir, toCompare, beginStep, lastStep, vmin, vmax, outputDir, plot, axesOriginInInnerBinaryCenterOfMass, \
         opposite, timeStep, localRadius = GetArgs(args)
     print "plotting to " +  outputDir + " plot- " + str(plot) +  " from " +  savingDir +" begin step = " , beginStep , \
@@ -1793,5 +1793,5 @@ def main(args= ["../../BIGDATA/code/amuse-10.0/runs200000/run_003","evolution",0
 if __name__ == "__main__":
     for arg in sys.argv:
         print(arg)
-    print(len(sys.argv))
+    print((len(sys.argv)))
     main(sys.argv)

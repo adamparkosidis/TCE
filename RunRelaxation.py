@@ -1,6 +1,6 @@
 import os
 import time
-import ConfigParser
+import configparser
 import sys
 import glob
 import math
@@ -23,14 +23,14 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=True, coreMass = 0|un
     creating the binary
     :return:main star's mass, the envelope particles, the core particles, the binary stars and the binary semmimajor
     '''
-    parser = ConfigParser.ConfigParser()
+    parser = configparser.ConfigParser()
     parser.read(configurationFile)
     sphParticles = float(parser.get("Star", "sphParticles"))
     internal_structure = CreateMesaDictionaryFromFiles(mesaPath)
     internal_structure = AddUnits(internal_structure)
     #stellarModel = derive_stellar_structure(internal_structure)
     mesa= MESA()
-    print "initializing mesa code"
+    print("initializing mesa code")
     part = Particle()
     part.mass= 1.0 | units.MSun
     mesa.particles.add_particle(part)
@@ -38,7 +38,7 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=True, coreMass = 0|un
     gadget = Gadget2()
     gadget.gas_particles.add_particles(sphStar)
     mesaParticle = convert_SPH_to_stellar_model(gadget.gas_particles)
-    print mesaParticle
+    print(mesaParticle)
     #mesa.parameters.metallicity = 0.3
     #mesa.new_stellar_model()
     #mesa.initialize_code()
@@ -51,7 +51,7 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=True, coreMass = 0|un
     savedDm = read_set_from_file(savedPath + "dm_1.amuse", format='amuse')
     mesaParticle = convert_SPH_to_stellar_model(sph_particles=savedGas, core_particle=savedDm[0])
     #mesaParticle =  mesa.new_particle_from_model(internal_structure, 0.0 | units.Myr)
-    print mesa.new_particle_from_model(mesaParticle, 0.0 | units.Myr)
+    print(mesa.new_particle_from_model(mesaParticle, 0.0 | units.Myr))
     if withCoreParticle:
         sphStar = convert_stellar_model_to_SPH(mesa.particles[0], sphParticles,
                                                with_core_particle = withCoreParticle, target_core_mass  = coreMass ,
@@ -59,7 +59,7 @@ def Run(configurationFile, mesaPath = "", withCoreParticle=True, coreMass = 0|un
     else:
         sphStar = convert_stellar_model_to_SPH(mesa.particles[0], sphParticles,
                                                        do_store_composition = True,base_grid_options=dict(type="fcc"))
-    print "Now having the sph star and the binaries, ready for relaxing"
+    print("Now having the sph star and the binaries, ready for relaxing")
     starEnvelope, dmStars = Relax(sphStar.gas_particles, sphStar.core_particle, endTime= sphStar.relaxationTime, timeSteps=sphStar.relaxationTimeSteps,
         savedVersionPath = "mesaPath", saveAfterMinute = 1, step = -1, sphCode = Gadget2,
           numberOfWorkers = sphStar.numberOfWorkers)
@@ -76,13 +76,13 @@ def HydroSystem(sphCode, envelope, core, t_end, n_steps, beginTime, core_radius,
     system.parameters.begin_time = beginTime
     #if sphCode.__name__ =="Gadget2":
         #system.parameters.number_of_workers = numberOfWorkers
-    print "core radius before: ", core.radius
+    print("core radius before: ", core.radius)
     if sphCode.__name__ == "Gadget2":
         core.radius = core_radius * 2
         #core.radius = core_radius
     else:
         core.radius = core_radius
-    print "core radius:", core.radius.as_string_in(units.RSun)
+    print("core radius:", core.radius.as_string_in(units.RSun))
     system.dm_particles.add_particle(core)
     system.gas_particles.add_particles(envelope)
     return system
@@ -184,8 +184,8 @@ def Relax(sphEnvelope, sphCore, endTime= 10000 | units.yr, timeSteps = 3 ,
     #    x, y, z = pickle.load(open(savedVersionPath+"xyz.p", 'rb'))
     currentSecond = time.time()
 
-    print "starting SPH " + adding
-    print "evolving from step ", step + 1
+    print("starting SPH " + adding)
+    print("evolving from step ", step + 1)
 
     while currentTime < endTime:
         step += 1
@@ -194,15 +194,15 @@ def Relax(sphEnvelope, sphCore, endTime= 10000 | units.yr, timeSteps = 3 ,
         relaxingVFactor = (step * 1.0 / timeSteps)
         particles.velocity = relaxingVFactor * (particles.velocity - particles.center_of_mass_velocity()) + centerOfMassV
         hydroSystem.evolve_model(currentTime)
-        print "   Evolved to:", currentTime.as_quantity_in(units.day)
-        print "   Energies calculated"
+        print("   Evolved to:", currentTime.as_quantity_in(units.day))
+        print("   Energies calculated")
 
         currentTime += timeStep
         if (time.time() - currentSecond) > saveAfterMinute * 60:
             if savedVersionPath != "":
                 StarModels.SaveGas(savedVersionPath + "/" + adding + "/gas_{0}.amuse".format(step), hydroSystem.gas_particles)
                 StarModels.SaveDm(savedVersionPath + "/" + adding + "/dm_{0}.amuse".format(step), hydroSystem.dm_particles)
-                print "state saved - {0}".format(savedVersionPath) + "/" + adding
+                print("state saved - {0}".format(savedVersionPath) + "/" + adding)
                 currentSecond = time.time()
         dm = hydroSystem.dm_particles.copy()
         gas = hydroSystem.gas_particles.copy()

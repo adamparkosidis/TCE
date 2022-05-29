@@ -61,7 +61,7 @@ def mu(X = None, Y = 0.25, Z = 0.02, x_ion = 0.1):
     if X is None:
         X = 1.0 - Y - Z
     elif abs(X + Y + Z - 1.0) > 1e-6:
-        print "Error in calculating mu: mass fractions do not sum to 1.0"
+        print("Error in calculating mu: mass fractions do not sum to 1.0")
     return constants.proton_mass / (X*(1.0+x_ion) + Y*(1.0+2.0*x_ion)/4.0 + Z*x_ion/2.0)
 
 
@@ -81,7 +81,7 @@ def structure_from_star(star):
 
 def temperature_density_plot(outputDir, pickleFile):
     if not HAS_PYNBODY:
-        print "problem plotting"
+        print("problem plotting")
         return
     width = 5.0 | units.AU
     length_unit, pynbody_unit = _smart_length_units_for_pynbody_data(width)
@@ -125,7 +125,7 @@ def temperature_density_plot(outputDir, pickleFile):
 def Plot1Axe(x, fileName, outputDir, timeStep= 1400.0/7000.0, beginTime = 0):
     if len(x) == 0:
         return
-    timeLine = [beginTime + time * timeStep for time in xrange(len(x))] | units.day
+    timeLine = [beginTime + time * timeStep for time in range(len(x))] | units.day
     native_plot.figure(figsize= (20, 20), dpi= 80)
     plot(timeLine,x)
     xlabel('time[days]')
@@ -161,7 +161,7 @@ def InitializeSnapshots(savingDir):
 
 def main(args= ["/BIGDATA/code/amuse-10.0/Glanz/savings/MesaModels"]):
     savingDir = GetArgs(args)
-    print "plotting pics to " +  savingDir +  " from " +  savingDir
+    print("plotting pics to " +  savingDir +  " from " +  savingDir)
     try:
         os.makedirs(savingDir + "/radial_profile")
     except(OSError):

@@ -6,9 +6,9 @@ from amuse.io import  read_set_from_file
 from amuse.units import units
 
 def GetHeadresFromObject(object, finiteChar=""):
-    print help(object)
-    print object.__array_interface__
-    print object.__dir__.__dict__
+    print(help(object))
+    print(object.__array_interface__)
+    print(object.__dir__.__dict__)
     csvHeaders = ""
     for key in object.__dict__:
         csvHeaders += key + finiteChar + ","
@@ -94,12 +94,12 @@ if __name__ == "__main__":
         numberOfSnapshots = len(snapshots) - 1
     else:
         numberOfSnapshots = args.last
-    print numberOfSnapshots
+    print(numberOfSnapshots)
     if args.time_step is None:
         args.time_step = 0.2
     args.time_step = args.time_step | units.day
     offset = 0
-    for n in xrange(args.first, numberOfSnapshots):
+    for n in range(args.first, numberOfSnapshots):
         binState = GetBinaryStateFromFile(args.source_dir, str(n+offset))
         while not binState:
             offset += 1
@@ -115,5 +115,5 @@ if __name__ == "__main__":
     file = open(args.source_dir + "/resultCSV.csv", mode="w")
     file.write(csvData)
     file.close()
-    print "file saved to ", args.source_dir + "/resultCSV.csv"
+    print("file saved to ", args.source_dir + "/resultCSV.csv")
 

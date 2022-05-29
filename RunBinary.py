@@ -172,7 +172,7 @@ def CreateTwoSPHBinarySystem(configurationFile, savedPath = "", takeSavedSPH = 0
     totalCores = Particles()
     totalCores.add_particle(star1Core)
     totalCores.add_particle(star2Core)
-    StarModels.SaveState(savedPath, totalEnvelope.total_mass() + totalCores.mass, totalEnvelope, totalCores, binary.semimajorAxis, sph1MetaData)
+    StarModels.SaveState(savedPath, totalEnvelope.total_mass() + totalCores.total_mass() , totalEnvelope, totalCores, binary.semimajorAxis, sph1MetaData)
     #now a trick so that the usuall code will include all particles in the hydro- all envelopes and core1 will be added from binary0 and core2 as the companion.
     binary.stars[-1].mass = star2Core.mass
     binary.stars[-1].position = star2Core.position

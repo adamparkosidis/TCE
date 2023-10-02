@@ -1,6 +1,7 @@
 import os
 import time
 import os.path
+import functools
 import sys
 import threading
 import multiprocessing
@@ -1715,8 +1716,8 @@ def InitializeSnapshots(savingDir, toCompare=False, firstFile=0):
         if 'gas' in snapshotFile:
             gasFiles.append(snapshotFile)
     if toCompare:
-        dmFiles.sort(cmp=compare)
-        gasFiles.sort(cmp= compare)
+        dmFiles.sort(key=functools.cmp_to_key(compare))
+        gasFiles.sort(key=functools.cmp_to_key(compare))
     else:
         dmFiles.sort()
         gasFiles.sort()

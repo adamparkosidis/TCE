@@ -24,7 +24,8 @@ from amuse.datamodel import Particles, Particle
 from amuse.ext import sph_to_star
 from amuse.io import write_set_to_file, read_set_from_file
 
-from amuse.plot import scatter, xlabel, ylabel, plot, pynbody_column_density_plot, HAS_PYNBODY, _smart_length_units_for_pynbody_data, convert_particles_to_pynbody_data, UnitlessArgs, semilogx, semilogy, loglog, xlabel, ylabel
+from amuse.plot import *
+    #scatter, xlabel, ylabel, plot, pynbody_column_density_plot, HAS_PYNBODY, _smart_length_units_for_pynbody_data, convert_particles_to_pynbody_data, UnitlessArgs, semilogx, semilogy, loglog, xlabel, ylabel
 
 from matplotlib import pyplot
 import pynbody

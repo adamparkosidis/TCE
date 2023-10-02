@@ -30,7 +30,8 @@ from matplotlib import pyplot
 import pynbody
 import pynbody.plot.sph as pynbody_sph
 from pynbody.analysis import angmom
-from amuse.plot import scatter, xlabel, ylabel, plot, native_plot, sph_particles_plot, circle_with_radius, axvline
+from amuse.plot import *
+#scatter, xlabel, ylabel, plot, native_plot, sph_particles_plot, circle_with_radius, axvline
 from BinaryCalculations import *
 
 class Star:
